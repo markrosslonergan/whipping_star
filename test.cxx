@@ -357,10 +357,14 @@ while(iarg != -1)
 
 
 
-SBNspec temp("uBooNE");
+
+
+SBNspec temp("test");
 SBNchi chi(temp);
 
+temp.calcFullVector();
+temp.calcFullVector();
 
-
+std::cout<<"Full vector is of size: "<<temp.fullVec.size()<<std::endl;
 
 }

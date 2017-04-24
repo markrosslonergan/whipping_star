@@ -7,7 +7,11 @@
 
 SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
 	SBNconfig();
-	std::cout<<Bins[0]<<" "<<Ndet<<std::endl;
+//	std::cout<<Bins[0]<<" "<<Ndet<<std::endl;
+
+
+
+
 }
 
 

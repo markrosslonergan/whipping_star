@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <map>
 //#include <libconfig.h++>
 
 class SBNconfig {
@@ -16,13 +17,18 @@ class SBNconfig {
 	int Chan[100];
 	int Bins[100];
 
+	int Tdet;
+	int Tmode;
+	int Tall;
+
 	public:
 	
 	std::vector<std::string> mname; //modename
 	std::vector<std::string> dname; //detectorname
 	std::vector<std::string> cname; //channel_name
 	std::vector<std::vector<std::string >> scname; //subchannel_name
-//	std::map<int, std::string> getPos;	
+
+	std::map <std::string, std::vector<int> > mapIndex;
 
 	std::vector<std::string> fullnames;
 

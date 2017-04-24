@@ -1,4 +1,6 @@
 #include "SBNconfig.h"
+#include "TH1D.h"
+#include "TFile.h"
 
 SBNconfig::SBNconfig(){
 	Ndet = 3;
@@ -32,18 +34,76 @@ SBNconfig::SBNconfig(){
 	scname[1].push_back("intrinsic");
 	scname[1].push_back("misncpion");
 
+	Tdet = 0;
+	for(int i =0; i< Nchan; i++){
+		Tdet += Chan[i]*Bins[i];	
+	}		
+	Tmode = Tdet*Ndet;
+	Tall = Nmode*Tmode;
+
+	std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<std::endl;
+
+
+	/*
+	char namei[200];
+	sprintf(namei,"uBooNE_bkg.root");	
+	TFile f2(namei);
+
+
+	TFile *f = new TFile("test.root","RECREATE");
+	f->cd();
+	*/
+
+
+
 
 	std::string tempn;
-	for(auto imode: mname){
-		for(auto idet: dname){
+	int indexcount = 0;
+	for(int im = 0; im < Nmode; im++){
+		for(int id =0; id < Ndet; id++){
 			for(int ic = 0; ic < Nchan; ic++){
 				for(int sc = 0; sc < Chan[ic]; sc++){
-				tempn = imode +"_" +idet+"_"+cname[ic]+"_"+scname[ic][sc];
-				std::cout<<tempn<<std::endl;
-				fullnames.push_back(tempn);
+					tempn = mname[im] +"_" +dname[id]+"_"+cname[ic]+"_"+scname[ic][sc];
+					std::cout<<tempn<<" from: "<<indexcount<<" to "<<indexcount+Bins[ic]-1<<std::endl;
+					
+					fullnames.push_back(tempn);
+					std::vector<int> tvec = {indexcount, indexcount+Bins[ic]-1}; 
+
+					mapIndex[tempn] = 	tvec;				
+					indexcount = indexcount + Bins[ic];
+	
+
+					/*				
+					if(Bins[ic]==19){
+						TH1D * tem =  ((TH1D*)f2.Get("dis_muon_sin")); 
+						tem->SetName(tempn.c_str());
+						tem->Write();
+					}
+					else if(Bins[ic]==11){
+
+						TH1D * tem =  ((TH1D*)f2.Get("fullosc_nue_sin")); 
+						tem->SetName(tempn.c_str());
+						tem->Write();
+					}
+					*/
+				
+
 				}	
 			}
 		}
 	}
 
-}
+/*
+	f->Close();
+	f2.Close();
+*/
+	
+
+
+
+
+
+//std::cout<<"Map test: "<<mapIndex["nubar_SBND_elike_fulloscnu"][1]<<" "<<mapIndex["nubar_SBND_elike_fulloscnu"][0]<<std::endl;
+}//end constructor
+
+
