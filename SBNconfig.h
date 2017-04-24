@@ -21,6 +21,11 @@ class SBNconfig {
 	int Tmode;
 	int Tall;
 
+	int TdetComp;
+	int TmodeComp;
+	int TallComp;
+
+
 	public:
 	
 	std::vector<std::string> mname; //modename

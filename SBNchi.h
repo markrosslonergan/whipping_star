@@ -19,12 +19,12 @@ class SBNchi: public SBNconfig{
 	SBNspec bkgSpec;
 //	SBNspec sigSpec;
 
+	double lastChi;
 
 	SBNchi(SBNspec); 
+	int load_bkg(SBNspec);
+	double calc_chi(SBNspec sigSpec);
 
-//	~SBNchi();
-	
-//	calcChi();
 
 	std::vector<std::vector<double >> vMcI;
 	std::vector<std::vector<double >> vMc;

@@ -35,13 +35,18 @@ SBNconfig::SBNconfig(){
 	scname[1].push_back("misncpion");
 
 	Tdet = 0;
+	TdetComp = 0;
 	for(int i =0; i< Nchan; i++){
-		Tdet += Chan[i]*Bins[i];	
+		Tdet += Chan[i]*Bins[i];
+		TdetComp += Bins[i];	
 	}		
 	Tmode = Tdet*Ndet;
+	TmodeComp = TdetComp*Ndet;
 	Tall = Nmode*Tmode;
+	TallComp = Nmode*TmodeComp;
 
-	std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<std::endl;
+
+	std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<" Tcomp: "<<TallComp<<std::endl;
 
 
 	/*

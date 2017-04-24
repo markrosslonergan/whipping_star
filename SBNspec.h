@@ -16,6 +16,7 @@ class SBNspec :public SBNconfig{
 	std::vector<double > fullVec;
 	std::vector<double > compVec;
 
+
 	SBNspec(const char *); //Load in config file
 
 	void randomScale();
@@ -24,6 +25,8 @@ class SBNspec :public SBNconfig{
 	int calcFullVector();
 	int compressVector();
 
+	int printFullVec();
+	int printCompVec();
 
 };
 

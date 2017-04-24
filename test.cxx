@@ -360,11 +360,31 @@ while(iarg != -1)
 
 
 SBNspec temp("test");
+
+temp.calcFullVector();
+temp.compressVector();
+
 SBNchi chi(temp);
 
-temp.calcFullVector();
-temp.calcFullVector();
-
 std::cout<<"Full vector is of size: "<<temp.fullVec.size()<<std::endl;
+//temp.printFullVec();
+std::cout<<"Compressed vector is of size: "<<temp.compVec.size()<<std::endl;
+//temp.printCompVec();
+
+
+SBNspec sig("test");
+sig.randomScale();
+sig.calcFullVector();
+sig.compressVector();
+
+double ans =chi.calc_chi(sig);
+
+std::cout<<"Chi: "<<ans<<std::endl;
+
+
+
+
+
+
 
 }

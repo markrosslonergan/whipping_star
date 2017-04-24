@@ -4,15 +4,89 @@
 #include <ctime>
 #include <TFile.h>
 #include "params.h"
+#include <TMatrixT.h>
+
+void help(std::string in){
+
+	std::cout<<in.c_str()<<std::endl;
+
+}
+
 
 SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
 	SBNconfig();
-//	std::cout<<Bins[0]<<" "<<Ndet<<std::endl;
+
+		lastChi = -9999999;
+// Step 1: Load up a matrix and check to see ifs the right size. Check configure to see if use sys or stat
+// Step 2: Make stat only matrix
+// Step 3: Make sys only matrix and add together
+// Step 4: Scale by bkgSpec fullSpec. 
+
+// Step 5: Compress!
+// Step 6: Invert (and save as vector<vector>)
+
+
+		TMatrixT <double> McI(TallComp,TallComp);
+		// Fill systematics from pre-computed files
+		TMatrixT <double> Msys(Tall,Tall);
+
+		Msys = sys_fill_direct(Tall,true);
 
 
 
+		// systematics per scaled event
+		for(int i =0; i<Msys.GetNcols(); i++)
+		{
+			for(int j =0; j<Msys.GetNrows(); j++)
+			{
+				Msys(i,j)=Msys(i,j)*bkgSpec.fullVec[i]*bkgSpec.fullVec[j];
+			}
+		}
+			
+		// Fill stats from the back ground vector
+		TMatrixT <double> Mstat(Tall,Tall);
+		stats_fill(Mstat, bkgSpec.fullVec);
+
+
+		//And then define the total covariance matrix in all its glory
+		TMatrixT <double > Mtotal(Tall,Tall);
+
+		Mtotal = Mstat+Msys;
+		
+		// Now contract back the larger antimatrix
+		TMatrixT<double > Mctotal(TallComp,TallComp);
+
+		contract_signal_layer3(Mtotal,Mctotal);
+			
+		vMc = to_vector(Mctotal);
+		// just to hold determinant
+		double invdet=0; 
+
+		// Bit o inverting, root tmatrix seems perfectly and sufficiently fast for this, even with anti_mode
+		McI = Mctotal.Invert(&invdet);
+
+		// There is currently a bug, somehow a memory leak perhaps. converting the TMatrix to a vector of vectors fixes it for now. 
+		vMcI = to_vector(McI);
 
 }
+
+
+double SBNchi::calc_chi(SBNspec sigSpec){
+		double tchi = 0;	
+
+		for(int i =0; i<TallComp; i++){
+				std::cout<<bkgSpec.compVec[i]<<" "<<sigSpec.compVec[i]<<std::endl;
+				for(int j =0; j<TallComp; j++){
+						tchi += (bkgSpec.compVec[i]-sigSpec.compVec[i] )*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec.compVec[j] );
+				}
+		}
+
+		lastChi = tchi;
+		return tchi;
+}
+
+
+
 
 
 void SBNchi::fake_fill(TMatrixT <double> &M){
@@ -39,7 +113,7 @@ void SBNchi::fake_fill(TMatrixT <double> &M){
 	
 	}
 
-gsl_rng_free(r);
+	gsl_rng_free(r);
  return ;
 }
 
