@@ -75,7 +75,7 @@ double SBNchi::calc_chi(SBNspec sigSpec){
 		double tchi = 0;	
 
 		for(int i =0; i<TallComp; i++){
-				std::cout<<bkgSpec.compVec[i]<<" "<<sigSpec.compVec[i]<<std::endl;
+				//std::cout<<bkgSpec.compVec[i]<<" "<<sigSpec.compVec[i]<<std::endl;
 				for(int j =0; j<TallComp; j++){
 						tchi += (bkgSpec.compVec[i]-sigSpec.compVec[i] )*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec.compVec[j] );
 				}
@@ -521,23 +521,95 @@ void SBNchi::contract_signal2_anti(TMatrixT <double> & M, TMatrixT <double> & Mc
 return;
 }
 
+void SBNchi::contract_signal_layer1_GENERIC(TMatrixT <double> & M, TMatrixT <double> & Mc){
 
-std::vector<double > SBNchi::calc_signal_events(struct neutrinoModel &nuModel){
+
+//So given just a single detector, collapses.
+/*#define N_m_bins 19
+#define N_e_bins 11
+
+#define N_e_spectra 7
+#define N_m_spectra 2
+
+#define N_dets 3
+#define N_anti 2
+*/
+bool debug = false;
+
+	if(debug)	std::cout<<"Starting:M "<<M.GetNcols()<<" "<<M.GetNrows()<<" "<<115<<std::endl;
+	if(debug)	std::cout<<"Starting:Mc "<<Mc.GetNcols()<<" "<<Mc.GetNrows()<<" "<<30<<std::endl;
+
+		if(debug) std::cout<<"Starting elike"<<std::endl;
+		//std::vector< TMatrixT<double> > elike;
+		TMatrixT<double> elikeSummed(N_e_bins,N_e_bins);
+		elikeSummed=0.0;
+
+
+		if(debug)std::cout<<"Starting elike get and sum"<<std::endl;
+
+		for(int m=0; m < N_e_spectra; m++){
+			for(int n=0; n< N_e_spectra; n++){
+				elikeSummed+=  M.GetSub(n*N_e_bins,n*N_e_bins+N_e_bins-1,m*N_e_bins, m*N_e_bins+N_e_bins-1 );
+			}
+		}
+		
+//*******************************************************
+		
+		if(debug)std::cout<<"Starting mlike"<<std::endl;
+		//std::vector< TMatrixT<double> > mlike;
+		TMatrixT<double> mlikeSummed(N_m_bins,N_m_bins);
+		mlikeSummed=0.0;
+		int mstart = N_e_bins*N_e_spectra;
+
+		if(debug)std::cout<<"Starting mlike getting"<<std::endl;
+		for(int m=0; m < N_m_spectra; m++){
+			for(int n=0; n< N_m_spectra; n++){
+				mlikeSummed+= M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1,mstart + m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
+			}
+		}
 	
-	std::vector<double > ans;
 
+//*******************************************************
+
+		if(debug) std::cout<<"Starting emlike"<<std::endl;
+		//std::vector< TMatrixT<double> > emlike;
+		TMatrixT<double> emlikeSummed(N_m_bins,N_e_bins);
+		emlikeSummed =0.0;
+
+		if(debug) std::cout<<"Starting emlike getting"<<std::endl;
+		for(int m=0; m < N_e_spectra; m++){
+			for(int n=0; n< N_m_spectra; n++){
+				emlikeSummed += M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1, m*N_e_bins, m*N_e_bins+N_e_bins-1 );
+			}
+		}
 	
 
-	
-/*
-for(int i=0; i<N_e_bins;i++){
-	signal[i] =
-	signal[i+N_e_bins]=
-	signal[i+2*N_e_bins]=	
-}*/
+//*******************************************************
+//
+		if(debug) std::cout<<"Starting melike"<<std::endl;
+		//std::vector< TMatrixT<double> > melike;
+		TMatrixT<double> melikeSummed(N_e_bins,N_m_bins);
+		melikeSummed =0.0;
 
-return ans;
+		if(debug) std::cout<<"Starting melike getting"<<std::endl;
+		for(int m=0; m < N_m_spectra; m++){
+			for(int n=0; n< N_e_spectra; n++){
+				melikeSummed += M.GetSub(n*N_e_bins, n*N_e_bins+N_e_bins-1,mstart+ m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
+			}
+		}
+
+//********************************* And put them back together! ************************//
+
+	Mc.Zero(); 
+	Mc.SetSub(0,0,elikeSummed); //checked
+	Mc.SetSub(N_e_bins,N_e_bins,mlikeSummed); //checked
+	Mc.SetSub(0,N_e_bins,melikeSummed); //chdecked  // should be me, 100 checked of mathematica
+	Mc.SetSub(N_e_bins,0,emlikeSummed);//checkded
+
+
+return;
 }
+
 
 
 void SBNchi::contract_signal_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
@@ -559,82 +631,65 @@ bool debug = false;
 	if(debug)	std::cout<<"Starting:Mc "<<Mc.GetNcols()<<" "<<Mc.GetNrows()<<" "<<30<<std::endl;
 
 		if(debug) std::cout<<"Starting elike"<<std::endl;
-		std::vector< TMatrixT<double> > elike;
+		//std::vector< TMatrixT<double> > elike;
 		TMatrixT<double> elikeSummed(N_e_bins,N_e_bins);
 		elikeSummed=0.0;
 
 
-		if(debug)std::cout<<"Starting elike getting"<<std::endl;
-		for(int m=0; m <= N_e_spectra-1; m++){
-			for(int n=0; n<= N_e_spectra-1; n++){
-			elike.push_back(M.GetSub(n*N_e_bins,n*N_e_bins+N_e_bins-1,m*N_e_bins, m*N_e_bins+N_e_bins-1 ));
+		if(debug)std::cout<<"Starting elike get and sum"<<std::endl;
+
+		for(int m=0; m < N_e_spectra; m++){
+			for(int n=0; n< N_e_spectra; n++){
+				elikeSummed+=  M.GetSub(n*N_e_bins,n*N_e_bins+N_e_bins-1,m*N_e_bins, m*N_e_bins+N_e_bins-1 );
 			}
 		}
 		
-		if(debug)std::cout<<"Starting elike summing"<<std::endl;
-		for(int i =0; i<elike.size(); i++){
-			if(debug) std::cout<<elike[i].GetNcols()<<" "<<elike[i].GetNrows()<<std::endl;
-			elikeSummed+=elike[i];
-		}
 //*******************************************************
 		
 		if(debug)std::cout<<"Starting mlike"<<std::endl;
-		std::vector< TMatrixT<double> > mlike;
+		//std::vector< TMatrixT<double> > mlike;
 		TMatrixT<double> mlikeSummed(N_m_bins,N_m_bins);
 		mlikeSummed=0.0;
 		int mstart = N_e_bins*N_e_spectra;
 
 		if(debug)std::cout<<"Starting mlike getting"<<std::endl;
-		for(int m=0; m <= N_m_spectra-1; m++){
-			for(int n=0; n<= N_m_spectra-1; n++){
-			mlike.push_back(M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1,mstart + m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 ));
+		for(int m=0; m < N_m_spectra; m++){
+			for(int n=0; n< N_m_spectra; n++){
+				mlikeSummed+= M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1,mstart + m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
 			}
 		}
-		
-		if(debug)std::cout<<"Starting mlike summing"<<std::endl;
-		for(int i =0; i<mlike.size(); i++){
-			mlikeSummed+=mlike[i];
-		}
-
+	
 
 //*******************************************************
 
 		if(debug) std::cout<<"Starting emlike"<<std::endl;
-		std::vector< TMatrixT<double> > emlike;
+		//std::vector< TMatrixT<double> > emlike;
 		TMatrixT<double> emlikeSummed(N_m_bins,N_e_bins);
 		emlikeSummed =0.0;
 
 		if(debug) std::cout<<"Starting emlike getting"<<std::endl;
-		for(int m=0; m <= N_e_spectra-1; m++){
-			for(int n=0; n<= N_m_spectra-1; n++){
-			emlike.push_back(M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1, m*N_e_bins, m*N_e_bins+N_e_bins-1 ));
+		for(int m=0; m < N_e_spectra; m++){
+			for(int n=0; n< N_m_spectra; n++){
+				emlikeSummed += M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1, m*N_e_bins, m*N_e_bins+N_e_bins-1 );
 			}
 		}
-		
-		if(debug) std::cout<<"Starting emlike summing"<<std::endl;
-		for(int i =0; i<emlike.size(); i++){
-			emlikeSummed+=emlike[i];
-		}
+	
 
 //*******************************************************
 //
 		if(debug) std::cout<<"Starting melike"<<std::endl;
-		std::vector< TMatrixT<double> > melike;
+		//std::vector< TMatrixT<double> > melike;
 		TMatrixT<double> melikeSummed(N_e_bins,N_m_bins);
 		melikeSummed =0.0;
 
 		if(debug) std::cout<<"Starting melike getting"<<std::endl;
-		for(int m=0; m <= N_m_spectra-1; m++){
-			for(int n=0; n<= N_e_spectra-1; n++){
-			melike.push_back(M.GetSub(n*N_e_bins, n*N_e_bins+N_e_bins-1,mstart+ m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 ));
+		for(int m=0; m < N_m_spectra; m++){
+			for(int n=0; n< N_e_spectra; n++){
+				melikeSummed += M.GetSub(n*N_e_bins, n*N_e_bins+N_e_bins-1,mstart+ m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
 			}
 		}
-		
-		if(debug) std::cout<<"Starting melike summing"<<std::endl;
-		for(int i =0; i<melike.size(); i++){
-			melikeSummed+=melike[i];
-		}
 
+//********************************* And put them back together! ************************//
 
 	Mc.Zero(); 
 	Mc.SetSub(0,0,elikeSummed); //checked
@@ -649,98 +704,41 @@ return;
 
 void SBNchi::contract_signal_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc){
 		Mc.Zero();
-		int nrow = N_e_bins*N_e_spectra+N_m_bins*N_m_spectra;
-		int crow=N_e_bins+N_m_bins;
-//		std::vector< TMatrixT<double> > mats;
-//		std::vector< TMatrixT<double> > matsC(9);
+		int nrow = Tdet;// N_e_bins*N_e_spectra+N_m_bins*N_m_spectra;
+		int crow = TdetComp; //N_e_bins+N_m_bins;
 	
-		for(int m =0; m<= N_dets-1; m++){
-			for(int n =0; n<= N_dets-1; n++){
-				//mats.push_back(M.GetSub(n*nrow,n*nrow+nrow-1, m*nrow,m*nrow+nrow-1));
+		for(int m =0; m< Ndet; m++){
+			for(int n =0; n< Ndet; n++){
 				TMatrixT<double> imat(nrow,nrow);
 				TMatrixT<double> imatc(crow,crow);
+				
 				imat = M.GetSub(n*nrow,n*nrow+nrow-1, m*nrow,m*nrow+nrow-1);
-				contract_signal_layer1(imat,imatc);
+				contract_signal_layer1_GENERIC(imat,imatc);
 				Mc.SetSub(n*crow,m*crow,imatc);
-
 			}
 		}
-
-//		for(int i=0;i<mats.size(); i++){
-			//std::cout<<mats[i].GetNcols()<<" "<<mats[i].GetNrows()<<std::endl;
-//			matsC[i].Zero();
-//			matsC[i].ResizeTo(N_e_bins+N_m_bins,N_e_bins+N_m_bins);
-//			contract_signal_layer1(mats[i],matsC[i]);
-	//	}
-
-/*
-		Mc.Zero();
-		
-		Mc.SetSub(0,0,matsC[0]);	
-		Mc.SetSub(crow,crow,matsC[4]);	
-		Mc.SetSub(2*crow,2*crow,matsC[8]);	
-
-		// 3 6 7 1 2 5
-
-		//This will take a while.
-		Mc.SetSub(0,crow,matsC[3]);	
-		Mc.SetSub(0,2*crow,matsC[6]);	
-		Mc.SetSub(crow,2*crow,matsC[7]);	
-
-		Mc.SetSub(crow,0,matsC[1]);	
-		Mc.SetSub(2*crow,0,matsC[2]);	
-		Mc.SetSub(2*crow,crow,matsC[5]);	
-*/
-
 
 return;
 }
 	
 void SBNchi::contract_signal_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc){
 		Mc.Zero();
-		int nrow = (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets;
-		int crow=(N_e_bins+N_m_bins)*N_dets;
-//		std::vector< TMatrixT<double> > mats;
-//		std::vector< TMatrixT<double> > matsC(9);
+		int nrow = Tmode;// (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets;
+		int crow=  TmodeComp;// (N_e_bins+N_m_bins)*N_dets;
 	
-		for(int m =0; m<= N_anti-1; m++){
-			for(int n =0; n<= N_anti-1; n++){
-				//mats.push_back(M.GetSub(n*nrow,n*nrow+nrow-1, m*nrow,m*nrow+nrow-1));
+		for(int m =0; m< Nmode ; m++){
+			for(int n =0; n< Nmode; n++){
+				
 				TMatrixT<double> imat(nrow,nrow);
 				TMatrixT<double> imatc(crow,crow);
+				
 				imat = M.GetSub(n*nrow,n*nrow+nrow-1, m*nrow,m*nrow+nrow-1);
+				
 				contract_signal_layer2(imat,imatc);
 				Mc.SetSub(n*crow,m*crow,imatc);
 
 			}
 		}
-
-//		for(int i=0;i<mats.size(); i++){
-			//std::cout<<mats[i].GetNcols()<<" "<<mats[i].GetNrows()<<std::endl;
-//			matsC[i].Zero();
-//			matsC[i].ResizeTo(N_e_bins+N_m_bins,N_e_bins+N_m_bins);
-//			contract_signal_layer1(mats[i],matsC[i]);
-	//	}
-
-/*
-		Mc.Zero();
-		
-		Mc.SetSub(0,0,matsC[0]);	
-		Mc.SetSub(crow,crow,matsC[4]);	
-		Mc.SetSub(2*crow,2*crow,matsC[8]);	
-
-		// 3 6 7 1 2 5
-
-		//This will take a while.
-		Mc.SetSub(0,crow,matsC[3]);	
-		Mc.SetSub(0,2*crow,matsC[6]);	
-		Mc.SetSub(crow,2*crow,matsC[7]);	
-
-		Mc.SetSub(crow,0,matsC[1]);	
-		Mc.SetSub(2*crow,0,matsC[2]);	
-		Mc.SetSub(2*crow,crow,matsC[5]);	
-*/
-
 
 return;
 }

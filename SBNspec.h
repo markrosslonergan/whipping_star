@@ -19,7 +19,7 @@ class SBNspec :public SBNconfig{
 
 	SBNspec(const char *); //Load in config file
 
-	void randomScale();
+	int randomScale();
 
 	// Todo: most important
 	int calcFullVector();

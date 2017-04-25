@@ -45,6 +45,7 @@ class SBNchi: public SBNconfig{
 	void contract_signal2_anti(TMatrixT <double> & M, TMatrixT <double> &Mc);
 	std::vector<std::vector<double >> to_vector(TMatrixT <double> McI);
 
+	void contract_signal_layer1_GENERIC(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void contract_signal_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void contract_signal_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void contract_signal_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc);

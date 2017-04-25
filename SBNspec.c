@@ -30,22 +30,22 @@ SBNspec::SBNspec(const char * name){
 f.Close();
 }//end constructor
 
-void SBNspec::randomScale(){
+int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);
 
-	for(auto h: hist){
-			h.Scale(0.8);//rangen->Uniform(0.8,1.2));
-		
+	for(auto& h: hist){
+			//h.Scale(rangen->Uniform(0.95,1.2));
+			h.Scale(0.88);
 
 	}
-
+return 1;
 }
 
 
 int SBNspec::calcFullVector(){
 	fullVec.clear();
 
-	for(auto h: hist){
+	for(auto& h: hist){
 		//std::cout<<"Hist size: "<<h.GetSize()-2<<std::endl;
 		for(int i = 1; i <= h.GetSize()-2; i++){
 			//std::cout<<h.GetBinContent(i)<<" ";
