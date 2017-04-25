@@ -34,12 +34,21 @@ int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);
 
 	for(auto& h: hist){
-			//h.Scale(rangen->Uniform(0.95,1.2));
-			h.Scale(0.88);
+			h.Scale(rangen->Uniform(0.95,1.2));
 
 	}
 return 1;
 }
+
+int SBNspec::Scale(double sc){
+	for(auto& h: hist){
+			h.Scale(sc);
+
+	}
+return 1;
+}
+
+
 
 
 int SBNspec::calcFullVector(){

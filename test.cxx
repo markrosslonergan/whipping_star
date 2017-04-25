@@ -373,15 +373,24 @@ std::cout<<"Compressed vector is of size: "<<temp.compVec.size()<<std::endl;
 
 
 SBNspec sig("test");
-sig.randomScale();
+sig.Scale(0.88);
 sig.calcFullVector();
 sig.compressVector();
 
 double ans =chi.calc_chi(sig);
 
-std::cout<<"Chi: "<<ans<<std::endl;
+std::cout<<"Chi: fixed scaling 0.88 "<<ans<<std::endl;
 
+for(int i =0 ;i < 10; i++){
+	sig.Scale(0.88);
+	sig.calcFullVector();
+	sig.compressVector();
 
+	std::cout<<"Chi: "<< chi.calc_chi(sig)<<std::endl;
+}
+
+	std::vector<double> g(10);
+	std::cout<<"should failChi: "<< chi.calc_chi(g)<<std::endl;
 
 
 

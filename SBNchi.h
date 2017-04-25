@@ -23,8 +23,10 @@ class SBNchi: public SBNconfig{
 
 	SBNchi(SBNspec); 
 	int load_bkg(SBNspec);
-	double calc_chi(SBNspec sigSpec);
 
+
+	double calc_chi(SBNspec sigSpec);
+	double calc_chi(std::vector<double> );
 
 	std::vector<std::vector<double >> vMcI;
 	std::vector<std::vector<double >> vMc;
@@ -39,16 +41,11 @@ class SBNchi: public SBNconfig{
 
 	std::vector<double >  calc_signal_events(struct neutrinoModel &nuModel);
 
-
-	void contract_signal(TMatrixT <double> & M, TMatrixT <double> &Mc);
-	void contract_signal2(TMatrixT <double> & M, TMatrixT <double> &Mc);
-	void contract_signal2_anti(TMatrixT <double> & M, TMatrixT <double> &Mc);
 	std::vector<std::vector<double >> to_vector(TMatrixT <double> McI);
 
-	void contract_signal_layer1_GENERIC(TMatrixT <double> & M, TMatrixT <double> & Mc);
-	void contract_signal_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc);
-	void contract_signal_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc);
-	void contract_signal_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc);
+	void collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc);
+	void collapse_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc);
+	void collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc);
 
 };
 

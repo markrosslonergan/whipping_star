@@ -20,6 +20,7 @@ class SBNspec :public SBNconfig{
 	SBNspec(const char *); //Load in config file
 
 	int randomScale();
+	int Scale(double);
 
 	// Todo: most important
 	int calcFullVector();
