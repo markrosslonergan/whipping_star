@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+
+<mode name="nu" use="1"/>
+<mode name="nubar" use="1"/>
+
+<detector name="SBND" use="1" />
+<detector name="uBooNE" use="1" />
+<detector name="ICARUS" use="1" />
+
+
+<channel name="elike" use="1" numbins="11">
+		<subchannel name="fulloscnu" use="1" />
+		<subchannel name="fulloscnuebar" use="1" />
+		<subchannel name="intrinsic" use="1" />
+		<subchannel name="mismion" use="1" />
+		<subchannel name="misphoton" use="1" />
+		<subchannel name="dirt" use="1" />
+		<subchannel name="cosmic" use="1" />
+</channel>
+
+<channel name="mlike" use="1" numbins="19">
+		<subchannel name="intrinsic" use="1" />
+		<subchannel name="misncpion" use="1" />
+</chanel>
+

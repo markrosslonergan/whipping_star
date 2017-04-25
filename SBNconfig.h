@@ -26,6 +26,8 @@ class SBNconfig {
 	int TallComp;
 
 
+	std::string CorrMatRoot;
+	std::string CorrMatName;
 	public:
 	
 	std::vector<std::string> mname; //modename
@@ -33,9 +35,19 @@ class SBNconfig {
 	std::vector<std::string> cname; //channel_name
 	std::vector<std::vector<std::string >> scname; //subchannel_name
 
+	// vector Bools for turning on and off
+	std::vector<bool> mBool; //modename
+	std::vector<bool> dBool; //detectorname
+	std::vector<bool> cBool; //channel_name
+	std::vector<std::vector<bool >> scBool; //subchannel_name
+
+
+
+
 	std::map <std::string, std::vector<int> > mapIndex;
 
 	std::vector<std::string> fullnames;
+	std::vector<int> useBins; 
 
 	SBNconfig();
 //	SBNConfig(const char *);

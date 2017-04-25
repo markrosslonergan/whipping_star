@@ -14,7 +14,8 @@ void help(std::string in){
 
 
 SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
-	SBNconfig();
+		help("Starting chi constructor");	
+		SBNconfig();
 
 		lastChi = -9999999;
 // Step 1: Load up a matrix and check to see ifs the right size. Check configure to see if use sys or stat
@@ -30,7 +31,7 @@ SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
 		// Fill systematics from pre-computed files
 		TMatrixT <double> Msys(Tall,Tall);
 
-		Msys = sys_fill_direct(Tall,true);
+		Msys = sys_fill_direct();
 
 
 
@@ -180,118 +181,48 @@ void SBNchi::stats_fill(TMatrixT <double> &M, std::vector<double> diag){
 }
 
 
-TMatrixT<double > SBNchi::sys_fill_direct(int dim, bool detsys){
-	TMatrixT<float > * temp;
-	TMatrixT<double > temp2(dim,dim);
-	//std::cout<<"inputted dim is: "<<dim<<std::endl;
-	if(dim ==   (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets*N_anti  ){
 
-		//TFile *fm= new TFile("rootfiles/covariance_matrices_690x690.root");
-		TFile *fm= new TFile("rootfiles/covariance_matrices_xcheck_690x690.root");
-		 temp = (TMatrixT <float>* )fm->Get("TMatrixT<float>;7");
-		//std::cout<<"outputted temp dim is: "<<temp.GetNcols()<<std::endl;
-		for(int i =0; i<dim; i++)
+TMatrixT<double> SBNchi::sys_fill_direct(){
+		return sys_fill_direct(CorrMatRoot, CorrMatName);
+}
+
+
+TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matname){
+
+
+		TMatrixT<double> temp2(Tall,Tall);
+		TFile *fm= new TFile(rootname.c_str());
+		TMatrixT<float> * temp = (TMatrixT <float>* )fm->Get(matname.c_str());
+	
+
+		std::vector<std::vector<double>> mcont;
+
+		for(int p:useBins){
+			std::vector<double> tvec;
+			for(int u:useBins){
+				tvec.push_back( (*temp)(p,u) );
+			}					
+			mcont.push_back(tvec);
+		}	
+
+		
+
+
+		for(int i =0; i<Tall; i++)
 		{
-			for(int j =0; j<dim; j++)
+			for(int j =0; j<Tall; j++)
 			{
-		//		std::cout<<i<<" "<<j<<" "<<(*temp)(i,j)<<std::endl;
-				temp2(i,j)=(*temp)(i,j);
+				temp2(i,j)=mcont[i][j];
 			}
 		}
 		delete temp;
 
 
-	//	delete fm;
 		fm->Close();
 		delete fm;
 		return temp2;
-	} else {
-	if(detsys){
-		TFile *fm= new TFile("rootfiles/covariance_matrices_345x345.root");
-		 temp2 = *(TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-	//	delete fm
-//		for(int i =0; i<dim; i++)
-//		{
-//			for(int j =0; j<dim; j++)
-//			{
-//				std::cout<<i<<" "<<j<<" "<<temp(i,j)<<std::endl;
-//			}
-//		}
 
 
-	
-		fm->Close();
-		return temp2;
-	} else {
-		std::cout<<"ERROR: This probably shouldnt run, no-detsys"<<std::endl;
-		TFile *fm= new TFile("rootfiles/covariance_matrices_nodetsys_345x345.root");
-		 temp2 = *(TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-	//	delete fm;
-		fm->Close();
-		return temp2;
-	}	
-
-
-	}
-
-}
-
-void SBNchi::sys_fill2(int dim, TMatrixT<float> * ans)
-{
-
-
-	if(dim==   (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets*N_anti  ){
-		TFile *fm= new TFile("rootfiles/covariance_matrices_690x690.root");
-		TMatrixT<float> * temp = new TMatrixT<float>(dim,dim);
-		temp = (TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-		ans =temp;
-
-		fm->Close();
-		delete fm;
-	} else{
-
-		TFile *fm= new TFile("rootfiles/covariance_matrices_345x345.root");
-		TMatrixT <float>* temp = new TMatrixT<float>(dim,dim);
-		temp= (TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-		ans = temp;
-		
-		fm->Close();
-		delete fm;
-	}	
-
-return;
-}
-
-
-
-void SBNchi::sys_fill(TMatrixT <double> & Min, bool detsys)
-{
-
-	Min.Zero();
-
-	if(Min.GetNrows()==   (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets*N_anti  ){
-		TFile *fm= new TFile("rootfiles/covariance_matrices_690x690.root");
-		Min = *(TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-	//	delete fm;
-		fm->Close();
-		delete fm;
-	} else {
-	if(detsys){
-
-		TFile *fm= new TFile("rootfiles/covariance_matrices_345x345.root");
-		Min = *(TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-	//	delete fm;
-		fm->Close();
-	} else {
-		TFile *fm= new TFile("rootfiles/covariance_matrices_nodetsys_345x345.root");
-		Min = *(TMatrixT <float> *)fm->Get("TMatrixT<float>;7");
-	//	delete fm;
-		fm->Close();
-	}	
-
-
-	}
-return;
 }
 
 

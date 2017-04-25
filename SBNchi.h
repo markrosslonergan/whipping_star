@@ -32,10 +32,9 @@ class SBNchi: public SBNconfig{
 	std::vector<std::vector<double >> vMc;
 
 
-	TMatrixT<double> sys_fill_direct(int dim, bool detsys);
+	TMatrixT<double> sys_fill_direct(std::string, std::string);
+	TMatrixT<double> sys_fill_direct();
 
-	void sys_fill(TMatrixT <double> & M, bool detsys);
-	void sys_fill2(int dim, TMatrixT<float> * ans);
 	void fake_fill(TMatrixT <double>&  M);
 	void stats_fill(TMatrixT <double>&  M, std::vector<double> diag);
 

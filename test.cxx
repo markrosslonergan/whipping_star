@@ -24,6 +24,8 @@
 #include "SBNchi.h"
 #include "SBNspec.h"
 
+#include "tinyxml/tinyxml.h"
+
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
@@ -355,12 +357,49 @@ while(iarg != -1)
 
 }
 
+	TiXmlDocument doc( "my.xml" );
+	bool loadOkay = doc.LoadFile();
+	    	TiXmlHandle hDoc(&doc);
+	        TiXmlElement *pMode, *pDet, *pChan;
+		pMode = doc.FirstChildElement("mode");
+		pDet = doc.FirstChildElement("detector");
+		pChan = doc.FirstChildElement("channel");
+		while(pMode)
+			{
+			std::cout<<"Mode: "<<pMode->Attribute("name")<<" "<<pMode->Attribute("use")<<std::endl;
+			pMode = pMode->NextSiblingElement("mode");	
+		}
 
+		pDet = doc.FirstChildElement("detector");
+		while(pDet)
+			{
+			std::cout<<"Detector: "<<pDet->Attribute("name")<<" "<<pDet->Attribute("use")<<std::endl;
+			pDet = pDet->NextSiblingElement("detector");	
+		}
+		while(pChan)
+			{
+			std::cout<<"Channel: "<<pChan->Attribute("name")<<" "<<pChan->Attribute("use")<<" Bins: "<<pChan->Attribute("numbins")<<std::endl;
+
+		        TiXmlElement *pSubChan;
+			pSubChan = pChan->FirstChildElement("subchannel");
+			while(pSubChan){
+				std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<std::endl;
+				pSubChan = pSubChan->NextSiblingElement("subchannel");	
+
+			}
+
+
+			pChan = pChan->NextSiblingElement("channel");	
+		}
+
+
+return 0;
 
 
 
 SBNspec temp("test");
 
+std::cout<<"created temp spec"<<std::endl;
 temp.calcFullVector();
 temp.compressVector();
 
