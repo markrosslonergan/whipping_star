@@ -534,71 +534,77 @@ void SBNchi::contract_signal_layer1_GENERIC(TMatrixT <double> & M, TMatrixT <dou
 #define N_dets 3
 #define N_anti 2
 */
-bool debug = false;
+bool debug = true;
 
 	if(debug)	std::cout<<"Starting:M "<<M.GetNcols()<<" "<<M.GetNrows()<<" "<<115<<std::endl;
 	if(debug)	std::cout<<"Starting:Mc "<<Mc.GetNcols()<<" "<<Mc.GetNrows()<<" "<<30<<std::endl;
 
-		if(debug) std::cout<<"Starting elike"<<std::endl;
-		//std::vector< TMatrixT<double> > elike;
+		std::vector<std::vector<TMatrixT<double>>> Summed(Nchan, std::vector<TMatrixT<double>>(Nchan) );	
+
+		
+		for(int ic = 0; ic < Nchan; ic++){
+			for(int jc =0; jc < Nchan; jc++){
+			Summed[ic][jc].ResizeTo(Bins[jc],Bins[ic]) ;// This is CORRECT, do not switch (ie Summed[0][1] = size (Bins[1], Bins[0])
+			Summed[ic][jc] = 0.0;
+			}
+		}
+		
+
+		int mstart = 0.0;
+		int mrow = 0.0;
+		int mcol = 0.0;
+
+		for(int ic = 0; ic < Nchan; ic++){
+			for(int jc =0; jc < Nchan; jc++){
+				
+					if(debug)std::cout<<"Diagonal! : "<<ic<<" "<<jc<<" mcol is: "<<mcol<<" mrow is: "<<mrow<<std::endl;				
+				if( jc == ic){ //Diagonal 
+					for(int m=0; m < Chan[ic]; m++){
+						for(int n=0; n< Chan[ic]; n++){
+							//Here ic=jc so all is ok.
+							Summed[ic][ic] +=  M.GetSub(mcol+n*Bins[ic] ,mcol + n* Bins[ic]+Bins[ic]-1, mcol + m*Bins[ic], mcol+ m*Bins[ic]+Bins[ic]-1 );
+						}
+					}	
+					
+				}//End diagonal 
+
+				if(ic != jc){// Off Diagonal
+	
+						for(int m=0; m < Chan[ic]; m++){
+							for(int n=0; n< Chan[jc]; n++){
+								Summed[ic][jc]=M.GetSub(mrow+n*Bins[jc],  mrow+ n*Bins[jc]+Bins[jc]-1,     mcol+ m*Bins[ic],    mcol+ m*Bins[ic]+Bins[ic]-1 );
+							}
+						}
+
+						
+
+				}//end offdiag
+
+				if(debug) std::cout<<ic<<" "<<jc<<" Dimensions: row: "<<Summed[ic][jc].GetNrows()<<" col: "<<Summed[ic][jc].GetNcols()<<std::endl;
+
+				mrow += Chan[jc]*Bins[jc];
+			}
+			mrow = 0;
+			mcol += Chan[ic]*Bins[ic];
+		}
+
+	
+
+//*******************************************************
+///********************************* And put them back together! ************************//
 		TMatrixT<double> elikeSummed(N_e_bins,N_e_bins);
-		elikeSummed=0.0;
-
-
-		if(debug)std::cout<<"Starting elike get and sum"<<std::endl;
-
-		for(int m=0; m < N_e_spectra; m++){
-			for(int n=0; n< N_e_spectra; n++){
-				elikeSummed+=  M.GetSub(n*N_e_bins,n*N_e_bins+N_e_bins-1,m*N_e_bins, m*N_e_bins+N_e_bins-1 );
-			}
-		}
-		
-//*******************************************************
-		
-		if(debug)std::cout<<"Starting mlike"<<std::endl;
-		//std::vector< TMatrixT<double> > mlike;
 		TMatrixT<double> mlikeSummed(N_m_bins,N_m_bins);
-		mlikeSummed=0.0;
-		int mstart = N_e_bins*N_e_spectra;
-
-		if(debug)std::cout<<"Starting mlike getting"<<std::endl;
-		for(int m=0; m < N_m_spectra; m++){
-			for(int n=0; n< N_m_spectra; n++){
-				mlikeSummed+= M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1,mstart + m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
-			}
-		}
-	
-
-//*******************************************************
-
-		if(debug) std::cout<<"Starting emlike"<<std::endl;
-		//std::vector< TMatrixT<double> > emlike;
 		TMatrixT<double> emlikeSummed(N_m_bins,N_e_bins);
-		emlikeSummed =0.0;
-
-		if(debug) std::cout<<"Starting emlike getting"<<std::endl;
-		for(int m=0; m < N_e_spectra; m++){
-			for(int n=0; n< N_m_spectra; n++){
-				emlikeSummed += M.GetSub(mstart+n*N_m_bins,mstart + n*N_m_bins+N_m_bins-1, m*N_e_bins, m*N_e_bins+N_e_bins-1 );
-			}
-		}
-	
-
-//*******************************************************
-//
-		if(debug) std::cout<<"Starting melike"<<std::endl;
-		//std::vector< TMatrixT<double> > melike;
 		TMatrixT<double> melikeSummed(N_e_bins,N_m_bins);
-		melikeSummed =0.0;
+		elikeSummed = 0.0;
+		mlikeSummed = 0.0;
+		emlikeSummed = 0.0;
+		melikeSummed = 0.0;
 
-		if(debug) std::cout<<"Starting melike getting"<<std::endl;
-		for(int m=0; m < N_m_spectra; m++){
-			for(int n=0; n< N_e_spectra; n++){
-				melikeSummed += M.GetSub(n*N_e_bins, n*N_e_bins+N_e_bins-1,mstart+ m*N_m_bins,mstart+ m*N_m_bins+N_m_bins-1 );
-			}
-		}
-
-//********************************* And put them back together! ************************//
+		elikeSummed = Summed[0][0];
+		mlikeSummed = Summed[1][1];
+		emlikeSummed = Summed[0][1];
+		melikeSummed = Summed[1][0];
 
 	Mc.Zero(); 
 	Mc.SetSub(0,0,elikeSummed); //checked
