@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <cmath>
 #include <vector>
@@ -380,14 +381,41 @@ while(iarg != -1)
 			{
 			std::cout<<"Channel: "<<pChan->Attribute("name")<<" "<<pChan->Attribute("use")<<" Bins: "<<pChan->Attribute("numbins")<<std::endl;
 
+			TiXmlElement *pBin = pChan->FirstChildElement("bins");
+			//std::cout<<"Bin Edges: "<<pBin->Attribute("edges")<<" widths: "<<pBin->Attribute("widths")<<std::endl;
+
 		        TiXmlElement *pSubChan;
 			pSubChan = pChan->FirstChildElement("subchannel");
 			while(pSubChan){
 				std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<std::endl;
 				pSubChan = pSubChan->NextSiblingElement("subchannel");	
-
 			}
 
+
+			std::stringstream iss(pBin->Attribute("edges"));
+			std::stringstream pss(pBin->Attribute("widths"));
+
+			double number;
+			std::vector<double> binedge;
+			std::vector<double> binwidth;
+			while ( iss >> number ) binedge.push_back( number );
+			while ( pss >> number ) binwidth.push_back( number );
+
+			std::cout<<"Bin Edges: ";
+			for(auto b: binedge){
+				std::cout<<b<<" ";
+			}
+			std::cout<<". Total#: "<<binedge.size()<<std::endl;
+
+			std::cout<<"Bin Widths: ";
+			for(auto b: binwidth){
+				std::cout<<b<<" ";
+			}
+			std::cout<<". Total#: "<<binwidth.size()<<std::endl;
+		
+
+
+	
 
 			pChan = pChan->NextSiblingElement("channel");	
 		}
