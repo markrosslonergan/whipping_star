@@ -32,3 +32,6 @@
 		<subchannel name="misncpion" use="1" />
 </chanel>
 
+<covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name=="TMatrixT<float>;7" />
+	
+

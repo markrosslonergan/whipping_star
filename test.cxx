@@ -421,7 +421,7 @@ while(iarg != -1)
 		}
 
 
-return 0;
+//return 0;
 
 
 
@@ -440,7 +440,7 @@ std::cout<<"Compressed vector is of size: "<<temp.compVec.size()<<std::endl;
 
 
 SBNspec sig("test");
-sig.Scale(0.88);
+sig.ScaleAll(0.88);
 sig.calcFullVector();
 sig.compressVector();
 
@@ -449,7 +449,7 @@ double ans =chi.calc_chi(sig);
 std::cout<<"Chi: fixed scaling 0.88 "<<ans<<std::endl;
 
 for(int i =0 ;i < 10; i++){
-	sig.Scale(0.88);
+	sig.Scale("SBND",0.88);
 	sig.calcFullVector();
 	sig.compressVector();
 

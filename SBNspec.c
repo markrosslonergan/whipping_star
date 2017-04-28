@@ -40,9 +40,22 @@ int SBNspec::randomScale(){
 return 1;
 }
 
-int SBNspec::Scale(double sc){
+int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
 			h.Scale(sc);
+
+	}
+return 1;
+}
+
+int SBNspec::Scale(std::string name, double val){
+	for(auto& h: hist){
+		std::string test = h.GetName();
+		
+			if( test.find(name)!=std::string::npos ){
+				//std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
+				h.Scale(val);
+			}
 
 	}
 return 1;
