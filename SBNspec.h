@@ -23,7 +23,7 @@ class SBNspec :public SBNconfig{
 	int ScaleAll(double);
 	int Scale(std::string name, double val);
 
-	// Todo: most important
+	//Done: most important
 	int calcFullVector();
 	int compressVector();
 

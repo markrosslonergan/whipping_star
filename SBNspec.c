@@ -52,7 +52,7 @@ int SBNspec::Scale(std::string name, double val){
 	for(auto& h: hist){
 		std::string test = h.GetName();
 		
-			if( test.find(name)!=std::string::npos ){
+			if(test.find(name)!=std::string::npos ){
 				//std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
 				h.Scale(val);
 			}

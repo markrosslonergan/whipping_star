@@ -449,7 +449,7 @@ double ans =chi.calc_chi(sig);
 std::cout<<"Chi: fixed scaling 0.88 "<<ans<<std::endl;
 
 for(int i =0 ;i < 10; i++){
-	sig.Scale("SBND",0.88);
+	sig.Scale("uBooNE",0.88);
 	sig.calcFullVector();
 	sig.compressVector();
 
