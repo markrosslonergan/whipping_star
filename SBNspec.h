@@ -19,9 +19,13 @@ class SBNspec :public SBNconfig{
 
 	SBNspec(const char *); //Load in config file
 
-	int randomScale();
+	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2
+
 	int ScaleAll(double);
 	int Scale(std::string name, double val);
+	int NormAll(double);
+	int Norm(std::string name, double val);
+
 
 	//Done: most important
 	int calcFullVector();

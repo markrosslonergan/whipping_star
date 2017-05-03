@@ -8,14 +8,17 @@
 #include <map>
 //#include <libconfig.h++>
 
+#include "tinyxml/tinyxml.h"
+
+
 class SBNconfig {
 
 	protected:
 	int Ndet;
 	int Nchan;
 	int Nmode;
-	int Chan[100];
-	int Bins[100];
+	std::vector<int> Chan;
+	std::vector<int> Bins;
 
 	int Tdet;
 	int Tmode;
@@ -30,9 +33,9 @@ class SBNconfig {
 	std::string CorrMatName;
 	public:
 	
-	std::vector<std::string> mname; //modename
-	std::vector<std::string> dname; //detectorname
-	std::vector<std::string> cname; //channel_name
+	std::vector<std::string> mname; 		//modename
+	std::vector<std::string> dname; 		//detectorname
+	std::vector<std::string> cname; 		//channel_name
 	std::vector<std::vector<std::string >> scname; //subchannel_name
 
 	// vector Bools for turning on and off
@@ -42,6 +45,8 @@ class SBNconfig {
 	std::vector<std::vector<bool >> scBool; //subchannel_name
 
 
+	std::vector<std::vector<double> > binEdges;
+	std::vector<std::vector<double> > binWidths;
 
 
 	std::map <std::string, std::vector<int> > mapIndex;

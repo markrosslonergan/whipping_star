@@ -1,69 +1,138 @@
 #include "SBNconfig.h"
 #include "TH1D.h"
 #include "TFile.h"
+#include <sstream>
+#include <string>
 
 SBNconfig::SBNconfig(){
 
-	CorrMatRoot ="rootfiles/covariance_matrices_xcheck_690x690.root";
-	CorrMatName ="TMatrixT<float>;7";
+	//CorrMatRoot ="rootfiles/covariance_matrices_xcheck_690x690.root";
+	//CorrMatName ="TMatrixT<float>;7";
 	
-
-	Ndet = 3;
-	Nchan = 2;
-	Nmode = 2;
 	
-	Chan[0] = 7;
-	Chan[1] = 2;
+	scname.resize(100);
+	scBool.resize(100);
+	char *end;
 
-	Bins[0] = 11;
-	Bins[1] = 19;
+		TiXmlDocument doc( "my.xml" );
+		bool loadOkay = doc.LoadFile();
+	    	TiXmlHandle hDoc(&doc);
+	        TiXmlElement *pMode, *pDet, *pChan, *pCov;
+		
+		pMode = doc.FirstChildElement("mode");
+		pDet =  doc.FirstChildElement("detector");
+		pChan = doc.FirstChildElement("channel");
+		pCov  = doc.FirstChildElement("covariance");
 
-	mname.push_back("nu");
-	mname.push_back("nubar");
+		while(pCov){
+			CorrMatRoot = pCov->Attribute("file");
+			CorrMatName = pCov->Attribute("name");
+			pCov = pCov->NextSiblingElement("covariance");
+		}
+		while(pMode)
+			{
+			//std::cout<<"Mode: "<<pMode->Attribute("name")<<" "<<pMode->Attribute("use")<<std::endl;
+			mname.push_back(pMode->Attribute("name"));	
+			mBool.push_back(strtod(pMode->Attribute("use"),&end));	
 
-	mBool.push_back(1);
-	mBool.push_back(1);
+			pMode = pMode->NextSiblingElement("mode");
+		}
 
-	dname.push_back("SBND");
-	dname.push_back("uBooNE");
-	dname.push_back("ICARUS");
+		pDet = doc.FirstChildElement("detector");
+		while(pDet)
+			{
+			//std::cout<<"Detector: "<<pDet->Attribute("name")<<" "<<pDet->Attribute("use")<<std::endl;
+			dname.push_back(pDet->Attribute("name"));
+			dBool.push_back(strtod(pDet->Attribute("use"),&end));
 
-	dBool.push_back(1);
-	dBool.push_back(1);
-	dBool.push_back(1);
+			pDet = pDet->NextSiblingElement("detector");	
+		}
+		int nchan = 0;
+		while(pChan)
+			{
+			//std::cout<<"Channel: "<<pChan->Attribute("name")<<" "<<pChan->Attribute("use")<<" Bins: "<<pChan->Attribute("numbins")<<std::endl;
+			cname.push_back(pChan->Attribute("name"));
+			cBool.push_back(strtod(pChan->Attribute("use"),&end));
+			Bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
 
-	cname.push_back("elike");
-	cname.push_back("mlike");
 
-	cBool.push_back(1);
-	cBool.push_back(1);
+			TiXmlElement *pBin = pChan->FirstChildElement("bins");
+			//std::cout<<"Bin Edges: "<<pBin->Attribute("edges")<<" widths: "<<pBin->Attribute("widths")<<std::endl;
+		        TiXmlElement *pSubChan;
 
-	scname.resize(Nchan);
-	scname[0].push_back("fulloscnu"); 
-	scname[0].push_back("fulloscnuebar"); 
-	scname[0].push_back("intrinsic");
-	scname[0].push_back("mismuon");
-	scname[0].push_back("misphoton");
-	scname[0].push_back("dirt");
-	scname[0].push_back("cosmic");
+			pSubChan = pChan->FirstChildElement("subchannel");
+			int nsubchan=0;
+			while(pSubChan){
+				//std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<std::endl;
+				scname[nchan].push_back(pSubChan->Attribute("name"));
+				scBool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
+
+				nsubchan++;
+				pSubChan = pSubChan->NextSiblingElement("subchannel");	
+			}
+			Chan.push_back(nsubchan);
+
+			std::stringstream iss(pBin->Attribute("edges"));
+			std::stringstream pss(pBin->Attribute("widths"));
+
+			double number;
+			std::vector<double> binedge;
+			std::vector<double> binwidth;
+			while ( iss >> number ) binedge.push_back( number );
+			while ( pss >> number ) binwidth.push_back( number );
+
+			binEdges.push_back(binedge);
+			binWidths.push_back(binwidth);
 	
-	scname[1].push_back("intrinsic");
-	scname[1].push_back("misncpion");
-
-	scBool.resize(Nchan);
-	for(int i=0;i<7;i++){ scBool[0].push_back(1);}
-	scBool[1].push_back(1);
-	scBool[1].push_back(1);
-
-	/*
-	char namei[200];
-	sprintf(namei,"uBooNE_bkg.root");	
-	TFile f2(namei);
+			nchan++;
+			pChan = pChan->NextSiblingElement("channel");	
+		}
+		
+		Nchan = cname.size();
+		Nmode = mname.size();
+		Ndet  = dname.size();
 
 
-	TFile *f = new TFile("test.root","RECREATE");
-	f->cd();
-	*/
+		if(false){
+
+			std::cout<<" Covariance root path: "<<CorrMatRoot<<" and matrix name: "<<CorrMatName<<std::endl;
+			std::cout<<"Modes: ";
+			for(auto b: mname){
+				std::cout<<b<<" ";
+			}
+			std::cout<<std::endl;
+
+			std::cout<<"Modes Bools: ";
+			for(auto b: mBool){
+				std::cout<<b<<" ";
+			}
+			std::cout<<std::endl;
+
+			std::cout<<"Dets: ";
+			for(auto b: dname){
+				std::cout<<b<<" ";
+			}
+			std::cout<<std::endl;
+
+			std::cout<<"Dets Bools: ";
+			for(auto b: dBool){
+				std::cout<<b<<" ";
+			}
+			std::cout<<std::endl;
+
+			std::cout<<"Bin Edges: ";
+			for(auto b: binEdges[0]){
+				std::cout<<b<<" ";
+			}
+			std::cout<<". Total#: "<<binEdges[0].size()<<std::endl;
+
+			std::cout<<"Bin Widths: ";
+			for(auto b: binWidths[0]){
+				std::cout<<b<<" ";
+			}
+			std::cout<<". Total#: "<<binWidths[0].size()<<std::endl;
+	}
+
 
 
 

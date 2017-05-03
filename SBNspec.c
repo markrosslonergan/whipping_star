@@ -34,7 +34,7 @@ int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);
 
 	for(auto& h: hist){
-			h.Scale(rangen->Uniform(0.95,1.2));
+			h.Scale(rangen->Uniform(0,2));
 
 	}
 return 1;
@@ -61,8 +61,26 @@ int SBNspec::Scale(std::string name, double val){
 return 1;
 }
 
+int SBNspec::NormAll(double n){
 
+	for(auto& h: hist) {
+		h.Scale(n/h.GetSumOfWeights());
+	}
+	return 1;
+}
 
+int SBNspec::Norm(std::string name, double val){
+	for(auto& h: hist){
+		std::string test = h.GetName();
+		
+			if(test.find(name)!=std::string::npos ){
+				//std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
+				h.Scale(val/h.GetSumOfWeights());
+			}
+
+	}
+return 1;
+}
 
 int SBNspec::calcFullVector(){
 	fullVec.clear();

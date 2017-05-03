@@ -7,6 +7,14 @@
 #include "SBNspec.h"
 #include "SBNconfig.h"
 #include "TMatrixT.h"
+#include "TRandom3.h"
+#include "TFile.h"
+
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
+#include <ctime>
+#include "params.h"
 
 class SBNchi: public SBNconfig{
 	
@@ -46,9 +54,10 @@ class SBNchi: public SBNconfig{
 	void collapse_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc);
 
+	//int init_minim();
+	//double minim_calc_chi(const double * x);
+	//double minimize(neutrinoModel newModel, double ipot, double ipotbar);
+
 };
-
-
-
 
 #endif

@@ -17,7 +17,7 @@
 		<subchannel name="fulloscnu" use="1" />
 		<subchannel name="fulloscnuebar" use="1" />
 		<subchannel name="intrinsic" use="1" />
-		<subchannel name="mismion" use="1" />
+		<subchannel name="mismuon" use="1" />
 		<subchannel name="misphoton" use="1" />
 		<subchannel name="dirt" use="1" />
 		<subchannel name="cosmic" use="1" />
@@ -30,8 +30,8 @@
 		/>
 		<subchannel name="intrinsic" use="1" />
 		<subchannel name="misncpion" use="1" />
-</chanel>
+</channel>
 
-<covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name=="TMatrixT<float>;7" />
 	
+<covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name="TMatrixT<float>;7" />
 

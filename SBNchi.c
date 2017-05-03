@@ -1,10 +1,4 @@
 #include "SBNchi.h"
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <ctime>
-#include <TFile.h>
-#include "params.h"
-#include <TMatrixT.h>
 
 void help(std::string in){
 
@@ -331,4 +325,7 @@ void SBNchi::collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc){
 
 return;
 }
-	
+
+
+
+

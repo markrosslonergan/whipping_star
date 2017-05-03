@@ -24,9 +24,6 @@
 #include "SBNconfig.h"
 #include "SBNchi.h"
 #include "SBNspec.h"
-
-#include "tinyxml/tinyxml.h"
-
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
@@ -357,72 +354,6 @@ while(iarg != -1)
 	}
 
 }
-
-	TiXmlDocument doc( "my.xml" );
-	bool loadOkay = doc.LoadFile();
-	    	TiXmlHandle hDoc(&doc);
-	        TiXmlElement *pMode, *pDet, *pChan;
-		pMode = doc.FirstChildElement("mode");
-		pDet = doc.FirstChildElement("detector");
-		pChan = doc.FirstChildElement("channel");
-		while(pMode)
-			{
-			std::cout<<"Mode: "<<pMode->Attribute("name")<<" "<<pMode->Attribute("use")<<std::endl;
-			pMode = pMode->NextSiblingElement("mode");	
-		}
-
-		pDet = doc.FirstChildElement("detector");
-		while(pDet)
-			{
-			std::cout<<"Detector: "<<pDet->Attribute("name")<<" "<<pDet->Attribute("use")<<std::endl;
-			pDet = pDet->NextSiblingElement("detector");	
-		}
-		while(pChan)
-			{
-			std::cout<<"Channel: "<<pChan->Attribute("name")<<" "<<pChan->Attribute("use")<<" Bins: "<<pChan->Attribute("numbins")<<std::endl;
-
-			TiXmlElement *pBin = pChan->FirstChildElement("bins");
-			//std::cout<<"Bin Edges: "<<pBin->Attribute("edges")<<" widths: "<<pBin->Attribute("widths")<<std::endl;
-
-		        TiXmlElement *pSubChan;
-			pSubChan = pChan->FirstChildElement("subchannel");
-			while(pSubChan){
-				std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<std::endl;
-				pSubChan = pSubChan->NextSiblingElement("subchannel");	
-			}
-
-
-			std::stringstream iss(pBin->Attribute("edges"));
-			std::stringstream pss(pBin->Attribute("widths"));
-
-			double number;
-			std::vector<double> binedge;
-			std::vector<double> binwidth;
-			while ( iss >> number ) binedge.push_back( number );
-			while ( pss >> number ) binwidth.push_back( number );
-
-			std::cout<<"Bin Edges: ";
-			for(auto b: binedge){
-				std::cout<<b<<" ";
-			}
-			std::cout<<". Total#: "<<binedge.size()<<std::endl;
-
-			std::cout<<"Bin Widths: ";
-			for(auto b: binwidth){
-				std::cout<<b<<" ";
-			}
-			std::cout<<". Total#: "<<binwidth.size()<<std::endl;
-		
-
-
-	
-
-			pChan = pChan->NextSiblingElement("channel");	
-		}
-
-
-//return 0;
-
 
 
 SBNspec temp("test");
