@@ -7,19 +7,24 @@ void help(std::string in){
 }
 
 
-SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
+/***********************************************
+ *		Constructors
+ * ********************************************/
+
+SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
 		help("Starting chi constructor");	
-		SBNconfig();
 
 		lastChi = -9999999;
-// Step 1: Load up a matrix and check to see ifs the right size. Check configure to see if use sys or stat
-// Step 2: Make stat only matrix
-// Step 3: Make sys only matrix and add together
-// Step 4: Scale by bkgSpec fullSpec. 
 
-// Step 5: Compress!
-// Step 6: Invert (and save as vector<vector>)
+		load_bkg(bkgSpec);
+}
 
+
+/***********************************************
+ *		Rest for now
+ * ********************************************/
+
+int SBNchi::load_bkg(SBNspec inSpec){
 
 		TMatrixT <double> McI(TallComp,TallComp);
 		// Fill systematics from pre-computed files
@@ -34,13 +39,13 @@ SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
 		{
 			for(int j =0; j<Msys.GetNrows(); j++)
 			{
-				Msys(i,j)=Msys(i,j)*bkgSpec.fullVec[i]*bkgSpec.fullVec[j];
+				Msys(i,j)=Msys(i,j)*inSpec.fullVec[i]*inSpec.fullVec[j];
 			}
 		}
 			
 		// Fill stats from the back ground vector
 		TMatrixT <double> Mstat(Tall,Tall);
-		stats_fill(Mstat, bkgSpec.fullVec);
+		stats_fill(Mstat, inSpec.fullVec);
 
 
 		//And then define the total covariance matrix in all its glory
@@ -62,6 +67,8 @@ SBNchi::SBNchi(SBNspec in) : bkgSpec(in){
 
 		// There is currently a bug, somehow a memory leak perhaps. converting the TMatrix to a vector of vectors fixes it for now. 
 		vMcI = to_vector(McI);
+
+return 1;
 
 }
 
@@ -98,8 +105,6 @@ double SBNchi::calc_chi(std::vector<double> sigVec){
 		lastChi = tchi;
 		return tchi;
 }
-
-
 
 
 
@@ -325,7 +330,5 @@ void SBNchi::collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc){
 
 return;
 }
-
-
 
 

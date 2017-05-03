@@ -14,6 +14,7 @@
 class SBNconfig {
 
 	protected:
+	
 	int Ndet;
 	int Nchan;
 	int Nmode;
@@ -32,6 +33,7 @@ class SBNconfig {
 	std::string CorrMatRoot;
 	std::string CorrMatName;
 	public:
+	std::string xmlname;	
 	
 	std::vector<std::string> mname; 		//modename
 	std::vector<std::string> dname; 		//detectorname
@@ -54,7 +56,7 @@ class SBNconfig {
 	std::vector<std::string> fullnames;
 	std::vector<int> useBins; 
 
-	SBNconfig();
+	SBNconfig(std::string);
 //	SBNConfig(const char *);
 //	int printNdet();
 

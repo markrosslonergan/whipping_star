@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-SBNconfig::SBNconfig(){
+SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 	//CorrMatRoot ="rootfiles/covariance_matrices_xcheck_690x690.root";
 	//CorrMatName ="TMatrixT<float>;7";
@@ -14,7 +14,7 @@ SBNconfig::SBNconfig(){
 	scBool.resize(100);
 	char *end;
 
-		TiXmlDocument doc( "my.xml" );
+		TiXmlDocument doc( whichxml.c_str() );
 		bool loadOkay = doc.LoadFile();
 	    	TiXmlHandle hDoc(&doc);
 	        TiXmlElement *pMode, *pDet, *pChan, *pCov;
@@ -215,8 +215,8 @@ SBNconfig::SBNconfig(){
 	TallComp = Nmode*TmodeComp;
 
 
-	std::cout<<"Ndet: "<<Ndet<<" Nmode: "<<Nmode<<" Nchan: "<<Nchan<<" Nsc[0]: "<<Chan[0]<<" Nsc[1]: "<<Chan[1]<<std::endl;
-	std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<" Tcomp: "<<TallComp<<std::endl;
+	//std::cout<<"Ndet: "<<Ndet<<" Nmode: "<<Nmode<<" Nchan: "<<Nchan<<" Nsc[0]: "<<Chan[0]<<" Nsc[1]: "<<Chan[1]<<std::endl;
+	//std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<" Tcomp: "<<TallComp<<std::endl;
 
 
 

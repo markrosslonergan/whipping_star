@@ -5,10 +5,8 @@
 #include <TH1D.h>
 #include <TRandom3.h>
 
-SBNspec::SBNspec(const char * name){
+SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
 
-
-	SBNconfig();
 
 	char namei[200];
 	sprintf(namei,"%s.root",name);	
@@ -17,18 +15,28 @@ SBNspec::SBNspec(const char * name){
 
 
 	for(auto fn: fullnames){ 	//Loop over all filenames that should be there, and load up the histograms.
-		std::cout<<"Attempting to load: "<<fn.c_str()<<" from: "<<namei<<std::endl;
+		//std::cout<<"Attempting to load: "<<fn.c_str()<<" from: "<<namei<<std::endl;
 		hist.push_back(*((TH1D*)f.Get(fn.c_str()))); 
 	}
 	std::cout<<"Finished loading all spectra histograms"<<std::endl;
 
 
-
-
-
-
-f.Close();
+	f.Close();
 }//end constructor
+
+
+int SBNspec::Add(SBNspec *in){
+
+	if(xmlname != in->xmlname){ std::cout<<"ERROR: SBNspec::Add, trying to add differently configured SBNspecs!"<<std::endl; exit(EXIT_FAILURE);}
+
+	for(int i=0; i< hist.size(); i++){
+		hist[i].Add( &(in->hist[i]));
+	}	
+
+
+	return 1;
+}
+
 
 int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);

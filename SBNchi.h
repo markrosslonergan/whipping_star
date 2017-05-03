@@ -10,6 +10,7 @@
 #include "TRandom3.h"
 #include "TFile.h"
 
+
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
@@ -46,13 +47,17 @@ class SBNchi: public SBNconfig{
 	void fake_fill(TMatrixT <double>&  M);
 	void stats_fill(TMatrixT <double>&  M, std::vector<double> diag);
 
-	std::vector<double >  calc_signal_events(struct neutrinoModel &nuModel);
 
 	std::vector<std::vector<double >> to_vector(TMatrixT <double> McI);
 
 	void collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void collapse_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc);
 	void collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc);
+
+
+	// Todo:
+	std::vector<double >  calc_signal_events(struct neutrinoModel &nuModel);
+
 
 	//int init_minim();
 	//double minim_calc_chi(const double * x);

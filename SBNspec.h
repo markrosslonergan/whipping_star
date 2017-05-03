@@ -6,6 +6,7 @@
 #include <iostream>
 #include "SBNconfig.h"
 #include <TH1D.h>
+#include <string>
 
 class SBNspec :public SBNconfig{
 	
@@ -17,7 +18,7 @@ class SBNspec :public SBNconfig{
 	std::vector<double > compVec;
 
 
-	SBNspec(const char *); //Load in config file
+	SBNspec(const char *, std::string); //Load in config file
 
 	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2
 
@@ -34,8 +35,9 @@ class SBNspec :public SBNconfig{
 	int printFullVec();
 	int printCompVec();
 
-};
+	int Add(SBNspec*);
 
+};
 
 
 

@@ -356,39 +356,22 @@ while(iarg != -1)
 }
 
 
-SBNspec temp("test");
+SBNspec bkgSpec("test", "sbn.xml");
+bkgSpec.calcFullVector();
+bkgSpec.compressVector();
 
-std::cout<<"created temp spec"<<std::endl;
-temp.calcFullVector();
-temp.compressVector();
+SBNchi chi(bkgSpec);
 
-SBNchi chi(temp);
+SBNspec sig("test", "sbn.xml");
 
-std::cout<<"Full vector is of size: "<<temp.fullVec.size()<<std::endl;
-//temp.printFullVec();
-std::cout<<"Compressed vector is of size: "<<temp.compVec.size()<<std::endl;
-//temp.printCompVec();
-
-
-SBNspec sig("test");
-sig.ScaleAll(0.88);
-sig.calcFullVector();
-sig.compressVector();
-
-double ans =chi.calc_chi(sig);
-
-std::cout<<"Chi: fixed scaling 0.88 "<<ans<<std::endl;
-
-for(int i =0 ;i < 10; i++){
-	sig.Scale("uBooNE",0.88);
-	sig.calcFullVector();
-	sig.compressVector();
-
-	std::cout<<"Chi: "<< chi.calc_chi(sig)<<std::endl;
+for(double x =0.5 ;x <= 1.5; x+=0.025){
+	SBNspec loopSpec = sig;
+	
+	loopSpec.Scale("elike_misphoton", x);
+	loopSpec.calcFullVector();
+	loopSpec.compressVector();
+	std::cout<<"scaling: "<<x<<" "<<"Chi^2: "<< chi.calc_chi(loopSpec)<<std::endl;
 }
-
-	std::vector<double> g(10);
-	std::cout<<"should failChi: "<< chi.calc_chi(g)<<std::endl;
 
 
 
