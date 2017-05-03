@@ -24,6 +24,8 @@
 #include "SBNconfig.h"
 #include "SBNchi.h"
 #include "SBNspec.h"
+#include "SBNosc.h"
+
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
@@ -372,9 +374,6 @@ for(double x =0.5 ;x <= 1.5; x+=0.025){
 	loopSpec.compressVector();
 	std::cout<<"scaling: "<<x<<" "<<"Chi^2: "<< chi.calc_chi(loopSpec)<<std::endl;
 }
-
-
-
 
 
 }
