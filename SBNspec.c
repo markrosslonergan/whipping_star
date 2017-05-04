@@ -49,8 +49,7 @@ return 1;
 
 int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
-			h.Scale(sc);
-
+		h.Scale(sc,"nosw2");
 	}
 return 1;
 }
@@ -61,7 +60,7 @@ int SBNspec::Scale(std::string name, double val){
 		
 			if(test.find(name)!=std::string::npos ){
 				//std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
-				h.Scale(val);
+				h.Scale(val,"nosw2" );
 			}
 
 	}

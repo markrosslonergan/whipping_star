@@ -20,6 +20,9 @@
 #include "TRandom.h"
 #include "TError.h"
 
+#include "TCanvas.h"
+#include "TH2F.h"
+
 #include "params.h"
 #include "SBNconfig.h"
 #include "SBNchi.h"
@@ -357,8 +360,13 @@ while(iarg != -1)
 
 }
 
+double uboonepot = 0.5;
+
 
 SBNspec bkgSpec("precomp/SBN_bkg_all", "sbn.xml");
+bkgSpec.Scale("uBooNE", uboonepot);
+
+
 bkgSpec.calcFullVector();
 bkgSpec.compressVector();
 
@@ -377,18 +385,20 @@ for(double x =0.5 ;x <= 1.5; x+=0.025){
 
 std::cout<<"Begining SBNosc study"<<std::endl;
 */
+				SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
+				oscSig.setAppMode();
+				oscSig.Scale("uBooNE",uboonepot);		
 
-	bkgSpec.ScaleAll(0.5);
+
+				TCanvas *c1 = new TCanvas("c1","c1",600,400);
+				TH2F *hcontz = new TH2F("hcontz","Option CONTZ example ",25,-5,0, 100,-2,2);
+
 
 	for(double m = -2.00; m <=2.04; m=m+0.04){
-	 for(double sins2 = log10(0.25) ; sins2 > -5; sins2 = sins2 - 0.2){
+	 for(double sins2 = 0.0 ; sins2 >= -5; sins2 = sins2 - 0.2){
 	 	double uei = 0.1;
 		double umi = sqrt(pow(10,sins2))/(2*uei);
 		
-				SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
-				oscSig.setAppMode();
-				oscSig.ScaleAll(0.5);		
-
 				double imn[3] = {sqrt(pow(10,m)),0,0};
 				double iue[3] = {umi,0,0};
 				double ium[3] = {uei,0,0};
@@ -397,12 +407,25 @@ std::cout<<"Begining SBNosc study"<<std::endl;
 				signalModel.numsterile = 1;
 				
 				oscSig.load_model(signalModel);
-				oscSig.oscillate();
+				std::vector<double> ans = oscSig.oscillate();
 
-				std::cout<<m<<" "<<sins2<<" "<<chi.calc_chi(oscSig)<<std::endl;
+				std::cout<<m<<" "<<sins2<<" "<<chi.calc_chi(ans)<<std::endl;
+			
+				hcontz->SetBinContent( 1+floor(-(-5.0-sins2)/0.2) , 1+floor(-(-2.00-m)/0.04), chi.calc_chi(ans));
+
 
 	 }
 	}
+	//	  Double_t contours[1];
+        //	  contours[0] = 1.64;	
+	//	  hcontz->SetContour(1, contours);
+				c1->cd();
+
+				hcontz->Draw("CONTZ");
+				TFile * ff = new TFile("test.root","RECREATE");
+				ff->cd();
+				c1->Write();
+				ff->Close();
 
 
 
