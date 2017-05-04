@@ -358,13 +358,13 @@ while(iarg != -1)
 }
 
 
-SBNspec bkgSpec("test", "sbn.xml");
+SBNspec bkgSpec("precomp/SBN_bkg_all", "sbn.xml");
 bkgSpec.calcFullVector();
 bkgSpec.compressVector();
 
 SBNchi chi(bkgSpec);
 
-SBNspec sig("test", "sbn.xml");
+/*SBNspec sig("precomp/SBN_bkg_all", "sbn.xml");
 
 for(double x =0.5 ;x <= 1.5; x+=0.025){
 	SBNspec loopSpec = sig;
@@ -374,6 +374,36 @@ for(double x =0.5 ;x <= 1.5; x+=0.025){
 	loopSpec.compressVector();
 	std::cout<<"scaling: "<<x<<" "<<"Chi^2: "<< chi.calc_chi(loopSpec)<<std::endl;
 }
+
+std::cout<<"Begining SBNosc study"<<std::endl;
+*/
+
+	bkgSpec.ScaleAll(0.5);
+
+	for(double m = -2.00; m <=2.04; m=m+0.04){
+	 for(double sins2 = log10(0.25) ; sins2 > -5; sins2 = sins2 - 0.2){
+	 	double uei = 0.1;
+		double umi = sqrt(pow(10,sins2))/(2*uei);
+		
+				SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
+				oscSig.setAppMode();
+				oscSig.ScaleAll(0.5);		
+
+				double imn[3] = {sqrt(pow(10,m)),0,0};
+				double iue[3] = {umi,0,0};
+				double ium[3] = {uei,0,0};
+				double iph[3] = {0,0,0};
+				neutrinoModel signalModel(imn,iue,ium,iph);
+				signalModel.numsterile = 1;
+				
+				oscSig.load_model(signalModel);
+				oscSig.oscillate();
+
+				std::cout<<m<<" "<<sins2<<" "<<chi.calc_chi(oscSig)<<std::endl;
+
+	 }
+	}
+
 
 
 }

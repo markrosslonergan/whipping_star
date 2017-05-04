@@ -6,10 +6,6 @@
 
 SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
-	//CorrMatRoot ="rootfiles/covariance_matrices_xcheck_690x690.root";
-	//CorrMatName ="TMatrixT<float>;7";
-	
-	
 	scname.resize(100);
 	scBool.resize(100);
 	char *end;

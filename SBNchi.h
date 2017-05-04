@@ -30,7 +30,10 @@ class SBNchi: public SBNconfig{
 
 	double lastChi;
 
+
 	SBNchi(SBNspec); 
+	SBNchi(SBNspec,std::string); 
+	
 	int load_bkg(SBNspec);
 
 

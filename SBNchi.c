@@ -20,6 +20,27 @@ SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
 }
 
 
+SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgSpec(in){
+		
+		if(fullnames.size() !=in.fullnames.size()){
+			std::cerr<<"ERROR: SBNchi::SBNchi | Selected covariance matrix and background spectrum are different sizes!"<<std::endl;
+			exit(EXIT_FAILURE);
+		}else{		
+		 	for(int i=0; i< fullnames.size(); i++){
+				if(fullnames[i]!=in.fullnames[i]){
+					std::cerr<<"ERROR: SBNchi::SBNchi | Spectrum and Covariance matrix have different (or different order) subchannels!"<<std::endl;
+					exit(EXIT_FAILURE);
+				}
+			}
+		}		
+
+
+		lastChi = -9999999;
+
+		load_bkg(bkgSpec);
+}
+
+
 /***********************************************
  *		Rest for now
  * ********************************************/

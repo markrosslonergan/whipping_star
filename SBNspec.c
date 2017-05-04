@@ -18,7 +18,6 @@ SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) 
 		//std::cout<<"Attempting to load: "<<fn.c_str()<<" from: "<<namei<<std::endl;
 		hist.push_back(*((TH1D*)f.Get(fn.c_str()))); 
 	}
-	std::cout<<"Finished loading all spectra histograms"<<std::endl;
 
 
 	f.Close();
