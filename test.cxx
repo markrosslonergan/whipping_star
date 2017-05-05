@@ -451,7 +451,7 @@ SBNosc injectSig("precomp/SBN_bkg_all","sbn.xml");
 		
 	injectSig.load_model(signalModel);
 	injectSig.oscillate_this();
-	injectSig.poissonScale();
+	//injectSig.poissonScale();
 	injectSig.compressVector();
 
 
@@ -460,13 +460,13 @@ SBNosc testSig("precomp/SBN_bkg_all","sbn.xml");
 SBNfit3pN  fit3p1(injectSig, testSig, 12);
 //Now the probem is in sbnfit initialise!!
 
-std::vector<double> init  {0.5,0,0,  0.05, 0,0, 0.05, 0, 0, 0,0,0 };
-std::vector<double> low  {0.1,0,0,   0,    0,0, 0   , 0, 0 ,0,0,0};
-std::vector<double> up  {10,0,0,1,0,0,1,0,0,0,0,0};
-std::vector<double> step  {0.01,1,1,0.005,1,1,0.005,1,1,1,1,1};
+std::vector<double> init  {0.25,0,0, 	 0.05, 0,0,		 0.05, 0, 0, 	0,0,0};
+std::vector<double> low   {0.1,0,0, 	 0,    0,0,		 0   , 0, 0,	0,0,0};
+std::vector<double> up    {10,0,0,  	 1,    0,0, 		 1,    0, 0,	0,0,0};
+std::vector<double> step  {0.2,0,0,	 0.005,0,0,		 0.005,0,0,	0,0,0};
 std::vector<std::string> nam ={"m4\0","m5","m6","Ue4\0","Ue5","Ue6","Um4","Um5","Um6","phi45","phi46","phi56"};
 
-std::vector<int> fix = {0,1,1,0,1,1,0,1,1,1,1,1};
+std::vector<int> fix = 	  {0,1,1,0,1,1,0,1,1,1,1,1};
 
 std::cout<<"set stuff"<<std::endl;
 fit3p1.setInitialValues(init);
