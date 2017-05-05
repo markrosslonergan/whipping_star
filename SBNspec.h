@@ -23,6 +23,7 @@ class SBNspec : public SBNconfig{
 	SBNspec() {};
 
 	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2
+	int poissonScale(); //Scales every histogram by a poissonian random number
 
 	int ScaleAll(double);
 	int Scale(std::string name, double val);

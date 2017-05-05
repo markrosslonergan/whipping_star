@@ -29,6 +29,7 @@
 #include "SBNspec.h"
 #include "SBNosc.h"
 #include "SBNfit.h"
+#include "SBNfit3pN.h"
 
 #define no_argument 0
 #define required_argument 1
@@ -414,7 +415,7 @@ TF1 *fLan = new TF1("fLan","TMath::Landau(x,[0],[1],0)",0,5);
 
 /*
 std::cout<<"construct my fitter"<<std::endl;
-SBNfit myfit(bkgSpec2, sigSpec2);
+SBNfit myfit(bkgSpec2, sigSpec2, 2);
 
 std::vector<std::pair<std::string, int>> myin;
 myin.push_back(std::make_pair("uBooNE_elike_mismuon",0) );
@@ -428,7 +429,7 @@ std::vector<std::string> nam  {"p1","p2"};
 
 
 std::cout<<"initialize my fitter"<<std::endl;
-myfit.initialize(2, myin);
+myfit.initialize_norm(myin);
 
 std::cout<<"set stuff"<<std::endl;
 myfit.setInitialValues(init);
@@ -444,39 +445,40 @@ std::cout<<"Minimized! chi^2: "<<myfit.BFchi<<" p1: "<<myfit.BFparam[0]<<" p2: "
 
 */
 
-
-	SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
-	oscSig.setAppMode();
-
-	SBNfit myfit(bkgSpec2, oscSig);
-
-
-std::vector<double> init  {0.99,1.001};
-std::vector<double> low  {0.1,0.1};
-std::vector<double> up  {10,10};
-std::vector<double> step  {0.02,0.02};
-std::vector<std::string> nam  {"p1","p2"};
+SBNosc injectSig("precomp/SBN_bkg_all","sbn.xml");
+	neutrinoModel signalModel(1,0.15,0.18);
+	signalModel.numsterile = 1;
+		
+	injectSig.load_model(signalModel);
+	injectSig.oscillate_this();
+	injectSig.poissonScale();
+	injectSig.compressVector();
 
 
-std::cout<<"initialize my fitter"<<std::endl;
-myfit.initialize(2, myin);
+SBNosc testSig("precomp/SBN_bkg_all","sbn.xml");
+
+SBNfit3pN  fit3p1(injectSig, testSig, 12);
+//Now the probem is in sbnfit initialise!!
+
+std::vector<double> init  {0.5,0,0,  0.05, 0,0, 0.05, 0, 0, 0,0,0 };
+std::vector<double> low  {0.1,0,0,   0,    0,0, 0   , 0, 0 ,0,0,0};
+std::vector<double> up  {10,0,0,1,0,0,1,0,0,0,0,0};
+std::vector<double> step  {0.01,1,1,0.005,1,1,0.005,1,1,1,1,1};
+std::vector<std::string> nam ={"m4\0","m5","m6","Ue4\0","Ue5","Ue6","Um4","Um5","Um6","phi45","phi46","phi56"};
+
+std::vector<int> fix = {0,1,1,0,1,1,0,1,1,1,1,1};
 
 std::cout<<"set stuff"<<std::endl;
-myfit.setInitialValues(init);
-myfit.setNames(nam);
-myfit.setLowerValues(low);
-myfit.setUpperValues(up);
-myfit.setStepSizes(step);
+fit3p1.setInitialValues(init);
+fit3p1.setNames(nam);
+fit3p1.setLowerValues(low);
+fit3p1.setUpperValues(up);
+fit3p1.setStepSizes(step);
+fit3p1.setFixed(fix);
 
-std::cout<<"minimize!"<<std::endl;
-myfit.minimize();
+fit3p1.minimize();
 
-s
-
-	
-
-
-
+std::cout<<"Minimized! chi^2: "<<fit3p1.BFchi<<" Ue1: "<<fit3p1.BFparam[3]<<" Um1: "<<fit3p1.BFparam[6]<<" #:"<<fit3p1.BFncalls<<std::endl;
 
 
 

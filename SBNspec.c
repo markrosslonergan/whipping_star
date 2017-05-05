@@ -39,6 +39,17 @@ int SBNspec::Add(SBNspec *in){
 }
 
 
+int SBNspec::poissonScale(){
+	TRandom3 *rangen = new TRandom3(0);
+	for(auto &h: hist){
+		for(int i=0; i<h.GetSize(); i++){
+			h.SetBinContent(i, rangen->Poisson( h.GetBinContent(i)    ));
+		}	
+	}
+return 1;
+}
+
+
 int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);
 
