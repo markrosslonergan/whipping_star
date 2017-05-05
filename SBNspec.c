@@ -5,6 +5,7 @@
 #include <TH1D.h>
 #include <TRandom3.h>
 
+
 SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
 
 
@@ -22,6 +23,7 @@ SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) 
 
 	f.Close();
 }//end constructor
+
 
 
 int SBNspec::Add(SBNspec *in){
@@ -46,6 +48,22 @@ int SBNspec::randomScale(){
 	}
 return 1;
 }
+
+
+int SBNspec::Scale(std::string name, TF1 * func){
+	for(auto& h: hist){
+		std::string test = h.GetName();
+			if(test.find(name)!=std::string::npos ){
+				for(int b=0; b<=h.GetNbinsX(); b++){
+					//std::cout<<h.GetBinContent(b)<<" "<<h.GetBinCenter(b)<<" "<<func->Eval(h.GetBinCenter(b) )<<std::endl; 
+					h.SetBinContent(b, h.GetBinContent(b)*func->Eval(h.GetBinCenter(b) ) );
+				}
+			}
+
+	}
+return 1;
+}
+
 
 int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
@@ -105,7 +123,7 @@ return 1;
 int SBNspec::compressVector(){
 	compVec.clear();
 	//This needs to be confirmed and checked. Looks good, mark 24th april
-
+	calcFullVector();
 	for(int im = 0; im < Nmode; im++){
 		for(int id =0; id < Ndet; id++){
 			int edge = id*Tdet + Tmode*im; // This is the starting index for this detector

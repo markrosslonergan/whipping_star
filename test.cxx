@@ -28,6 +28,7 @@
 #include "SBNchi.h"
 #include "SBNspec.h"
 #include "SBNosc.h"
+#include "SBNfit.h"
 
 #define no_argument 0
 #define required_argument 1
@@ -365,10 +366,8 @@ double uboonepot = 0.5;
 
 SBNspec bkgSpec("precomp/SBN_bkg_all", "sbn.xml");
 bkgSpec.Scale("uBooNE", uboonepot);
-
-
-bkgSpec.calcFullVector();
 bkgSpec.compressVector();
+
 
 SBNchi chi(bkgSpec);
 
@@ -385,17 +384,116 @@ for(double x =0.5 ;x <= 1.5; x+=0.025){
 
 std::cout<<"Begining SBNosc study"<<std::endl;
 */
+
+
+
+SBNspec bkgSpec2("precomp/SBN_bkg_all", "sbn.xml");
+bkgSpec2.Scale("uBooNE_elike_mismuon", 5);
+bkgSpec2.Scale("uBooNE_mlike_intrinsic", 0.4);
+
+bkgSpec2.compressVector();
+SBNchi chi2(bkgSpec2);
+SBNspec sigSpec2("precomp/SBN_bkg_all","sbn.xml");
+
+/*
+TF1 *fLan = new TF1("fLan","TMath::Landau(x,[0],[1],0)",0,5);
+
+
+	for(int i=0; i<100; i++){
+		double mpv = i*0.05;
+		fLan->SetParameters(mpv, 1.3);
+		
+		SBNspec tempSpec = sigSpec2;
+		tempSpec.Scale("uBooNE_elike_intrinsic", fLan);
+		tempSpec.compressVector();
+
+		std::cout<<mpv<<" "<<chi2.calc_chi(tempSpec)<<std::endl;
+
+	}
+*/
+
+/*
+std::cout<<"construct my fitter"<<std::endl;
+SBNfit myfit(bkgSpec2, sigSpec2);
+
+std::vector<std::pair<std::string, int>> myin;
+myin.push_back(std::make_pair("uBooNE_elike_mismuon",0) );
+myin.push_back(std::make_pair("uBooNE_mlike_intrinsic",1) );
+
+std::vector<double> init  {0.99,1.001};
+std::vector<double> low  {0.1,0.1};
+std::vector<double> up  {10,10};
+std::vector<double> step  {0.02,0.02};
+std::vector<std::string> nam  {"p1","p2"};
+
+
+std::cout<<"initialize my fitter"<<std::endl;
+myfit.initialize(2, myin);
+
+std::cout<<"set stuff"<<std::endl;
+myfit.setInitialValues(init);
+myfit.setNames(nam);
+myfit.setLowerValues(low);
+myfit.setUpperValues(up);
+myfit.setStepSizes(step);
+
+std::cout<<"minimize!"<<std::endl;
+myfit.minimize();
+
+std::cout<<"Minimized! chi^2: "<<myfit.BFchi<<" p1: "<<myfit.BFparam[0]<<" p2: "<<myfit.BFparam[1]<<" #:"<<myfit.BFncalls<<std::endl;
+
+*/
+
+
+	SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
+	oscSig.setAppMode();
+
+	SBNfit myfit(bkgSpec2, oscSig);
+
+
+std::vector<double> init  {0.99,1.001};
+std::vector<double> low  {0.1,0.1};
+std::vector<double> up  {10,10};
+std::vector<double> step  {0.02,0.02};
+std::vector<std::string> nam  {"p1","p2"};
+
+
+std::cout<<"initialize my fitter"<<std::endl;
+myfit.initialize(2, myin);
+
+std::cout<<"set stuff"<<std::endl;
+myfit.setInitialValues(init);
+myfit.setNames(nam);
+myfit.setLowerValues(low);
+myfit.setUpperValues(up);
+myfit.setStepSizes(step);
+
+std::cout<<"minimize!"<<std::endl;
+myfit.minimize();
+
+s
+
+	
+
+
+
+
+
+
+return 0;
 				SBNosc oscSig("precomp/SBN_bkg_all","sbn.xml");
 				oscSig.setAppMode();
 				oscSig.Scale("uBooNE",uboonepot);		
 
 
-				TCanvas *c1 = new TCanvas("c1","c1",600,400);
-				TH2F *hcontz = new TH2F("hcontz","Option CONTZ example ",25,-5,0, 100,-2,2);
-
+	TCanvas *c1 = new TCanvas("c1","c1",600,400);
+	TH2F *hcontz = new TH2F("hcontz","",100,-5,0, 100,-2,2);
+	hcontz->GetXaxis()->SetTitle("#sin^{2} 2 #theta_{e #mu}");
+	hcontz->GetYaxis()->SetTitle("#Delta m^{2}_{41} (eV^{2})");
 
 	for(double m = -2.00; m <=2.04; m=m+0.04){
-	 for(double sins2 = 0.0 ; sins2 >= -5; sins2 = sins2 - 0.2){
+	 for(double sins2 = 0.0 ; sins2 >= -5; sins2 = sins2 - 0.05){
+
 	 	double uei = 0.1;
 		double umi = sqrt(pow(10,sins2))/(2*uei);
 		
@@ -411,17 +509,18 @@ std::cout<<"Begining SBNosc study"<<std::endl;
 
 				std::cout<<m<<" "<<sins2<<" "<<chi.calc_chi(ans)<<std::endl;
 			
-				hcontz->SetBinContent( 1+floor(-(-5.0-sins2)/0.2) , 1+floor(-(-2.00-m)/0.04), chi.calc_chi(ans));
+		hcontz->SetBinContent( 1+floor(-(-5.0-sins2)/0.05+0.00001) , 1+floor(-(-2.00-m)/0.04+0.00001), chi.calc_chi(ans));
 
 
 	 }
 	}
-	//	  Double_t contours[1];
-        //	  contours[0] = 1.64;	
-	//	  hcontz->SetContour(1, contours);
+		  Double_t contours[1];
+        	  contours[0] = 1.64;
+		  hcontz->SetContour(1, contours);
+
 				c1->cd();
 
-				hcontz->Draw("CONTZ");
+				hcontz->Draw("CONT3");
 				TFile * ff = new TFile("test.root","RECREATE");
 				ff->cd();
 				c1->Write();

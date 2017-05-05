@@ -7,8 +7,9 @@
 #include "SBNconfig.h"
 #include <TH1D.h>
 #include <string>
+#include <TF1.h>
 
-class SBNspec :public SBNconfig{
+class SBNspec : public SBNconfig{
 	
 	//Have a creation version, that creates an appropiate root one?
 	public:
@@ -19,11 +20,13 @@ class SBNspec :public SBNconfig{
 
 
 	SBNspec(const char *, std::string); //Load in config file
+	SBNspec() {};
 
 	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2
 
 	int ScaleAll(double);
 	int Scale(std::string name, double val);
+	int Scale(std::string name, TF1 *);
 	int NormAll(double);
 	int Norm(std::string name, double val);
 

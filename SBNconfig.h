@@ -57,6 +57,7 @@ class SBNconfig {
 	std::vector<int> useBins; 
 
 	SBNconfig(std::string);
+	SBNconfig(){};
 //	SBNConfig(const char *);
 //	int printNdet();
 

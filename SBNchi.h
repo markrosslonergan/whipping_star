@@ -6,6 +6,7 @@
 #include <iostream>
 #include "SBNspec.h"
 #include "SBNconfig.h"
+
 #include "TMatrixT.h"
 #include "TRandom3.h"
 #include "TFile.h"
@@ -17,7 +18,7 @@
 #include <ctime>
 #include "params.h"
 
-class SBNchi: public SBNconfig{
+class SBNchi : public SBNconfig{
 	
 	int matrix_size ;
 	int matrix_size_c ;

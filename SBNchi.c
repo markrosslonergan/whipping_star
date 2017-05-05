@@ -12,10 +12,7 @@ void help(std::string in){
  * ********************************************/
 
 SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
-		help("Starting chi constructor");	
-
 		lastChi = -9999999;
-
 		load_bkg(bkgSpec);
 }
 
@@ -96,6 +93,11 @@ return 1;
 
 double SBNchi::calc_chi(SBNspec sigSpec){
 		double tchi = 0;	
+
+		if(sigSpec.compVec.size()==0){
+			std::cout<<"WARNING: SBNchi::calc_chi, inputted sigSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
+			sigSpec.compressVector();
+		}
 
 		for(int i =0; i<TallComp; i++){
 				for(int j =0; j<TallComp; j++){
