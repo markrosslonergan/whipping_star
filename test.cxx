@@ -454,6 +454,8 @@ SBNosc injectSig("precomp/SBN_bkg_all","sbn.xml");
 	//injectSig.poissonScale();
 	injectSig.compressVector();
 
+	injectSig.writeOut("inject.root");
+	return 0;
 
 SBNosc testSig("precomp/SBN_bkg_all","sbn.xml");
 

@@ -180,7 +180,57 @@ return 1;
 }
 
 
+int SBNspec::writeOut(std::string filename){
+	//kWhite  = 0,   kBlack  = 1,   kGray    = 920,  kRed    = 632,  kGreen  = 416,
+	//kBlue   = 600, kYellow = 400, kMagenta = 616,  kCyan   = 432,  kOrange = 800,
+	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
 
+	std::vector<int> mycol = {416-6, 800+3, 616+1, 632-7, 600-7, 432+1, 900}; 				
 
+	TFile *f = new TFile(filename.c_str(),"RECREATE" ); 
+	f->cd();
+
+	
+
+	for(int i =0; i < Nchan; i++)
+	{
+	TCanvas* Cstack= new TCanvas(cname[i].c_str(),cname[i].c_str());
+	Cstack->cd();
+	THStack * hs 	   = new THStack(cname[i].c_str(),  cname[i].c_str());
+	TLegend * legStack = new TLegend(0.6,0.35,0.875,0.875);
+		int n=0;
+		for(auto &h : hist){
+			std::string test = h.GetName();
+			if(test.find(cname[i])!=std::string::npos ){
+				h.Scale(1,"width,nosw2");
+				h.GetYaxis()->SetTitle("Events/GeV");
+				h.SetMarkerStyle(20);
+				h.SetMarkerColor(mycol[n]);
+				h.SetFillColor(mycol[n]);
+				h.SetLineColor(kBlack);
+				h.SetTitle(h.GetName());
+				h.Write();
+
+				legStack->AddEntry(&h,h.GetName() , "f");
+	
+				hs->Add(&h);
+				n++;
+
+			}
+		}
+	/****Not sure why but this next line seg faults...******
+	*	hs->GetYaxis()->SetTitle("Events/GeV");
+	******************************************************/
+
+	hs->Draw();
+	Cstack->Update();
+	legStack->Draw();	
+	Cstack->Write();
+	}
+
+	f->Close();
+
+	return 1;
+}
 
 

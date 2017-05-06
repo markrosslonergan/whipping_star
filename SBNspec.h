@@ -8,6 +8,10 @@
 #include <TH1D.h>
 #include <string>
 #include <TF1.h>
+#include <THStack.h>
+#include <TLegend.h>
+#include <TCanvas.h>
+//#include <TROOT.h>
 
 class SBNspec : public SBNconfig{
 	
@@ -38,6 +42,7 @@ class SBNspec : public SBNconfig{
 
 	int printFullVec();
 	int printCompVec();
+	int writeOut(std::string);
 
 	int Add(SBNspec*);
 
