@@ -18,6 +18,9 @@
 #include <ctime>
 #include "params.h"
 
+namespace SBNFIT{
+
+
 class SBNchi : public SBNconfig{
 	
 	int matrix_size ;
@@ -69,4 +72,6 @@ class SBNchi : public SBNconfig{
 
 };
 
+
+};
 #endif

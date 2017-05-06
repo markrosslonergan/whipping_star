@@ -20,6 +20,8 @@
 
 #include "Math/GSLMinimizer.h"
 #include "Math/GSLSimAnMinimizer.h"
+namespace SBNFIT{
+
 
 class SBNfit : public SBNchi {
 	
@@ -54,18 +56,30 @@ class SBNfit : public SBNchi {
 
 	int initialize_norm(std::vector< std::pair<std::string, int>> );
 	virtual double minim_calc_chi(const double * X);
-	int init_minim();
+	int init_minim(std::string, std::string);
 	double minimize();	
 
 	//ROOT::Math::Minimizer* min ;     
 
 	int setInitialValues(std::vector<double>);
+	int setInitialValues(double);
+	
 	int setUpperValues(std::vector<double>);
+	int setUpperValues(double);
+
 	int setLowerValues(std::vector<double>);
+	int setLowerValues(double);
+	
 	int setStepSizes(std::vector<double>);
+	int setStepSizes(double);
+	
 	int setFixed(std::vector<int>);
+	int setFixed(int);
+	
 	int setNames(std::vector<std::string>);
 
 };
 
+
+};
 #endif

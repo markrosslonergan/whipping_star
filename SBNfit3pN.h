@@ -18,7 +18,7 @@
 #include "Math/Functor.h"
 
 #include "Math/GSLMinimizer.h"
-
+namespace SBNFIT{
 
 class SBNfit3pN : public SBNfit {
 	
@@ -32,4 +32,5 @@ class SBNfit3pN : public SBNfit {
 
 };
 
+};
 #endif

@@ -13,6 +13,14 @@
 #include <TCanvas.h>
 //#include <TROOT.h>
 
+#include <ctime>
+#include <TFile.h>
+#include "params.h"
+#include <TRandom3.h>
+namespace SBNFIT{
+
+
+
 class SBNspec : public SBNconfig{
 	
 	//Have a creation version, that creates an appropiate root one?
@@ -49,5 +57,7 @@ class SBNspec : public SBNconfig{
 };
 
 
+
+}
 
 #endif

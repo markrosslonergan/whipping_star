@@ -1,4 +1,6 @@
 #include "SBNchi.h"
+using namespace SBNFIT;
+
 
 void help(std::string in){
 
@@ -86,7 +88,7 @@ int SBNchi::load_bkg(SBNspec inSpec){
 		// There is currently a bug, somehow a memory leak perhaps. converting the TMatrix to a vector of vectors fixes it for now. 
 		vMcI = to_vector(McI);
 
-return 1;
+return 0;
 
 }
 

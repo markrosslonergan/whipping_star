@@ -1,9 +1,5 @@
 #include "SBNspec.h"
-#include <ctime>
-#include <TFile.h>
-#include "params.h"
-#include <TH1D.h>
-#include <TRandom3.h>
+using namespace SBNFIT;
 
 
 SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
@@ -35,7 +31,7 @@ int SBNspec::Add(SBNspec *in){
 	}	
 
 
-	return 1;
+	return 0;
 }
 
 
@@ -46,7 +42,7 @@ int SBNspec::poissonScale(){
 			h.SetBinContent(i, rangen->Poisson( h.GetBinContent(i)    ));
 		}	
 	}
-return 1;
+return 0;
 }
 
 
@@ -57,7 +53,7 @@ int SBNspec::randomScale(){
 			h.Scale(rangen->Uniform(0,2));
 
 	}
-return 1;
+return 0;
 }
 
 
@@ -72,7 +68,7 @@ int SBNspec::Scale(std::string name, TF1 * func){
 			}
 
 	}
-return 1;
+return 0;
 }
 
 
@@ -80,7 +76,7 @@ int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
 		h.Scale(sc,"nosw2");
 	}
-return 1;
+return 0;
 }
 
 int SBNspec::Scale(std::string name, double val){
@@ -93,7 +89,7 @@ int SBNspec::Scale(std::string name, double val){
 			}
 
 	}
-return 1;
+return 0;
 }
 
 int SBNspec::NormAll(double n){
@@ -101,7 +97,7 @@ int SBNspec::NormAll(double n){
 	for(auto& h: hist) {
 		h.Scale(n/h.GetSumOfWeights());
 	}
-	return 1;
+	return 0;
 }
 
 int SBNspec::Norm(std::string name, double val){
@@ -114,7 +110,7 @@ int SBNspec::Norm(std::string name, double val){
 			}
 
 	}
-return 1;
+return 0;
 }
 
 int SBNspec::calcFullVector(){
@@ -128,7 +124,7 @@ int SBNspec::calcFullVector(){
 		}	
 	}
 
-return 1;
+return 0;
 }
 
 int SBNspec::compressVector(){
@@ -160,7 +156,7 @@ int SBNspec::compressVector(){
 			}
 		}
 	}
-return 1;
+return 0;
 }
 
 int SBNspec::printFullVec(){
@@ -168,7 +164,7 @@ int SBNspec::printFullVec(){
 		std::cout<<d<<" ";
 	}
 	std::cout<<std::endl;
-return 1;
+return 0;
 }
 
 int SBNspec::printCompVec(){ 
@@ -176,7 +172,7 @@ int SBNspec::printCompVec(){
 		std::cout<<d<<" ";
 	}
 	std::cout<<std::endl;
-return 1;
+return 0;
 }
 
 
@@ -190,7 +186,7 @@ int SBNspec::writeOut(std::string filename){
 	TFile *f = new TFile(filename.c_str(),"RECREATE" ); 
 	f->cd();
 
-	
+	std::vector<TH1D> temp = hist;
 
 	for(int i =0; i < Nchan; i++)
 	{
@@ -199,7 +195,7 @@ int SBNspec::writeOut(std::string filename){
 	THStack * hs 	   = new THStack(cname[i].c_str(),  cname[i].c_str());
 	TLegend * legStack = new TLegend(0.6,0.35,0.875,0.875);
 		int n=0;
-		for(auto &h : hist){
+		for(auto &h : temp){
 			std::string test = h.GetName();
 			if(test.find(cname[i])!=std::string::npos ){
 				h.Scale(1,"width,nosw2");
@@ -230,7 +226,7 @@ int SBNspec::writeOut(std::string filename){
 
 	f->Close();
 
-	return 1;
+	return 0;
 }
 
 

@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 
+using namespace SBNFIT;
+
 SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 	scname.resize(100);
@@ -229,5 +231,4 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 //std::cout<<"Map test: "<<mapIndex["nubar_SBND_elike_fulloscnu"][1]<<" "<<mapIndex["nubar_SBND_elike_fulloscnu"][0]<<std::endl;
 }//end constructor
-
 

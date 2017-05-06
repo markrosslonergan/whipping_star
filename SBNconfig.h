@@ -6,10 +6,11 @@
 #include <string>
 #include <iostream>
 #include <map>
-//#include <libconfig.h++>
 
 #include "tinyxml/tinyxml.h"
 
+namespace SBNFIT{
+// All declarations are within the namespace scope.
 
 class SBNconfig {
 
@@ -63,7 +64,7 @@ class SBNconfig {
 
 };
 
-
+}
 
 
 #endif
