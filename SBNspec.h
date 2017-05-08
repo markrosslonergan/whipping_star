@@ -23,13 +23,10 @@ namespace sbn{
 
 class SBNspec : public SBNconfig{
 	
-	//Have a creation version, that creates an appropiate root one?
 	public:
 	std::vector<TH1D > hist;	
-//	std::vector< std::vector< std::vector<std::vector < TH1D *> >>> mhists;
 	std::vector<double > fullVec;
 	std::vector<double > compVec;
-
 
 	SBNspec(const char *, std::string); //Load in config file
 	SBNspec() {};
@@ -44,7 +41,6 @@ class SBNspec : public SBNconfig{
 	int Norm(std::string name, double val);
 
 
-	//Done: most important
 	int calcFullVector();
 	int compressVector();
 

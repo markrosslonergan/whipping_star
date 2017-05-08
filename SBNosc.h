@@ -25,7 +25,6 @@ class SBNosc : public SBNspec{
 
 	std::vector< std::pair <double, int>> mass_splittings;	
 
-
 	int OscillateThis();	
 	std::vector<double> Oscillate();
 
@@ -40,7 +39,6 @@ class SBNosc : public SBNspec{
 	void setWierdMode();
 
 };
-
 
 };
 #endif

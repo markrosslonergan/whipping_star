@@ -30,7 +30,6 @@ class SBNchi : public SBNconfig{
 
 	public:
 	SBNspec bkgSpec;
-//	SBNspec sigSpec;
 
 	double lastChi;
 
