@@ -20,46 +20,49 @@
 
 #include "Math/GSLMinimizer.h"
 #include "Math/GSLSimAnMinimizer.h"
-namespace SBNFIT{
+namespace sbn{
 
 
 class SBNfit : public SBNchi {
 	
 	protected:
 
-	std::vector<double> fInitialValues;
-	std::vector<double> fUpperValues;
-	std::vector<double> fLowerValues;
-	std::vector<double> fStepSizes;
-	std::vector<int>  fFixed;
-	std::vector<std::string> fNames;
+	std::vector<double> f_initial_values;
+	std::vector<double> f_upper_values;
+	std::vector<double> f_lower_values;
+	std::vector<double> f_step_sizes;
+	std::vector<int>    f_is_fixed;
+	std::vector<std::string> f_param_names;
+
+	std::string f_minimizer_mode;
+	std::string f_minimizer_algo;
+
 
 	SBNspec fOsc;
-
-	std::string fMinMode;
-	std::string fMinAlgo;
 
 	public:
 	SBNspec sigOsc;
 
-	int Npar;
-	std::vector<std::pair<std::string, int>> vecScales;
+	int num_params;
+	std::vector<std::pair<std::string, int>> vec_scales;
 	double * fX;
 
-	double BFchi;
-	const double * BFparam;
-	int BFncalls;
+	double bf_chi;
+	const double * bf_params;
+	
+	int num_func_calls;
 
 	//using SBNchi::SBNchi;
 	SBNfit(SBNspec bk, SBNspec sk,int npa);
 	int load_signal(SBNspec);
 
 	int initialize_norm(std::vector< std::pair<std::string, int>> );
-	virtual double minim_calc_chi(const double * X);
-	int init_minim(std::string, std::string);
-	double minimize();	
+	virtual double MinimizerCalcChi(const double * X);
+	double Minimize();	
 
 	//ROOT::Math::Minimizer* min ;     
+
+	int setMethod(std::string, std::string);
 
 	int setInitialValues(std::vector<double>);
 	int setInitialValues(double);

@@ -18,7 +18,7 @@
 #include <ctime>
 #include "params.h"
 
-namespace SBNFIT{
+namespace sbn{
 
 
 class SBNchi : public SBNconfig{
@@ -41,8 +41,8 @@ class SBNchi : public SBNconfig{
 	int load_bkg(SBNspec);
 
 
-	double calc_chi(SBNspec sigSpec);
-	double calc_chi(std::vector<double> );
+	double CalcChi(SBNspec sigSpec);
+	double CalcChi(std::vector<double> );
 
 	std::vector<std::vector<double >> vMcI;
 	std::vector<std::vector<double >> vMc;
@@ -67,7 +67,7 @@ class SBNchi : public SBNconfig{
 
 
 	//int init_minim();
-	//double minim_calc_chi(const double * x);
+	//double minim_CalcChi(const double * x);
 	//double minimize(neutrinoModel newModel, double ipot, double ipotbar);
 
 };

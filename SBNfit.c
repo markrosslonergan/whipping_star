@@ -1,22 +1,22 @@
 #include "SBNfit.h"
-using namespace SBNFIT;
+using namespace sbn;
 
-SBNfit::SBNfit(SBNspec inBk, SBNspec inSg, int npar) : SBNchi(inBk), sigOsc(inSg), Npar(npar) {
+SBNfit::SBNfit(SBNspec inBk, SBNspec inSg, int npar) : SBNchi(inBk), sigOsc(inSg), num_params(npar) {
 
 
-	for(int i =0; i< Npar; i++){
-		fFixed.push_back(0);
-		fNames.push_back("");
-		fInitialValues.push_back(0.5);
-		fUpperValues.push_back(1);
-		fLowerValues.push_back(0);
-		fStepSizes.push_back(0.01);
+	for(int i =0; i< num_params; i++){
+		f_is_fixed.push_back(0);
+		f_param_names.push_back("");
+		f_initial_values.push_back(0.5);
+		f_upper_values.push_back(1);
+		f_lower_values.push_back(0);
+		f_step_sizes.push_back(0.01);
 	}
 
-	fMinMode ="GSLMultiMin"; //"GSLSimAn"
-	fMinAlgo= "BFGS2";
+	f_minimizer_mode ="GSLMultiMin"; //"GSLSimAn"
+	f_minimizer_algo= "BFGS2";
 
-	BFncalls = 0;
+	num_func_calls = 0;
 }
 
 int SBNfit::load_signal(SBNspec inSg){
@@ -25,69 +25,33 @@ int SBNfit::load_signal(SBNspec inSg){
 }
 
 int SBNfit::initialize_norm(std::vector< std::pair< std::string, int > > vecIn  ){
-	vecScales = vecIn;
+	vec_scales = vecIn;
 
 	return 0;
 }
 
-double SBNfit::minim_calc_chi(const double * X){
-	BFncalls++;
+double SBNfit::MinimizerCalcChi(const double * X){
+	num_func_calls++;
 	fOsc = sigOsc; 
 
-	for(auto& v: vecScales){
+	for(auto& v: vec_scales){
 		fOsc.Scale(v.first, X[v.second] );
 	}	
 
 	fOsc.compressVector();	
 
-	double ans =this->calc_chi(fOsc);
+	double ans =this->CalcChi(fOsc);
 
 	lastChi = ans;
 	std::cout<<X[0]<<" "<<X[1]<<" "<<lastChi<<std::endl;
 	return ans;
 
 }
-
-int SBNfit::init_minim(std::string mode, std::string algo){
-//	min = new ROOT::Math::GSLMinimizer(ROOT::Math::kConjugateFR);	
-//	ROOT::Math::Minimizer* min = new ROOT::Math::GSLMinimizer(ROOT::Math::kVectorBFGS2);	
-//	min = new ROOT::Math::GSLSimAnMinimizer();
-  // 	min->SetMaxIterations(250);  // for GSL
-//	min->SetTolerance(0.001); //times 4 for normal
-//	min->SetPrintLevel(0);
-//	min->SetPrecision(0.0001);//times 4 for normal
-	fMinMode =mode; //"GSLSimAn"
-	fMinAlgo= algo;
-
-
-
-return 0;
-}
 	
-double SBNfit::minimize(){	
-	BFncalls=0;
-	//ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-//   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("Minuit2", "Combined");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("Minuit2", "Scan");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("Minuit2", "Fumili");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "ConjugateFR");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "ConjugatePR");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
-//   ROOT::Math::Minimizer* min =   ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS2");
-   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "SteepestDescent");
-//   //   ROOT::Math::Minimizer* min = 
-//   //          ROOT::Math::Factory::CreateMinimizer("GSLMultiFit", "");
-   ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer(fMinMode,fMinAlgo);
-
+double SBNfit::Minimize(){	
+	num_func_calls=0;
+   
+	ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer(f_minimizer_mode, f_minimizer_algo);
 
  	min->SetMaxIterations(20000);  // for GSL
 	//min->SetTolerance(200000); //times 4 for normal
@@ -95,47 +59,51 @@ double SBNfit::minimize(){
 	min->SetPrecision(0.001);//times 4 for normal
 
 
+        ROOT::Math::Functor f( this, &SBNfit::MinimizerCalcChi, num_params); 
 
-	std::cout<<"define functor"<<std::endl;
-        ROOT::Math::Functor f( this, &SBNfit::minim_calc_chi, Npar); 
-
-	std::cout<<"set functor"<<std::endl;
    	min->SetFunction(f);
 
-	std::cout<<"set variables"<<std::endl;
-   	for(int i=0;i<Npar;i++){
-		if(fFixed[i]){
-	   	min->SetFixedVariable(i,fNames[i],fInitialValues[i]);
+   	for(int i=0;i<num_params;i++){
+		if(f_is_fixed[i]){
+	   	min->SetFixedVariable(i,f_param_names[i],f_initial_values[i]);
 	} else {
-   		min->SetLimitedVariable(i,fNames[i],fInitialValues[i], fStepSizes[i], fLowerValues[i],fUpperValues[i]);
+   		min->SetLimitedVariable(i,f_param_names[i],f_initial_values[i], f_step_sizes[i], f_lower_values[i],f_upper_values[i]);
 	}
 
    	}
 
-	std::cout<<"internam min"<<std::endl;
-  min->Minimize(); 
+  	min->Minimize(); 
    
-  const double *xs = min->X();
-  double valAns = minim_calc_chi(xs);
-	// or min->minValue();
+  	const double *xs = min->X();
 
-  BFchi= valAns;
-  BFparam = xs;
-  return valAns;
+	  bf_chi= MinimizerCalcChi(xs);;
+	  bf_params = xs;
+	  return bf_chi;
 
 }
 
+/****************************************************
+ ***		Some initial setup things
+ * *************************************************/
+
+int SBNfit::setMethod(std::string mode, std::string algo){
+	f_minimizer_mode =mode; //"GSLSimAn"
+	f_minimizer_algo= algo;
+
+
+return 0;
+}
 
 
 int SBNfit::setInitialValues(std::vector<double> inv){
-	for(int i = 0; i< Npar; i++){
-		fInitialValues[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_initial_values[i]=inv[i];
 	}
 	return 0;
 }
 int SBNfit::setInitialValues(double in){
-	for(int i = 0; i< Npar; i++){
-		fInitialValues[i]=in;
+	for(int i = 0; i< num_params; i++){
+		f_initial_values[i]=in;
 	}
 	return 0;
 }
@@ -143,14 +111,14 @@ int SBNfit::setInitialValues(double in){
 
 
 int SBNfit::setUpperValues(std::vector<double>  inv){
-	for(int i = 0; i< Npar; i++){
-		fUpperValues[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_upper_values[i]=inv[i];
 	}
 	return 0;
 }
 int SBNfit::setUpperValues(double in){
-	for(int i = 0; i< Npar; i++){
-		fUpperValues[i]=in;
+	for(int i = 0; i< num_params; i++){
+		f_upper_values[i]=in;
 	}
 	return 0;
 }
@@ -158,27 +126,27 @@ int SBNfit::setUpperValues(double in){
 
 
 int SBNfit::setLowerValues(std::vector<double>  inv){
-	for(int i = 0; i< Npar; i++){
-		fLowerValues[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_lower_values[i]=inv[i];
 	}
 	return 0;
 }
 int SBNfit::setLowerValues(double in){
-	for(int i = 0; i< Npar; i++){
-		fLowerValues[i]=in;
+	for(int i = 0; i< num_params; i++){
+		f_lower_values[i]=in;
 	}
 	return 0;
 }
 
 int SBNfit::setStepSizes(std::vector<double>  inv){
-	for(int i = 0; i< Npar; i++){
-		fStepSizes[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_step_sizes[i]=inv[i];
 	}
 	return 0;
 }
 int SBNfit::setStepSizes(double in){
-	for(int i = 0; i< Npar; i++){
-		fStepSizes[i]=in;
+	for(int i = 0; i< num_params; i++){
+		f_step_sizes[i]=in;
 	}
 	return 0;
 }
@@ -186,21 +154,21 @@ int SBNfit::setStepSizes(double in){
 
 
 int SBNfit::setFixed(std::vector<int>  inv){
-	for(int i = 0; i< Npar; i++){
-		fFixed[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_is_fixed[i]=inv[i];
 	}
 	return 0;
 }int SBNfit::setFixed(int in){
-	for(int i = 0; i< Npar; i++){
-		fFixed[i]=in;
+	for(int i = 0; i< num_params; i++){
+		f_is_fixed[i]=in;
 	}
 	return 0;
 }
 
 
 int SBNfit::setNames(std::vector<std::string> inv){
-	for(int i = 0; i< Npar; i++){
-		fNames[i]=inv[i];
+	for(int i = 0; i< num_params; i++){
+		f_param_names[i]=inv[i];
 	}
 	return 0;
 }

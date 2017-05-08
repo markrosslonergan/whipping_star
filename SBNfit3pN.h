@@ -1,5 +1,5 @@
-#ifndef SBNFIT3pN_H_
-#define SBNFIT3pN_H_
+#ifndef SBNFIT3PN_H_
+#define SBNFIT3PN_H_
 
 #include <cmath>
 #include <vector>
@@ -18,7 +18,7 @@
 #include "Math/Functor.h"
 
 #include "Math/GSLMinimizer.h"
-namespace SBNFIT{
+namespace sbn{
 
 class SBNfit3pN : public SBNfit {
 	
@@ -26,11 +26,27 @@ class SBNfit3pN : public SBNfit {
 	public:
 	
 	SBNosc sigOsc;
-	double minim_calc_chi(const double * X);
+	double MinimizerCalcChi(const double * X);
 	
 	SBNfit3pN(SBNosc,SBNosc,int);
 
 };
+
+
+class SBNfit3p1 : public SBNfit {
+	
+	protected:
+	public:
+	
+	SBNosc sigOsc;
+	double MinimizerCalcChi(const double * X);
+	
+	SBNfit3p1(SBNosc,SBNosc,int);
+
+};
+
+
+
 
 };
 #endif

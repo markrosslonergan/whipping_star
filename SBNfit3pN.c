@@ -1,13 +1,18 @@
 #include "SBNfit3pN.h"
-using namespace SBNFIT;
+using namespace sbn;
+
+/****************************************************************
+ *		Generic 3+N 
+ * *************************************************************/
+
 
 SBNfit3pN::SBNfit3pN(SBNosc inBk, SBNosc inSg, int npa) : SBNfit(inBk,inSg,npa), sigOsc(inSg) {
 
 }
 
 
-double SBNfit3pN::minim_calc_chi(const double * X){
-	BFncalls++;
+double SBNfit3pN::MinimizerCalcChi(const double * X){
+	num_func_calls++;
 	SBNosc tempOsc = sigOsc; 
 
 		
@@ -19,14 +24,38 @@ double SBNfit3pN::minim_calc_chi(const double * X){
 		neutrinoModel signalModel(imn,iue,ium,iph);
 					
 		tempOsc.load_model(signalModel);
-		std::vector<double> ans = tempOsc.oscillate();
+		std::vector<double> ans = tempOsc.Oscillate();
 	
 
-		double ch =this->calc_chi(ans);
+		lastChi =this->CalcChi(ans);
+	return lastChi;
 
-	lastChi = ch;
-	std::cout<<X[0]<<" "<<X[3]<<" "<<X[6]<<" "<<lastChi<<std::endl;
-	return ch;
+}
+
+
+/****************************************************************
+ *			3+1	Only 
+ * *************************************************************/
+
+
+SBNfit3p1::SBNfit3p1(SBNosc inBk, SBNosc inSg, int npa) : SBNfit(inBk,inSg,npa), sigOsc(inSg) {
+
+}
+
+double SBNfit3p1::MinimizerCalcChi(const double * X){
+	num_func_calls++;
+	SBNosc tempOsc = sigOsc; 
+	
+	neutrinoModel signalModel(X[0],X[1],X[2]);
+	signalModel.numsterile=1;		
+
+	tempOsc.load_model(signalModel);
+
+	std::vector<double> ans = tempOsc.Oscillate();
+	
+	lastChi =this->CalcChi(ans);
+
+	return lastChi;
 
 }
 

@@ -1,15 +1,11 @@
 #include "SBNconfig.h"
-#include "TH1D.h"
-#include "TFile.h"
-#include <sstream>
-#include <string>
+using namespace sbn;
 
-using namespace SBNFIT;
 
 SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
-	scname.resize(100);
-	scBool.resize(100);
+	subchannel_names.resize(2);
+	subchannel_bool.resize(2);
 	char *end;
 
 		TiXmlDocument doc( whichxml.c_str() );
@@ -23,15 +19,15 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		pCov  = doc.FirstChildElement("covariance");
 
 		while(pCov){
-			CorrMatRoot = pCov->Attribute("file");
-			CorrMatName = pCov->Attribute("name");
+			correlation_matrix_rootfile = pCov->Attribute("file");
+			correlation_matrix_name = pCov->Attribute("name");
 			pCov = pCov->NextSiblingElement("covariance");
 		}
 		while(pMode)
 			{
 			//std::cout<<"Mode: "<<pMode->Attribute("name")<<" "<<pMode->Attribute("use")<<std::endl;
-			mname.push_back(pMode->Attribute("name"));	
-			mBool.push_back(strtod(pMode->Attribute("use"),&end));	
+			mode_names.push_back(pMode->Attribute("name"));	
+			mode_bool.push_back(strtod(pMode->Attribute("use"),&end));	
 
 			pMode = pMode->NextSiblingElement("mode");
 		}
@@ -40,35 +36,33 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		while(pDet)
 			{
 			//std::cout<<"Detector: "<<pDet->Attribute("name")<<" "<<pDet->Attribute("use")<<std::endl;
-			dname.push_back(pDet->Attribute("name"));
-			dBool.push_back(strtod(pDet->Attribute("use"),&end));
+			detector_names.push_back(pDet->Attribute("name"));
+			detector_bool.push_back(strtod(pDet->Attribute("use"),&end));
 
 			pDet = pDet->NextSiblingElement("detector");	
 		}
 		int nchan = 0;
 		while(pChan)
 			{
-			//std::cout<<"Channel: "<<pChan->Attribute("name")<<" "<<pChan->Attribute("use")<<" Bins: "<<pChan->Attribute("numbins")<<std::endl;
-			cname.push_back(pChan->Attribute("name"));
-			cBool.push_back(strtod(pChan->Attribute("use"),&end));
-			Bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
+			channel_names.push_back(pChan->Attribute("name"));
+			channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
+			num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
 
 
 			TiXmlElement *pBin = pChan->FirstChildElement("bins");
-			//std::cout<<"Bin Edges: "<<pBin->Attribute("edges")<<" widths: "<<pBin->Attribute("widths")<<std::endl;
 		        TiXmlElement *pSubChan;
 
 			pSubChan = pChan->FirstChildElement("subchannel");
 			int nsubchan=0;
 			while(pSubChan){
-				//std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<std::endl;
-				scname[nchan].push_back(pSubChan->Attribute("name"));
-				scBool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
+				//std::cout<<"Subchannel: "<<pSubnum_subchannels->Attribute("name")<<" use: "<<pSubnum_subchannels->Attribute("use")<<std::endl;
+				subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
+				subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
 
 				nsubchan++;
 				pSubChan = pSubChan->NextSiblingElement("subchannel");	
 			}
-			Chan.push_back(nsubchan);
+			num_subchannels.push_back(nsubchan);
 
 			std::stringstream iss(pBin->Attribute("edges"));
 			std::stringstream pss(pBin->Attribute("widths"));
@@ -79,56 +73,56 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 			while ( iss >> number ) binedge.push_back( number );
 			while ( pss >> number ) binwidth.push_back( number );
 
-			binEdges.push_back(binedge);
-			binWidths.push_back(binwidth);
+			bin_edges.push_back(binedge);
+			bin_widths.push_back(binwidth);
 	
 			nchan++;
 			pChan = pChan->NextSiblingElement("channel");	
 		}
 		
-		Nchan = cname.size();
-		Nmode = mname.size();
-		Ndet  = dname.size();
+		num_channels = channel_names.size();
+		num_modes = mode_names.size();
+		num_detectors  = detector_names.size();
 
 
 		if(false){
 
-			std::cout<<" Covariance root path: "<<CorrMatRoot<<" and matrix name: "<<CorrMatName<<std::endl;
+			std::cout<<" Covariance root path: "<<correlation_matrix_rootfile<<" and matrix name: "<<correlation_matrix_name<<std::endl;
 			std::cout<<"Modes: ";
-			for(auto b: mname){
+			for(auto b: mode_names){
 				std::cout<<b<<" ";
 			}
 			std::cout<<std::endl;
 
 			std::cout<<"Modes Bools: ";
-			for(auto b: mBool){
+			for(auto b: mode_bool){
 				std::cout<<b<<" ";
 			}
 			std::cout<<std::endl;
 
 			std::cout<<"Dets: ";
-			for(auto b: dname){
+			for(auto b: detector_names){
 				std::cout<<b<<" ";
 			}
 			std::cout<<std::endl;
 
 			std::cout<<"Dets Bools: ";
-			for(auto b: dBool){
+			for(auto b: detector_bool){
 				std::cout<<b<<" ";
 			}
 			std::cout<<std::endl;
 
 			std::cout<<"Bin Edges: ";
-			for(auto b: binEdges[0]){
+			for(auto b: bin_edges[0]){
 				std::cout<<b<<" ";
 			}
-			std::cout<<". Total#: "<<binEdges[0].size()<<std::endl;
+			std::cout<<". Total#: "<<bin_edges[0].size()<<std::endl;
 
 			std::cout<<"Bin Widths: ";
-			for(auto b: binWidths[0]){
+			for(auto b: bin_widths[0]){
 				std::cout<<b<<" ";
 			}
-			std::cout<<". Total#: "<<binWidths[0].size()<<std::endl;
+			std::cout<<". Total#: "<<bin_widths[0].size()<<std::endl;
 	}
 
 
@@ -137,47 +131,31 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 	std::string tempn;
 	int indexcount = 0;
-	for(int im = 0; im < Nmode; im++){
+	for(int im = 0; im < num_modes; im++){
 
-		for(int id =0; id < Ndet; id++){
+		for(int id =0; id < num_detectors; id++){
 
-			for(int ic = 0; ic < Nchan; ic++){
+			for(int ic = 0; ic < num_channels; ic++){
 
-				for(int sc = 0; sc < Chan[ic]; sc++){
+				for(int sc = 0; sc < num_subchannels[ic]; sc++){
 
-					tempn = mname[im] +"_" +dname[id]+"_"+cname[ic]+"_"+scname[ic][sc];
+					tempn = mode_names[im] +"_" +detector_names[id]+"_"+channel_names[ic]+"_"+subchannel_names[ic][sc];
 				
-			//std::cout<<tempn<<" from: "<<indexcount<<" to "<<indexcount+Bins[ic]-1<<" mBool: "<<mBool[im]<<" dBool: "<<dBool[id]<<" cBool: "<<cBool[ic]<<std::endl;
 					// This is where you choose NOT to use some fields	
-					if(mBool[im] && dBool[id] && cBool[ic] && scBool[ic][sc]){					
+					if(mode_bool[im] && detector_bool[id] && channel_bool[ic] && subchannel_bool[ic][sc]){					
 						fullnames.push_back(tempn);
 
-						for(int k = indexcount; k < indexcount+Bins[ic]; k++){
-								useBins.push_back(k);
+						for(int k = indexcount; k < indexcount+num_bins[ic]; k++){
+								used_bins.push_back(k);
 							
 						}
 					}
 					
-					std::vector<int> tvec = {indexcount, indexcount+Bins[ic]-1}; 
+					std::vector<int> tvec = {indexcount, indexcount+num_bins[ic]-1}; 
 
 					mapIndex[tempn] = 	tvec;				
-					indexcount = indexcount + Bins[ic];
+					indexcount = indexcount + num_bins[ic];
 	
-
-					/*				
-					if(Bins[ic]==19){
-						TH1D * tem =  ((TH1D*)f2.Get("dis_muon_sin")); 
-						tem->SetName(tempn.c_str());
-						tem->Write();
-					}
-					else if(Bins[ic]==11){
-
-						TH1D * tem =  ((TH1D*)f2.Get("fullosc_nue_sin")); 
-						tem->SetName(tempn.c_str());
-						tem->Write();
-					}
-					*/
-				
 
 				}	
 			}
@@ -185,50 +163,33 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	}
 
 	//For here on down everything is derivable, above is just until I actually get config working.
-	Nmode = 0;
-	for(bool i:mBool){	if(i) Nmode++;	}
+	num_modes = 0;
+	for(bool i:mode_bool){	if(i) num_modes++;	}
 
-	Ndet = 0;
-	for(bool i:dBool){	if(i) Ndet++;	}
+	num_detectors = 0;
+	for(bool i:detector_bool){	if(i) num_detectors++;	}
 	
-	Nchan = 0;
-	for(bool i:cBool){	if(i) Nchan++;	}
+	num_channels = 0;
+	for(bool i:channel_bool){	if(i) num_channels++;	}
 
-	for(int i=0; i< Nchan; i++){
-		Chan[i] = 0;
-		for(bool j: scBool[i]){ if(j) Chan[i]++;}
+	for(int i=0; i< num_channels; i++){
+		num_subchannels[i] = 0;
+		for(bool j: subchannel_bool[i]){ if(j) num_subchannels[i]++;}
 	}
 
 
 
-	Tdet = 0;
-	TdetComp = 0;
-	for(int i =0; i< Nchan; i++){
-		Tdet += Chan[i]*Bins[i];
-		TdetComp += Bins[i];	
+	num_bins_detector_block = 0;
+	num_bins_detector_block_compressed = 0;
+	for(int i =0; i< num_channels; i++){
+		num_bins_detector_block += num_subchannels[i]*num_bins[i];
+		num_bins_detector_block_compressed += num_bins[i];	
 	}		
-	Tmode = Tdet*Ndet;
-	TmodeComp = TdetComp*Ndet;
-	Tall = Nmode*Tmode;
-	TallComp = Nmode*TmodeComp;
+	num_bins_mode_block = num_bins_detector_block*num_detectors;
+	num_bins_mode_block_compressed = num_bins_detector_block_compressed*num_detectors;
+	num_bins_total = num_modes*num_bins_mode_block;
+	num_bins_total_compressed = num_modes*num_bins_mode_block_compressed;
 
 
-	//std::cout<<"Ndet: "<<Ndet<<" Nmode: "<<Nmode<<" Nchan: "<<Nchan<<" Nsc[0]: "<<Chan[0]<<" Nsc[1]: "<<Chan[1]<<std::endl;
-	//std::cout<<"Tdet: "<<Tdet<<" Tmode: "<<Tmode<<" Tall: "<<Tall<<" Tcomp: "<<TallComp<<std::endl;
-
-
-
-
-/*
-	f->Close();
-	f2.Close();
-*/
-	
-
-
-
-
-
-//std::cout<<"Map test: "<<mapIndex["nubar_SBND_elike_fulloscnu"][1]<<" "<<mapIndex["nubar_SBND_elike_fulloscnu"][0]<<std::endl;
 }//end constructor
 

@@ -1,5 +1,5 @@
 #include "SBNchi.h"
-using namespace SBNFIT;
+using namespace sbn;
 
 
 void help(std::string in){
@@ -46,9 +46,9 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 
 int SBNchi::load_bkg(SBNspec inSpec){
 
-		TMatrixT <double> McI(TallComp,TallComp);
+		TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
 		// Fill systematics from pre-computed files
-		TMatrixT <double> Msys(Tall,Tall);
+		TMatrixT <double> Msys(num_bins_total,num_bins_total);
 
 		Msys = sys_fill_direct();
 
@@ -64,17 +64,17 @@ int SBNchi::load_bkg(SBNspec inSpec){
 		}
 			
 		// Fill stats from the back ground vector
-		TMatrixT <double> Mstat(Tall,Tall);
+		TMatrixT <double> Mstat(num_bins_total,num_bins_total);
 		stats_fill(Mstat, inSpec.fullVec);
 
 
 		//And then define the total covariance matrix in all its glory
-		TMatrixT <double > Mtotal(Tall,Tall);
+		TMatrixT <double > Mtotal(num_bins_total,num_bins_total);
 
 		Mtotal = Mstat+Msys;
 		
 		// Now contract back the larger antimatrix
-		TMatrixT<double > Mctotal(TallComp,TallComp);
+		TMatrixT<double > Mctotal(num_bins_total_compressed,num_bins_total_compressed);
 
 		collapse_layer3(Mtotal, Mctotal);
 			
@@ -93,16 +93,16 @@ return 0;
 }
 
 
-double SBNchi::calc_chi(SBNspec sigSpec){
+double SBNchi::CalcChi(SBNspec sigSpec){
 		double tchi = 0;	
 
 		if(sigSpec.compVec.size()==0){
-			std::cout<<"WARNING: SBNchi::calc_chi, inputted sigSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
+			std::cout<<"WARNING: SBNchi::CalcChi, inputted sigSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
 			sigSpec.compressVector();
 		}
 
-		for(int i =0; i<TallComp; i++){
-				for(int j =0; j<TallComp; j++){
+		for(int i =0; i<num_bins_total_compressed; i++){
+				for(int j =0; j<num_bins_total_compressed; j++){
 						tchi += (bkgSpec.compVec[i]-sigSpec.compVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec.compVec[j] );
 				}
 		}
@@ -112,17 +112,18 @@ double SBNchi::calc_chi(SBNspec sigSpec){
 }
 
 
-double SBNchi::calc_chi(std::vector<double> sigVec){
+double SBNchi::CalcChi(std::vector<double> sigVec){
 		double tchi = 0;	
 
-		if(sigVec.size() != TallComp ){
-			std::cerr<<"ERROR: SBNchi::calc_chi(std::vector<double>) ~ your inputed vector does not have correct dimensions"<<std::endl;
+		if(sigVec.size() != num_bins_total_compressed ){
+			std::cerr<<"ERROR: SBNchi::CalcChi(std::vector<double>) ~ your inputed vector does not have correct dimensions"<<std::endl;
+			std::cerr<<"sigVec.size(): "<<sigVec.size()<<" num_bins_total_compressed"<<num_bins_total_compressed<<std::endl;
 			exit(EXIT_FAILURE);
 		}
 	
 
-		for(int i =0; i<TallComp; i++){
-				for(int j =0; j<TallComp; j++){
+		for(int i =0; i<num_bins_total_compressed; i++){
+				for(int j =0; j<num_bins_total_compressed; j++){
 						tchi += (bkgSpec.compVec[i]-sigVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigVec[j] );
 				}
 		}
@@ -207,23 +208,23 @@ void SBNchi::stats_fill(TMatrixT <double> &M, std::vector<double> diag){
 
 
 TMatrixT<double> SBNchi::sys_fill_direct(){
-		return sys_fill_direct(CorrMatRoot, CorrMatName);
+		return sys_fill_direct(correlation_matrix_rootfile, correlation_matrix_name);
 }
 
 
 TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matname){
 
 
-		TMatrixT<double> temp2(Tall,Tall);
+		TMatrixT<double> temp2(num_bins_total,num_bins_total);
 		TFile *fm= new TFile(rootname.c_str());
 		TMatrixT<float> * temp = (TMatrixT <float>* )fm->Get(matname.c_str());
 	
 
 		std::vector<std::vector<double>> mcont;
 
-		for(int p:useBins){
+		for(int p:used_bins){
 			std::vector<double> tvec;
-			for(int u:useBins){
+			for(int u:used_bins){
 				tvec.push_back( (*temp)(p,u) );
 			}					
 			mcont.push_back(tvec);
@@ -232,9 +233,9 @@ TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matn
 		
 
 
-		for(int i =0; i<Tall; i++)
+		for(int i =0; i<num_bins_total; i++)
 		{
-			for(int j =0; j<Tall; j++)
+			for(int j =0; j<num_bins_total; j++)
 			{
 				temp2(i,j)=mcont[i][j];
 			}
@@ -250,7 +251,7 @@ TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matn
 }
 
 
-//This is the powerhouse, takes each detector matrix filled with Nchan channels of Chan[i] subchannels, and collapses it.
+//This is the powerhouse, takes each detector matrix filled with num_channels channels of num_subchannels[i] subchannels, and collapses it.
 void SBNchi::collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
 	bool debug = false;
 	if(debug)	std::cout<<"Starting:M "<<M.GetNcols()<<" "<<M.GetNrows()<<" "<<115<<std::endl;
@@ -258,10 +259,10 @@ void SBNchi::collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
 
 
 		
-		std::vector<std::vector<TMatrixT<double>>> Summed(Nchan, std::vector<TMatrixT<double>>(Nchan) );	//Initialise a matrix of matricies, to ZERO.
-		for(int ic = 0; ic < Nchan; ic++){ 
-			for(int jc =0; jc < Nchan; jc++){
-			Summed[ic][jc].ResizeTo(Bins[jc],Bins[ic]) ;// This is CORRECT, do not switch (ie Summed[0][1] = size (Bins[1], Bins[0])
+		std::vector<std::vector<TMatrixT<double>>> Summed(num_channels, std::vector<TMatrixT<double>>(num_channels) );	//Initialise a matrix of matricies, to ZERO.
+		for(int ic = 0; ic < num_channels; ic++){ 
+			for(int jc =0; jc < num_channels; jc++){
+			Summed[ic][jc].ResizeTo(num_bins[jc],num_bins[ic]) ;// This is CORRECT, do not switch (ie Summed[0][1] = size (num_bins[1], num_bins[0])
 			Summed[ic][jc] = 0.0;
 			}
 		}
@@ -270,23 +271,23 @@ void SBNchi::collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
 		int mrow = 0.0;
 		int mcol = 0.0;
 
-		for(int ic = 0; ic < Nchan; ic++){ 	  //Loop over all rows
-			for(int jc =0; jc < Nchan; jc++){ //Loop over all columns
+		for(int ic = 0; ic < num_channels; ic++){ 	  //Loop over all rows
+			for(int jc =0; jc < num_channels; jc++){ //Loop over all columns
 				
 							if(debug)std::cout<<"Diagonal! : "<<ic<<" "<<jc<<" mcol is: "<<mcol<<" mrow is: "<<mrow<<std::endl;				
 					
-				for(int m=0; m < Chan[ic]; m++){
-					for(int n=0; n< Chan[jc]; n++){ //For each big block, loop over all subchannels summing together
-						Summed[ic][jc] +=  M.GetSub(mrow+n*Bins[jc] ,mrow + n*Bins[jc]+Bins[jc]-1, mcol + m*Bins[ic], mcol+ m*Bins[ic]+Bins[ic]-1 );
+				for(int m=0; m < num_subchannels[ic]; m++){
+					for(int n=0; n< num_subchannels[jc]; n++){ //For each big block, loop over all subchannels summing together
+						Summed[ic][jc] +=  M.GetSub(mrow+n*num_bins[jc] ,mrow + n*num_bins[jc]+num_bins[jc]-1, mcol + m*num_bins[ic], mcol+ m*num_bins[ic]+num_bins[ic]-1 );
 					}
 				}	
 				
 
-				mrow += Chan[jc]*Bins[jc];//As we work our way left in columns, add on that many bins
+				mrow += num_subchannels[jc]*num_bins[jc];//As we work our way left in columns, add on that many bins
 			}//end of column loop
 
 			mrow = 0; // as we end this row, reset row count, but jump down 1 column
-			mcol += Chan[ic]*Bins[ic];
+			mcol += num_subchannels[ic]*num_bins[ic];
 		}//end of row loop
 
 	
@@ -297,15 +298,15 @@ void SBNchi::collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
 	mcol = 0;
 
 	//Repeat again for Contracted matrix
-	for(int ic = 0; ic < Nchan; ic++){ 	  
-		for(int jc =0; jc < Nchan; jc++){ 
+	for(int ic = 0; ic < num_channels; ic++){ 	  
+		for(int jc =0; jc < num_channels; jc++){ 
 	
 				Mc.SetSub(mrow,mcol,Summed[ic][jc]);	
-				mrow += Bins[jc];
+				mrow += num_bins[jc];
 			}
 
 		mrow = 0;
-		mcol +=Bins[ic];
+		mcol +=num_bins[ic];
 	}
 
 return;
@@ -316,11 +317,11 @@ return;
 //This is the detector layer, Take a given mode and run over each detector V detector sub matrix
 void SBNchi::collapse_layer2(TMatrixT <double> & M, TMatrixT <double> & Mc){
 		Mc.Zero();
-		int nrow = Tdet;// N_e_bins*N_e_spectra+N_m_bins*N_m_spectra;
-		int crow = TdetComp; //N_e_bins+N_m_bins;
+		int nrow = num_bins_detector_block;// N_e_bins*N_e_spectra+N_m_bins*N_m_spectra;
+		int crow = num_bins_detector_block_compressed; //N_e_bins+N_m_bins;
 	
-		for(int m =0; m< Ndet; m++){
-			for(int n =0; n< Ndet; n++){
+		for(int m =0; m< num_detectors; m++){
+			for(int n =0; n< num_detectors; n++){
 				TMatrixT<double> imat(nrow,nrow);
 				TMatrixT<double> imatc(crow,crow);
 				
@@ -336,11 +337,11 @@ return;
 //This is the Mode layer, Take a given full matrix and runs over each Mode V Mode sub matrix
 void SBNchi::collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc){
 		Mc.Zero();
-		int nrow = Tmode;// (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets;
-		int crow=  TmodeComp;// (N_e_bins+N_m_bins)*N_dets;
+		int nrow = num_bins_mode_block;// (N_e_bins*N_e_spectra+N_m_bins*N_m_spectra)*N_dets;
+		int crow=  num_bins_mode_block_compressed;// (N_e_bins+N_m_bins)*N_dets;
 	
-		for(int m =0; m< Nmode ; m++){
-			for(int n =0; n< Nmode; n++){
+		for(int m =0; m< num_modes ; m++){
+			for(int n =0; n< num_modes; n++){
 				
 				TMatrixT<double> imat(nrow,nrow);
 				TMatrixT<double> imatc(crow,crow);

@@ -3,19 +3,6 @@
 
 
 /**************************
- * Bin and Spectra Parameters
- **************************/
-#define N_m_bins 19
-#define N_e_bins 11
-
-#define N_e_spectra 7
-#define N_m_spectra 2
-
-#define N_dets 3
-#define N_anti 2
-
-
-/**************************
  * Physical Masses
  **************************/
 

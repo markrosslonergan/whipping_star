@@ -17,7 +17,7 @@
 #include <TFile.h>
 #include "params.h"
 #include <TRandom3.h>
-namespace SBNFIT{
+namespace sbn{
 
 
 

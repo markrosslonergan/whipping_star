@@ -1,5 +1,5 @@
 #include "SBNspec.h"
-using namespace SBNFIT;
+using namespace sbn;
 
 
 SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
@@ -128,21 +128,28 @@ return 0;
 }
 
 int SBNspec::compressVector(){
+	
 	compVec.clear();
 	//This needs to be confirmed and checked. Looks good, mark 24th april
 	calcFullVector();
-	for(int im = 0; im < Nmode; im++){
-		for(int id =0; id < Ndet; id++){
-			int edge = id*Tdet + Tmode*im; // This is the starting index for this detector
+	//std::cout<<"num_modes: "<<num_modes<<" num_detectors: "<<num_detectors<<" num_channels: "<<num_channels<<std::endl;
 
+	for(int im = 0; im < num_modes; im++){
+		for(int id =0; id < num_detectors; id++){
+			int edge = id*num_bins_detector_block + num_bins_mode_block*im; // This is the starting index for this detector
 
-			for(int ic = 0; ic < Nchan; ic++){
+			for(int ic = 0; ic < num_channels; ic++){
 				int corner=edge;
-				for(int j=0; j< Bins[ic]; j++){
-					double tempval=0;
+		
+				for(int j=0; j< num_bins[ic]; j++){
 
-					for(int sc = 0; sc < Chan[ic]; sc++){
-						tempval += fullVec[j+sc*Bins[ic]+corner];
+					double tempval=0;
+					
+
+					for(int sc = 0; sc < num_subchannels[ic]; sc++){
+
+						
+						tempval += fullVec[j+sc*num_bins[ic]+corner];
 						edge +=1;	//when your done with a channel, add on every bin you just summed
 					}
 					compVec.push_back(tempval);
@@ -188,16 +195,22 @@ int SBNspec::writeOut(std::string filename){
 
 	std::vector<TH1D> temp = hist;
 
-	for(int i =0; i < Nchan; i++)
-	{
-	TCanvas* Cstack= new TCanvas(cname[i].c_str(),cname[i].c_str());
+	for(auto m: mode_names){
+	for(auto d: detector_names){
+	for(auto c: channel_names){
+
+	std::string canvas_name = m+"_"+d+"_"+c;
+
+	bool this_run = false;
+
+	TCanvas* Cstack= new TCanvas(canvas_name.c_str(),canvas_name.c_str());
 	Cstack->cd();
-	THStack * hs 	   = new THStack(cname[i].c_str(),  cname[i].c_str());
-	TLegend * legStack = new TLegend(0.6,0.35,0.875,0.875);
+	THStack * hs 	   = new THStack(canvas_name.c_str(),  canvas_name.c_str());
+	TLegend legStack(0.6,0.35,0.875,0.875);
 		int n=0;
 		for(auto &h : temp){
 			std::string test = h.GetName();
-			if(test.find(cname[i])!=std::string::npos ){
+			if(test.find(canvas_name)!=std::string::npos ){
 				h.Scale(1,"width,nosw2");
 				h.GetYaxis()->SetTitle("Events/GeV");
 				h.SetMarkerStyle(20);
@@ -207,21 +220,27 @@ int SBNspec::writeOut(std::string filename){
 				h.SetTitle(h.GetName());
 				h.Write();
 
-				legStack->AddEntry(&h,h.GetName() , "f");
+				legStack.AddEntry(&h, "f");
 	
 				hs->Add(&h);
 				n++;
+
+				this_run=true;
 
 			}
 		}
 	/****Not sure why but this next line seg faults...******
 	*	hs->GetYaxis()->SetTitle("Events/GeV");
 	******************************************************/
-
-	hs->Draw();
-	Cstack->Update();
-	legStack->Draw();	
-	Cstack->Write();
+	if(this_run){
+		hs->Draw();
+		Cstack->Update();
+		legStack.Draw();	
+		Cstack->Write();
+	}
+	
+	}
+	}
 	}
 
 	f->Close();
