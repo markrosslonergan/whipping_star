@@ -220,7 +220,7 @@ int SBNspec::writeOut(std::string filename){
 				h.SetTitle(h.GetName());
 				h.Write();
 
-				legStack.AddEntry(&h, "f");
+				legStack.AddEntry(&h,h.GetName(), "f");
 	
 				hs->Add(&h);
 				n++;

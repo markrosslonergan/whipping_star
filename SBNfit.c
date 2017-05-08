@@ -40,11 +40,9 @@ double SBNfit::MinimizerCalcChi(const double * X){
 
 	fOsc.compressVector();	
 
-	double ans =this->CalcChi(fOsc);
+	lastChi =this->CalcChi(fOsc);
 
-	lastChi = ans;
-	std::cout<<X[0]<<" "<<X[1]<<" "<<lastChi<<std::endl;
-	return ans;
+	return lastChi;
 
 }
 	
