@@ -6,7 +6,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 	//Initialise all the things
-	//for every multisim, create a SBNspec 
+	//for every multisim, create a SBNspec
 	for(int m=0; m<num_multisim; m++){
 		SBNspec temp_spec(xmlname,m);
 		multi_hists.push_back(temp_spec);
