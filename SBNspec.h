@@ -28,7 +28,8 @@ class SBNspec : public SBNconfig{
 	std::vector<double > fullVec;
 	std::vector<double > compVec;
 
-	SBNspec(const char *, std::string); //Load in config file
+	SBNspec(const char *, std::string); //Load in root file and config file
+	SBNspec(std::string, int); //Load in config file, create EMPTY hists, with optional numbering 
 	SBNspec() {};
 
 	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2

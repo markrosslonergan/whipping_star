@@ -2,8 +2,26 @@
 using namespace sbn;
 
 
-SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
+SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml){
 
+//Initialise all the things
+//for every multisim, create a vector of histograms, one for every subchannel we want 
+	for(auto fn: fullnames){
+		for(int c=0; c<channel_names.size(); c++){
+			if(fn.find(channel_names[c])!=std::string::npos ){
+				double * tbins =&bin_edges[c][0];
+				std::string thisname = fn+"_MS"+std::to_string(which_universe);
+				TH1D thischan(thisname.c_str(),"",num_bins[c], tbins );
+				hist.push_back(thischan);
+			}
+
+		}
+	}
+
+}
+
+
+SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
 
 	char namei[200];
 	sprintf(namei,"%s.root",name);	
@@ -17,7 +35,10 @@ SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) 
 	}
 
 
+
 	f.Close();
+
+
 }//end constructor
 
 

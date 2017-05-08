@@ -11,12 +11,13 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		TiXmlDocument doc( whichxml.c_str() );
 		bool loadOkay = doc.LoadFile();
 	    	TiXmlHandle hDoc(&doc);
-	        TiXmlElement *pMode, *pDet, *pChan, *pCov;
+	        TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC;
 		
 		pMode = doc.FirstChildElement("mode");
 		pDet =  doc.FirstChildElement("detector");
 		pChan = doc.FirstChildElement("channel");
 		pCov  = doc.FirstChildElement("covariance");
+		pMC   = doc.FirstChildElement("MCevents");
 
 		while(pCov){
 			correlation_matrix_rootfile = pCov->Attribute("file");
@@ -79,7 +80,27 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 			nchan++;
 			pChan = pChan->NextSiblingElement("channel");	
 		}
-		
+	
+		while(pMC)
+			{
+			num_multisim = strtod(pMC->Attribute("multisim"),&end);
+			multisim_name = pMC->Attribute("name");
+
+
+		        TiXmlElement *pBranch;
+			pBranch = pMC->FirstChildElement("branch");
+			while(pBranch){
+				//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<std::endl;
+				branch_names.push_back(pBranch->Attribute("name"));
+
+				pBranch = pBranch->NextSiblingElement("branch");	
+			}
+			pMC=pMC->NextSiblingElement("MCevents");
+		}
+	
+
+
+
 		num_channels = channel_names.size();
 		num_modes = mode_names.size();
 		num_detectors  = detector_names.size();

@@ -42,6 +42,7 @@ class SBNconfig {
 
 	public:
 	std::string xmlname;	
+	std::string multisim_name;	
 	
 	std::vector<std::string> mode_names; 			
 	std::vector<std::string> detector_names; 		
@@ -69,6 +70,8 @@ class SBNconfig {
 //	SBNConfig(const char *);
 //	int printnum_detectors();
 
+	int num_multisim;
+	std::vector<std::string> branch_names;
 };
 
 }
