@@ -27,10 +27,11 @@ namespace sbn{
 
 
 class SBNcovar : public SBNconfig{
+	bool is_small_negative_eigenvalue;
 	
 
 	public:
-	
+	double tolerence_positivesemi;
 	
 	SBNcovar(std::string rootfile, std::string xmlname);
 

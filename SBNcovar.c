@@ -3,6 +3,8 @@ using namespace sbn;
 
 SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlname) {
 
+	tolerence_positivesemi = 1e-10;
+	is_small_negative_eigenvalue = false;
 
 
 	//Initialise all the things
@@ -61,17 +63,6 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 
-
-
-
-/*	TFile *ftest=new TFile("qtest.root","RECREATE");
-	ftest->cd();
-	for(int m=0; m<num_multisim; m++){
-			multi_hists[m].hist[1].Write();
-	}
-	ftest->Close();
-*/
-
 	f->Close();
 
 }
@@ -104,6 +95,10 @@ int SBNcovar::formCovarianceMatrix(){
 	  }
 	}
 
+	/************************************************************
+	 *		Quality Testing Suite			    *
+	 * *********************************************************/
+
 
 	if(full_covariance.IsSymmetric()){
 		std::cout<<"Generated covariance matrix is symmetric"<<std::endl;
@@ -117,13 +112,23 @@ int SBNcovar::formCovarianceMatrix(){
 	TMatrixDEigen eigen (full_covariance);
 	TVectorD eigen_values = eigen.GetEigenValuesRe();
 
+
 	for(int i=0; i< eigen_values.GetNoElements(); i++){
 		if(eigen_values(i)<0){
-			std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, contains (at least one)  negative eigenvalue: "<<eigen_values(i)<<std::endl;
-			//exit(EXIT_FAILURE);
+			is_small_negative_eigenvalue = true;
+			if(fabs(eigen_values(i))> tolerence_positivesemi ){
+				std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, contains (at least one)  negative eigenvalue: "<<eigen_values(i)<<std::endl;
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
-	std::cout<<"Generated covariance matrix is also positive semi-definite."<<std::endl;
+
+
+	if(is_small_negative_eigenvalue){	
+		std::cout<<"Generated covariance matrix is (allmost) positive semi-definite. It did contain small negative values of absolute value <= :"<<tolerence_positivesemi<<std::endl;
+	}else{
+		std::cout<<"Generated covariance matrix is also positive semi-definite."<<std::endl;
+	}
 
 
 

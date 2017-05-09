@@ -36,6 +36,7 @@ class SBNchi : public SBNconfig{
 
 	SBNchi(SBNspec); 
 	SBNchi(SBNspec,std::string); 
+	SBNchi(SBNspec,TMatrixT<double>);
 	
 	int load_bkg(SBNspec);
 

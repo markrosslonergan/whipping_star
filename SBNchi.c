@@ -40,6 +40,46 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 }
 
 
+SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msys) : SBNconfig(in.xmlname), bkgSpec(in){
+		lastChi = -9999999;
+
+		if(Msys.GetNcols()!=num_bins_total ){
+			std::cerr<<"ERROR: trying to pass a matrix to SBNchi that isnt the right size"<<std::endl;
+			std::cerr<<"ERROR: num_bins_total: "<<num_bins_total<<" and matrix is: "<<Msys.GetNcols()<<std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+
+		// systematics per scaled event
+		for(int i =0; i<Msys.GetNcols(); i++)
+		{
+			for(int j =0; j<Msys.GetNrows(); j++)
+			{
+				Msys(i,j)=Msys(i,j)*in.fullVec[i]*in.fullVec[j];
+			}
+		}
+			
+		// Fill stats from the back ground vector
+		TMatrixT <double> Mstat(num_bins_total,num_bins_total);
+		stats_fill(Mstat, in.fullVec);
+
+
+		//And then define the total covariance matrix in all its glory
+		TMatrixT <double > Mtotal(num_bins_total,num_bins_total);
+		Mtotal = Mstat+Msys;
+		
+		TMatrixT<double > Mctotal(num_bins_total_compressed,num_bins_total_compressed);
+		collapse_layer3(Mtotal, Mctotal);
+		vMc = to_vector(Mctotal);
+		double invdet=0;
+
+		TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
+		McI = Mctotal.Invert(&invdet);
+		vMcI = to_vector(McI);
+
+}
+
+
 /***********************************************
  *		Rest for now
  * ********************************************/
