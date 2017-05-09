@@ -7,11 +7,15 @@
 #include "SBNspec.h"
 #include "SBNconfig.h"
 
+#include "TMatrixDEigen.h"
+#include "TMatrixDSymEigen.h"
 #include "TMatrixD.h"
 #include "TMatrixT.h"
+#include "TVectorD.h"
 #include "TRandom3.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TH2D.h"
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>

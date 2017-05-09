@@ -81,7 +81,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 int SBNcovar::formCovarianceMatrix(){
 
 	full_covariance.ResizeTo(num_bins_total, num_bins_total );
-
+	TH2D * h2 = new TH2D("test","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
 
 	for(int i=0; i< num_multisim;i++){
 		multi_hists[i].calcFullVector();
@@ -99,16 +99,40 @@ int SBNcovar::formCovarianceMatrix(){
 			full_covariance(i,j) += (CV[i]-multi_hists[m].fullVec[i])*(CV[j]-multi_hists[m].fullVec[j]);
 		}
 		full_covariance(i,j) = full_covariance(i,j)/( (double)num_multisim-1.0);
+		h2->SetBinContent(i+1,j+1,full_covariance(i,j));
 
 	  }
 	}
+
+
+	if(full_covariance.IsSymmetric()){
+		std::cout<<"Generated covariance matrix is symmetric"<<std::endl;
+	}else{
+		std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, result is not symmetric!"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+
+	//if a matrix is (a) real and (b) symmetric (checked above) then to prove positive semi-definite, we just need to check eigenvalues and >=0;
+	TMatrixDEigen eigen (full_covariance);
+	TVectorD eigen_values = eigen.GetEigenValuesRe();
+
+	for(int i=0; i< eigen_values.GetNoElements(); i++){
+		if(eigen_values(i)<0){
+			std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, contains (at least one)  negative eigenvalue: "<<eigen_values(i)<<std::endl;
+			//exit(EXIT_FAILURE);
+		}
+	}
+	std::cout<<"Generated covariance matrix is also positive semi-definite."<<std::endl;
+
 
 
 	TFile *ftest=new TFile("qtest.root","RECREATE");
 	ftest->cd();
 	TCanvas *c1 =  new TCanvas();
 	c1->cd();
-	full_covariance.Draw();
+	//full_covariance.Draw();
+	h2->Draw("COLZ");
 	c1->Write();
 	ftest->Close();
 
