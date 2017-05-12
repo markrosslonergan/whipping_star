@@ -2,13 +2,6 @@
 using namespace sbn;
 
 
-void help(std::string in){
-
-	std::cout<<in.c_str()<<std::endl;
-
-}
-
-
 /***********************************************
  *		Constructors
  * ********************************************/
