@@ -22,14 +22,14 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 
 
 SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
+//Contruct from a prexisting histograms!
 
 	char namei[200];
 	sprintf(namei,"%s.root",name);	
 	TFile f(namei);
 
-
-
-	for(auto fn: fullnames){ 	//Loop over all filenames that should be there, and load up the histograms.
+	//Loop over all filenames that should be there, and load up the histograms.
+	for(auto fn: fullnames){
 		//std::cout<<"Attempting to load: "<<fn.c_str()<<" from: "<<namei<<std::endl;
 		hist.push_back(*((TH1D*)f.Get(fn.c_str()))); 
 	}
@@ -44,7 +44,7 @@ SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) 
 
 
 int SBNspec::Add(SBNspec *in){
-
+	//Addes all hists together
 	if(xmlname != in->xmlname){ std::cout<<"ERROR: SBNspec::Add, trying to add differently configured SBNspecs!"<<std::endl; exit(EXIT_FAILURE);}
 
 	for(int i=0; i< hist.size(); i++){
@@ -56,6 +56,8 @@ int SBNspec::Add(SBNspec *in){
 }
 
 
+
+//All scaling functions are quite self explanatory
 int SBNspec::poissonScale(){
 	TRandom3 *rangen = new TRandom3(0);
 	for(auto &h: hist){

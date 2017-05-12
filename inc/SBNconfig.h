@@ -16,6 +16,22 @@
 namespace sbn{
 // All declarations are within the namespace scope.
 
+//Order is important, "xml order" means that we loop over all modes,detectors channels and subchannels, But finished each mode,det and channels before moving on.
+// if we have modes m1 and m2, detectors d1 and d2, channels c1 and c2 and subchannels c1s1 c1s2 and c2s1 then the order of spectra would be..
+// m1_d1_c1_c1s1
+// m1_d1_c1_c1s2
+// m1_d1_c2_c2s1
+// m1_d2_c1_c1s1
+// m1_d2_c1_c1s2
+// m1_d2_c2_c2s1
+
+// m2_d1_c1_c1s1
+// m2_d1_c1_c1s2
+// m2_d1_c2_c2s1
+// m2_d2_c1_c1s1
+// m2_d2_c1_c1s2
+// m2_d2_c2_c2s1
+
 class SBNconfig {
 
 	protected:
@@ -66,6 +82,7 @@ class SBNconfig {
 	std::map <std::string, std::vector<int> > mapIndex;
 
 	// Fullnames is kinda important, it contains all the concatanated names of all individual histograms that have been configured with the "use=1" attribute
+	// The order is IMPORTANT its the same as defined in xml
 	std::vector<std::string> fullnames;
 	// If you have a large covariance matrix/spectrum (say containing nu and nubar mode) but only want to run with nu-mode (so you set use=0 in nubarmode) the vector used_bins contains all the bins that are actually in use. 
 	std::vector<int> used_bins; 
