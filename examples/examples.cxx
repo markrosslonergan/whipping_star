@@ -46,6 +46,8 @@ int main(int argc, char* argv[])
 {
 
 
+
+
 std::string xml = "default.xml";
 int iarg = 0;
 opterr=1;
@@ -89,6 +91,7 @@ while(iarg != -1)
 //
 //Test 2: landau fit, then inject a signal and other fit
 
+
 /*************************************************************
  *************************************************************
  *		Example 1:
@@ -97,10 +100,10 @@ while(iarg != -1)
 if(test_mode==1){
 
 
-	SBNspec bkg_spec("../data/precomp/SBN_bkg_all", xml);
+	SBNspec bkg_spec("data/precomp/SBN_bkg_all", xml);
 	bkg_spec.compressVector();
 	SBNchi test_chi(bkg_spec);
-	SBNspec sig_spec("../data/precomp/SBN_bkg_all", xml);
+	SBNspec sig_spec("data/precomp/SBN_bkg_all", xml);
 
 
 	int n = 75;
@@ -145,13 +148,13 @@ return 0;
 
 
 
-SBNspec bkg_spec("../data/precomp/SBN_bkg_all", xml);
+SBNspec bkg_spec("data/precomp/SBN_bkg_all", xml);
 bkg_spec.Scale("uBooNE_elike_mismuon", 2);
 bkg_spec.Scale("uBooNE_mlike_intrinsic", 0.5);
 bkg_spec.compressVector();
 
 SBNchi test_chi(bkg_spec);
-SBNspec sig_spec("../data/precomp/SBN_bkg_all",xml);
+SBNspec sig_spec("data/precomp/SBN_bkg_all",xml);
 
 
 	TF1 *fLan = new TF1("fLan","TMath::Landau(x,[0],[1],0)",0,5);
@@ -196,13 +199,13 @@ return 0;
 }else if(test_mode==3){
 
 	double uboonepot=2;
-	SBNspec bkg_spec("../data/precomp/SBN_bkg_all", xml);
+	SBNspec bkg_spec("data/precomp/SBN_bkg_all", xml);
 	bkg_spec.Scale("uBooNE", uboonepot);
 	bkg_spec.compressVector();
 	
 	SBNchi test_chi(bkg_spec);
 	
-	SBNosc oscSig("../data/precomp/SBN_bkg_all",xml);
+	SBNosc oscSig("data/precomp/SBN_bkg_all",xml);
 	oscSig.setAppMode();
 	oscSig.Scale("uBooNE",uboonepot);		
 
@@ -258,12 +261,12 @@ return 0;
 } else if(test_mode ==4){
 
 
-	SBNspec bkg_spec("../data/precomp/SBN_bkg_all", xml);
+	SBNspec bkg_spec("data/precomp/SBN_bkg_all", xml);
 	bkg_spec.compressVector();
 	
 	SBNchi test_chi(bkg_spec);
 	
-	SBNspec sig_spec("../data/precomp/SBN_bkg_all",xml);
+	SBNspec sig_spec("data/precomp/SBN_bkg_all",xml);
 	sig_spec.compressVector();
 
 
@@ -303,7 +306,7 @@ return 0;
 
 } else if(test_mode==5){
 
-	SBNosc inject_sig("../data/precomp/SBN_bkg_all",xml);
+	SBNosc inject_sig("data/precomp/SBN_bkg_all",xml);
 	
 	double dmSq=1;
 	double UE4=0.15;
@@ -319,7 +322,7 @@ return 0;
 	inject_sig.writeOut("example_5_injected_signal.root");
 
 
-	SBNosc test_sig("../data/precomp/SBN_bkg_all",xml);
+	SBNosc test_sig("data/precomp/SBN_bkg_all",xml);
 
 
 

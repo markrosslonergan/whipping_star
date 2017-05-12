@@ -13,8 +13,6 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 endif ()
 
 
-
-
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
 find_package(ROOT REQUIRED)
@@ -24,7 +22,7 @@ include(${ROOT_USE_FILE})
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h
 include_directories("${PROJECT_BINARY_DIR}")
-       
+
 add_subdirectory(tinyxml)
 add_subdirectory(src)
 add_subdirectory(examples)

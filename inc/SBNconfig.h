@@ -11,7 +11,7 @@
 #include "TH1D.h"
 #include "TFile.h"
 
-#include "tinyxml/tinyxml.h"
+#include "tinyxml.h"
 
 namespace sbn{
 // All declarations are within the namespace scope.
@@ -43,7 +43,9 @@ class SBNconfig {
 	public:
 	std::string xmlname;	
 	std::string multisim_name;	
-	
+
+	std::string data_path;
+
 	std::vector<std::string> mode_names; 			
 	std::vector<std::string> detector_names; 		
 	std::vector<std::string> channel_names; 		

@@ -11,16 +11,25 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		TiXmlDocument doc( whichxml.c_str() );
 		bool loadOkay = doc.LoadFile();
 	    	TiXmlHandle hDoc(&doc);
-	        TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC;
+	        TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC, *pData;
 		
 		pMode = doc.FirstChildElement("mode");
 		pDet =  doc.FirstChildElement("detector");
 		pChan = doc.FirstChildElement("channel");
 		pCov  = doc.FirstChildElement("covariance");
 		pMC   = doc.FirstChildElement("MCevents");
+	
+		pData   = doc.FirstChildElement("data");
+
+		while(pData){
+			data_path = pData->Attribute("path");
+			pData = pData->NextSiblingElement("data");
+		}
+
+
 
 		while(pCov){
-			correlation_matrix_rootfile = pCov->Attribute("file");
+			correlation_matrix_rootfile = data_path + pCov->Attribute("file");
 			correlation_matrix_name = pCov->Attribute("name");
 			pCov = pCov->NextSiblingElement("covariance");
 		}

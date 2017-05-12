@@ -1,8 +1,11 @@
-Makefile will alsmost certainly fail
+standard cmake .. and then make from build directory, was quickly written and
+not tested.
 
 To run example N (there are 5 examples)
 ./examples --xml uboone.xml --test N
 
-sbn.xml and uboone.xml are included, but easy to modify
+sbn.xml and uboone.xml are included
 
-yup.
+
+TODO: 
+make it so the absolute path for data/ is defined in the xml file!
