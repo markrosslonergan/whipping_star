@@ -5,6 +5,89 @@ make
 
 from build directory. CmakeLists were quickly written and not tested anywhere!
 
+############################################################################
+##############		Whats What! ########################################
+############################################################################
+
+##### SBNconfig.h/.cxx ####
+
+SBNconfig is the base class that reads in a .xml file using tinyxml
+(included). This contains all info on bins, modes and detctors. Each file must
+have at LEAST one mode and one detector and one channel. (e.g neutrino mode and microboone).
+Each channel must have at least one subchannel, but can have as many as you
+want. In calculating chi^2 all subchannels are collapesed down to one
+"channel". All subchannels must have same binning, but this can vary between
+channels. You can quickly turn off any componant by toggling the "use=1"
+attribute.
+The two main classes that inherit from this are SBNspec and SBNchi.
+
+##### SBNspec.h/.cxx #####
+
+SBNspec is initilzed from a xml file. It can either be passed the location of
+a root file (whose contents match the xml file naming conventions!) or just an
+xml file in which case it is initilised empty (but having all the xml named
+channels/subchannels..etc..).
+An initilised SBNspec contains a vector of TH1's, one for every
+subchannel/channel/mode/detector that was in the xml. You can scale or
+normalise any channel using the supplied functions and the .xml names.
+So if you want to scale all the SBND_elike histograms, you can just write
+hist.Scale("SBND_elike", VALUE);
+It also has some basic functionality for scaling a histogram by an energy
+dependant function:
+hist.Scale("uBooNE",TF1);
+All model dependant bits should be included in an inherited class.
+
+SBNspec->CompressVector() collapses down the subclass histograms into a vector
+of correct length to be fed into a CHI^2 calc.
+
+SBNspec->WriteOut("filename.root") quickly dumps all the histograms into a
+root file for debugging/checking
+
+##### SBNchi.h/.cxx #####
+
+SBNchi is the class you use if you already have a covariance matrix. The
+location of the root file containing it should be incuded in the xml file on
+initilisation. It must be initilized with a SBNspec as the background. If the
+covariance matrix and SBNspec have different structures (e.g your covariance
+matrix has extra modes/subchannels..etc.. than your spectrum, you can use
+different xml files provided that you correctly toggle them using the
+"use=0/1" xml attribute). Its much less error prone if your SBNspecs and covariance
+matrices can be initilised using the same xml file.
+
+SBNchi contains functions to correctly select only the rows and columns that
+you want to use. Calculates the statistical bit from your inputted background
+SBNspec and contains a generic algorithm for collapsing down the large
+extended covariance matrix down containing ALL subchannels (for any number of
+subchannels) to a smaller one used in chi^2 calculations. 
+
+To calculate a chi^2 after initilization, you can either pass in a signal
+SBNspec:
+SBNchi->CalcChi(SBNspec sig_spec);
+or a vector of appropiate length
+SBNchi->CalcChi(std::vector<double>);
+WARNING: by passing a vector you loose some checks on xml config consistancy.
+
+##### SBNosc.h/.cxx #####
+
+SBNosc is a daughter class to SBNspec. It basically is a spectrum that has
+built in 3+N oscillation capabilities. The oscillation amplitudes are found i
+prob.h as well as a legacy structure to hold oscillation paramaters
+neutrinoModel (must update this).
+SBNosc requires that you have precomputed SBNspecs for a range of mass
+frequencies sitting in data/precomp. For any 3+1,3+2 or 3+3 model if
+calculates all the mass-splitting frequencies and can either permantly
+oscillate the internal spectra using the parameters in the given
+neutrinoModel; You can set if its appearance only, disapearance only, both....etc..
+
+SBNosc->OscillateThis();  
+or it can just spit out a vector
+std::vector<double >  SBNosc->Oscillate();  
+if you are just passing it lots of a SBNchi for example.
+
+
+
+
+
 
 To run example N (there are 5 examples)
 I think they currently are hardcoded to work in build/examples only.
@@ -13,6 +96,10 @@ I think they currently are hardcoded to work in build/examples only.
 
 
 sbn.xml and uboone.xml are included in xml folder, but easily modified
+
+
+
+
 
 TODO: 
 make it so the absolute path for data/ is taken in by cmake.
