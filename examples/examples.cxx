@@ -94,33 +94,45 @@ while(iarg != -1)
 
 /*************************************************************
  *************************************************************
- *		Example 1:
+ *		Example 1: 	Simple loading and scaling
  ************************************************************
  ************************************************************/
 if(test_mode==1){
 
-
+	//Load a spectra for background
 	SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
+	//and compress down the subchannels into a channel only vector
 	bkg_spec.compressVector();
+
+	//initilize a SBNchi class with your background and covariance matrix as located in xml file
 	SBNchi test_chi(bkg_spec);
+
+	//Load up a signal, we will use the same background here
 	SBNspec sig_spec("../../data/precomp/SBN_bkg_all", xml);
 
+
+	//So say you think your photon-mis rate is wrong, and want to see the effects of scaling it..
 
 	int n = 75;
 	double x[n], chi[n];
 	for(int i=0; i<n; i++){
+
 		double scale =0.25+i*0.025;		
-		
 		SBNspec loop_spec = sig_spec;
+		
+		//Scale the dummy spectra, scaling only histograms that match "elike_misphoton" if you used Scale.("elike") it would scale ALL elikle subchannels
 		loop_spec.Scale("elike_misphoton", scale);
 		loop_spec.compressVector();
 
+		//Set these for plotting later
 		x[i]=scale;
+		//And calculate the chi^2
 		chi[i]=test_chi.CalcChi(loop_spec);
 		
 		std::cout<<"scaling: "<<scale<<" "<<"Chi^2: "<<chi[i]<<std::endl;
 	}
    	
+	//Dump your results
 	TGraph *gr  = new TGraph(n,x,chi);
 	TFile * ff = new TFile("example_1.root","RECREATE");
 	TCanvas *c1 = new TCanvas("c1","example_1");
@@ -135,20 +147,21 @@ if(test_mode==1){
 
 
 
-
 return 0;
 
 /*************************************************************
  *************************************************************
- *		Example 2:
+ *	Example 2:	parameter dependant scaling
  ************************************************************
  ************************************************************/
 
 } else if (test_mode ==2){
 
 
-
+//Again load up a background)
 SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
+//Pretend we have mis judged the muon-mis ID rate by 100% and over estimated the intrinsics by 100%
+//not exactly likely but bear with me
 bkg_spec.Scale("uBooNE_elike_mismuon", 2);
 bkg_spec.Scale("uBooNE_mlike_intrinsic", 0.5);
 bkg_spec.compressVector();
@@ -156,7 +169,10 @@ bkg_spec.compressVector();
 SBNchi test_chi(bkg_spec);
 SBNspec sig_spec("../../data/precomp/SBN_bkg_all",xml);
 
+//And say that instead of noticing we have misjudged the muon rates, we think that our intrinis nu_e is wrong.
+//Some theorists suggests correcting the spectra by a landau function and we want to test this 
 
+	//set up a function, can be anything
 	TF1 *fLan = new TF1("fLan","TMath::Landau(x,[0],[1],0)",0,5);
 
 	int n = 100;
@@ -166,6 +182,8 @@ SBNspec sig_spec("../../data/precomp/SBN_bkg_all",xml);
 		double mpv = i*0.05;
 		fLan->SetParameters(mpv, 1.3);
 		
+		//and scale the dummy specetra by the function
+		//this is a HIST level so its calling the fucntion at Bin centers!
 		SBNspec loop_spec = sig_spec;
 		loop_spec.Scale("uBooNE_elike_intrinsic", fLan);
 		loop_spec.compressVector();
@@ -176,7 +194,7 @@ SBNspec sig_spec("../../data/precomp/SBN_bkg_all",xml);
 		std::cout<<"MPV: "<<mpv<<" chi^2: "<<chi2[i]<<std::endl;
 
 	}
-
+//	and print out
 	TGraph *gr2  = new TGraph(n,x,chi2);
 	TFile  *ff2 = new TFile("example_2.root","RECREATE");
 	TCanvas *c2 = new TCanvas("c2","example_2");
