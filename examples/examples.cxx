@@ -291,12 +291,18 @@ return 0;
 return 0;
 /*************************************************************
  *************************************************************
- *		Example 3: Sterile neutrino, 3+1 sensitivity
+ *		Example 3: SBNfit
  ************************************************************
  ************************************************************/
 } else if(test_mode ==4){
 
+	//SBNfit is the class that does some of the fitting and links to roots minimization schemes
+	//It is like SBNspec, it contains basic functionality but you probably have to extend it with our own model dependant classes. provided that the 
+	// your class superseeds the virtual MinimizeCalcChi  that SBNfit has.
+	//
+	// It inherits from SBNchi, loading the correlation matrix in the same manner
 
+	//set up usual signal and background
 	SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
 	bkg_spec.compressVector();
 	
@@ -306,27 +312,35 @@ return 0;
 	sig_spec.compressVector();
 
 
+	//So someone asks, lets see what normalisation shifts on elike mis-ided muon and mulike intrinics looks like, maybe we can match observations better?
 
+
+	//Set up a SBNfit with background and signal, and number of paramaters
 	SBNfit myfit(bkg_spec, sig_spec, 2);
 
+	//SBNfit contains a simple routine for scaling any number of historgrams by a parameter, and minimizing over them
+	//so make a vector of pairs, saying which hists to scale with which parameter
 	std::vector<std::pair<std::string, int>> myin;
 	myin.push_back(std::make_pair("uBooNE_elike_mismuon",0) );
 	myin.push_back(std::make_pair("uBooNE_mlike_intrinsic",1) );
 
+
+	myfit.initialize_norm(myin);
+
+	//We initilise parametrs and give them names
 	std::vector<double> init  {0.99,1.001};
 	std::vector<double> low  {0.1,0.1};
 	std::vector<double> up  {10,10};
 	std::vector<double> step  {0.02,0.02};
 	std::vector<std::string> nam  {"p1","p2"};
 
-
-	myfit.initialize_norm(myin);
-
 	myfit.setInitialValues(init);
 	myfit.setNames(nam);
 	myfit.setLowerValues(low);
 	myfit.setUpperValues(up);
 	myfit.setStepSizes(step);
+
+	//and minimize, obviously as we are comparing it to itself, we hope that it find that no scaling is best!
 
 	std::cout<<"minimize!"<<std::endl;
 	myfit.Minimize();
@@ -342,27 +356,39 @@ return 0;
 
 } else if(test_mode==5){
 
+	//Ok a slightly more complicated example, SBNfit on its own cant do much. So here we show a model specific example for 3+N oscillations
+
+
+	//setup a SBNosc for a signal
 	SBNosc inject_sig("../../data/precomp/SBN_bkg_all",xml);
 	
+	//we want to simulate  a single eV sterile
 	double dmSq=1;
 	double UE4=0.15;
 	double UM4=0.18;
 	neutrinoModel signalModel(dmSq,UE4,UM4);
 	signalModel.numsterile = 1;
 		
+	//we oscillate it
 	inject_sig.load_model(signalModel);
 	inject_sig.OscillateThis();
+	//and give it some poisson noise
 	inject_sig.poissonScale();
 	inject_sig.compressVector();
 
+	//here you can see what it looks like!
 	inject_sig.writeOut("example_5_injected_signal.root");
 
 
+	//We then create a test point
 	SBNosc test_sig("../../data/precomp/SBN_bkg_all",xml);
 
 
+	//and a SBNfit3p1 (SBNfit3pN also exists and obviously can be used for n=1 also)
 
 	SBNfit3p1  fit3p1(inject_sig, test_sig, 3);
+
+	//Tell it what methods and algorithms we want to use
 	fit3p1.setMethod("GSLMultiMin", "BFGS2");
 
 
@@ -371,7 +397,10 @@ return 0;
 	std::vector<double> low  	{0.1,  0,     0};
 	std::vector<double> up    	{10,   1,     1}; 
 	std::vector<double> step  	{0.2,  0.05, 0.05}; 
+	//As the oscillation SBNosc reads in the precomputed spectra, it is disrete in DeltaM4 (in steps of 0.04). the GSL algorithms are VERY bad at discrete minimization so 
+	//here we fix the m4 variable and only minimize over the mixing elements
 	std::vector<int> fix 		{1,    0,      0};
+	//If you want to minimze over discrete variables, minut or GSL simulated Annealing is more successful but requires model dependant tweaking, or exhaustive search.
 
 	fit3p1.setInitialValues(init);
 	fit3p1.setNames(nam);
@@ -380,8 +409,10 @@ return 0;
 	fit3p1.setStepSizes(step);
 	fit3p1.setFixed(fix);
 
+	//minimze!
 	fit3p1.Minimize();
 
+	//As we added noise, the minimim may not be exactly the same as inputted, as expected but gives an idea of resolution
 	std::cout<<"Minimized! chi^2: "<<fit3p1.bf_chi<<" Ue1: "<<fit3p1.bf_params[1]<<" Um1: "<<fit3p1.bf_params[2]<<" #:"<<fit3p1.num_func_calls<<std::endl;
 
 
