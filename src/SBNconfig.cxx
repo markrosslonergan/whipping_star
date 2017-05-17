@@ -3,36 +3,49 @@ using namespace sbn;
 
 
 SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
+	//standard constructor given an xml.
+	//Using a very simple xml format that I directly coppied from an old project.
 
-	subchannel_names.resize(2);
-	subchannel_bool.resize(2);
+	//max subchannels 100?
+	subchannel_names.resize(100);
+	subchannel_bool.resize(100);
 	char *end;
 
+
+		//Setup TiXml documents
 		TiXmlDocument doc( whichxml.c_str() );
 		bool loadOkay = doc.LoadFile();
 	    	TiXmlHandle hDoc(&doc);
+
+		// we have Modes, Detectors, Channels, Covariance matricies, MC multisim data
 	        TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC, *pData;
 		
+
+		//Grab the first element. Note very little error checking here! make sure they exist.
 		pMode = doc.FirstChildElement("mode");
 		pDet =  doc.FirstChildElement("detector");
 		pChan = doc.FirstChildElement("channel");
 		pCov  = doc.FirstChildElement("covariance");
 		pMC   = doc.FirstChildElement("MCevents");
-	
 		pData   = doc.FirstChildElement("data");
 
+		//Where is the "data" folder that keeps pre-computed spectra and rootfiles
+		//Will eventuall just configure this in CMake
 		while(pData){
 			data_path = pData->Attribute("path");
 			pData = pData->NextSiblingElement("data");
 		}
 
 
-
+		// Where is the covariance matrix you want to use, and whats its name in the root file.
 		while(pCov){
 			correlation_matrix_rootfile = data_path + pCov->Attribute("file");
 			correlation_matrix_name = pCov->Attribute("name");
 			pCov = pCov->NextSiblingElement("covariance");
 		}
+
+
+		// What modes are we running in (e.g nu, nu bar, horn current=XXvolts....) Can have as many as we want
 		while(pMode)
 			{
 			//std::cout<<"Mode: "<<pMode->Attribute("name")<<" "<<pMode->Attribute("use")<<std::endl;
@@ -42,6 +55,8 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 			pMode = pMode->NextSiblingElement("mode");
 		}
 
+
+		// How many detectors do we want! 
 		pDet = doc.FirstChildElement("detector");
 		while(pDet)
 			{
@@ -51,45 +66,52 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 			pDet = pDet->NextSiblingElement("detector");	
 		}
+
+		//How many channels do we want! At the moment each detector must have all channels
 		int nchan = 0;
 		while(pChan)
 			{
+
+			// Read in how many bins this channel uses
 			channel_names.push_back(pChan->Attribute("name"));
 			channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
 			num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
 
-
+			// What are the bin edges and bin widths
 			TiXmlElement *pBin = pChan->FirstChildElement("bins");
+				std::stringstream iss(pBin->Attribute("edges"));
+				std::stringstream pss(pBin->Attribute("widths"));
+
+				double number;
+				std::vector<double> binedge;
+				std::vector<double> binwidth;
+				while ( iss >> number ) binedge.push_back( number );
+				while ( pss >> number ) binwidth.push_back( number );
+
+				bin_edges.push_back(binedge);
+				bin_widths.push_back(binwidth);
+		
+
+			// Now loop over all this channels subchanels. Not the names must be UNIQUE!!
 		        TiXmlElement *pSubChan;
 
-			pSubChan = pChan->FirstChildElement("subchannel");
-			int nsubchan=0;
-			while(pSubChan){
-				//std::cout<<"Subchannel: "<<pSubnum_subchannels->Attribute("name")<<" use: "<<pSubnum_subchannels->Attribute("use")<<std::endl;
-				subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
-				subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
+				pSubChan = pChan->FirstChildElement("subchannel");
+				int nsubchan=0;
+				while(pSubChan){
+					//std::cout<<"Subchannel: "<<pSubnum_subchannels->Attribute("name")<<" use: "<<pSubnum_subchannels->Attribute("use")<<std::endl;
+					subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
+					subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
 
-				nsubchan++;
-				pSubChan = pSubChan->NextSiblingElement("subchannel");	
-			}
-			num_subchannels.push_back(nsubchan);
+					nsubchan++;
+					pSubChan = pSubChan->NextSiblingElement("subchannel");	
+				}
+				num_subchannels.push_back(nsubchan);
 
-			std::stringstream iss(pBin->Attribute("edges"));
-			std::stringstream pss(pBin->Attribute("widths"));
-
-			double number;
-			std::vector<double> binedge;
-			std::vector<double> binwidth;
-			while ( iss >> number ) binedge.push_back( number );
-			while ( pss >> number ) binwidth.push_back( number );
-
-			bin_edges.push_back(binedge);
-			bin_widths.push_back(binwidth);
-	
 			nchan++;
 			pChan = pChan->NextSiblingElement("channel");	
 		}
 	
+		// if wea re creating a covariance matrix using a ntuple and weights, here is the info
 		while(pMC)
 			{
 			num_multisim = strtod(pMC->Attribute("multisim"),&end);
@@ -109,56 +131,14 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	
 
 
-
+		// so num_channels here is number of TOTAL channels in xml.
 		num_channels = channel_names.size();
 		num_modes = mode_names.size();
 		num_detectors  = detector_names.size();
 
 
-		if(false){
 
-			std::cout<<" Covariance root path: "<<correlation_matrix_rootfile<<" and matrix name: "<<correlation_matrix_name<<std::endl;
-			std::cout<<"Modes: ";
-			for(auto b: mode_names){
-				std::cout<<b<<" ";
-			}
-			std::cout<<std::endl;
-
-			std::cout<<"Modes Bools: ";
-			for(auto b: mode_bool){
-				std::cout<<b<<" ";
-			}
-			std::cout<<std::endl;
-
-			std::cout<<"Dets: ";
-			for(auto b: detector_names){
-				std::cout<<b<<" ";
-			}
-			std::cout<<std::endl;
-
-			std::cout<<"Dets Bools: ";
-			for(auto b: detector_bool){
-				std::cout<<b<<" ";
-			}
-			std::cout<<std::endl;
-
-			std::cout<<"Bin Edges: ";
-			for(auto b: bin_edges[0]){
-				std::cout<<b<<" ";
-			}
-			std::cout<<". Total#: "<<bin_edges[0].size()<<std::endl;
-
-			std::cout<<"Bin Widths: ";
-			for(auto b: bin_widths[0]){
-				std::cout<<b<<" ";
-			}
-			std::cout<<". Total#: "<<bin_widths[0].size()<<std::endl;
-	}
-
-
-
-
-
+	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.
 	std::string tempn;
 	int indexcount = 0;
 	for(int im = 0; im < num_modes; im++){
@@ -192,6 +172,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		}
 	}
 
+	//Actually want num_XXX to contain only activated things
 	//For here on down everything is derivable, above is just until I actually get config working.
 	num_modes = 0;
 	for(bool i:mode_bool){	if(i) num_modes++;	}
@@ -208,7 +189,9 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	}
 
 
-
+	// These variables are important
+	// They show how big each mode block and decector block are, for any given number of channels/subchannels
+	// both before and after compression!
 	num_bins_detector_block = 0;
 	num_bins_detector_block_compressed = 0;
 	for(int i =0; i< num_channels; i++){
