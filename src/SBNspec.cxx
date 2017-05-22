@@ -107,7 +107,7 @@ int SBNspec::Scale(std::string name, double val){
 		std::string test = h.GetName();
 		
 			if(test.find(name)!=std::string::npos ){
-				//std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
+				std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
 				h.Scale(val,"nosw2" );
 			}
 

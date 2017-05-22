@@ -23,6 +23,10 @@ include(${ROOT_USE_FILE})
 # so that we will find TutorialConfig.h
 include_directories("${PROJECT_BINARY_DIR}")
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+ROOT_GENERATE_DICTIONARY(G__Event MCEventWeight.h LINKDEF MCEventWeightLinkDef.h)
+
+#add_subdirectory(inc)
 add_subdirectory(tinyxml)
 add_subdirectory(src)
 add_subdirectory(examples)

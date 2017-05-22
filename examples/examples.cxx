@@ -92,6 +92,7 @@ while(iarg != -1)
 //Test 2: landau fit, then inject a signal and other fit
 
 
+
 /*************************************************************
  *************************************************************
  *		Example 1: 	Simple loading and scaling
@@ -101,6 +102,7 @@ if(test_mode==1){
 
 	//Load a spectra for background
 	SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
+
 	//and compress down the subchannels into a channel only vector
 	bkg_spec.compressVector();
 
@@ -110,7 +112,6 @@ if(test_mode==1){
 	//Load up a signal, we will use the same background here
 	SBNspec sig_spec("../../data/precomp/SBN_bkg_all", xml);
 
-
 	//So say you think your photon-mis rate is wrong, and want to see the effects of scaling it..
 
 	int n = 75;
@@ -118,6 +119,7 @@ if(test_mode==1){
 	for(int i=0; i<n; i++){
 
 		double scale =0.25+i*0.025;		
+		
 		SBNspec loop_spec = sig_spec;
 		
 		//Scale the dummy spectra, scaling only histograms that match "elike_misphoton" if you used Scale.("elike") it would scale ALL elikle subchannels
@@ -167,6 +169,7 @@ bkg_spec.Scale("uBooNE_mlike_intrinsic", 0.5);
 bkg_spec.compressVector();
 
 SBNchi test_chi(bkg_spec);
+
 SBNspec sig_spec("../../data/precomp/SBN_bkg_all",xml);
 
 //And say that instead of noticing we have misjudged the muon rates, we think that our intrinis nu_e is wrong.

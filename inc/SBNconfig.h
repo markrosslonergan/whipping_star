@@ -93,7 +93,8 @@ class SBNconfig {
 	//For generating a covariance matrix from scratch, this contains the number of multisims (weights in weight vector) and their names.
 	// For some reason I have decided that the first multisim, weight[0] must be the central value, =1
 	int num_multisim;
-	std::vector<std::string> branch_names;
+	std::vector<std::string> branch_names_int;
+	std::vector<std::string> branch_names_double;
 };
 
 }

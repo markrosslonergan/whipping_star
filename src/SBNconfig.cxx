@@ -117,14 +117,25 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 			num_multisim = strtod(pMC->Attribute("multisim"),&end);
 			multisim_name = pMC->Attribute("name");
 
-
-		        TiXmlElement *pBranch;
-			pBranch = pMC->FirstChildElement("branch");
-			while(pBranch){
-				//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<std::endl;
-				branch_names.push_back(pBranch->Attribute("name"));
-
-				pBranch = pBranch->NextSiblingElement("branch");	
+			TiXmlElement *pBranchT;
+			pBranchT = pMC->FirstChildElement("btype");
+//			std::cout<<"Starting run over branch types"<<std::endl;
+			while(pBranchT){
+			        TiXmlElement *pBranch;
+				pBranch = pBranchT->FirstChildElement("branch");
+				while(pBranch){
+					//std::cout<<pBranch->Attribute("name")<<" Type: "<<pBranchT->Attribute("type") <<std::endl;
+					if( strtod(pBranchT->Attribute("type"),&end)  == 0){
+						//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" int"<<std::endl;
+						branch_names_int.push_back(pBranch->Attribute("name"));
+					}
+					else if (strtod(pBranchT->Attribute("type"),&end)  == 1){
+						//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
+						branch_names_double.push_back(pBranch->Attribute("name"));
+					}
+					pBranch = pBranch->NextSiblingElement("branch");	
+				}
+			pBranchT= pBranchT->NextSiblingElement("btype");
 			}
 			pMC=pMC->NextSiblingElement("MCevents");
 		}
@@ -204,5 +215,6 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	num_bins_total_compressed = num_modes*num_bins_mode_block_compressed;
 
 
+	std::cout<<"Finishe SBNconfig init"<<std::endl;
 }//end constructor
 

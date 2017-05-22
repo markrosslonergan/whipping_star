@@ -17,6 +17,11 @@
 #include "TTree.h"
 #include "TH2D.h"
 
+#include "TROOT.h"
+#include "TRint.h"
+#include "TSystem.h"
+
+#include <map>
 #include <ctime>
 #include "params.h"
 

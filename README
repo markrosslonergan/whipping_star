@@ -8,14 +8,15 @@
  *	oo     .d8P  888    .88P  8       `888   888     888    888 .
  *	8""88888P'  o888bood8P'  o8o        `8  o888o   o888o   "888"
  *
- *		SBNfit, fitter, collapser, reweighter and oscillator for sterile decays at SBL facilities
- *		but actually pretty generic
+ *		SBNfit, fitter, oscillator, covariance matrix maker, collapser
+ *			originally for sterile decays at SBL facilities
+ *			but actually pretty generic
  *
  *		If you have any questions, queries or comments please contact the authors;
  *			 markrl@nevis.columbia.edu 
  *
- *		The authors make no guarrentee of the behaviour, stability or bug-free-ness of this code.
- *		Use is at own risk.
+ *The authors make no guarrentee of the behaviour, stability or bug-free-ness of this code.
+ *Use is at own risk.
 ################################################################################
 Installation and such
 Should be a standard;
