@@ -9,7 +9,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	gROOT->ProcessLine("#include <vector>");
 	gROOT->ProcessLine("#include <string>");
 	gSystem->Load("/home/mark/work/sbnfit_reduce/src/mdict_h.so");
-
+	gStyle->SetOptStat(0);
 
 	tolerence_positivesemi = 1e-10;
 	is_small_negative_eigenvalue = false;
@@ -21,7 +21,8 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		SBNspec temp_spec(xmlname,m);
 		multi_hists.push_back(temp_spec);
 	}
-
+	SBNspec tm(xmlname,-1);
+	spec_CV = tm;
 
 	TFile *f = new TFile(rootfile.c_str());
 	TTree * full_mc=  (TTree*)f->Get(multisim_name.c_str());
@@ -84,7 +85,6 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 					continue;
 				}
 
-				std::cout<<" starting weight loop:"<<std::endl;
 				for(auto &j: it->second){
 					//	std::cout<<"Weight: "<<j<<std::endl;
 						weights.push_back(j*glob_corr);
@@ -102,9 +102,13 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 				//std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
 				//Then in this sim, fill every histogram! 
 				for(auto & h: multi_hists[m].hist){	
-					h.Fill(vars_i[0],weights[m]);
+					h.Fill(vars_d[0],weights[m]);
 				}
 			 }
+			
+				for(auto & h: spec_CV.hist){	
+					h.Fill(vars_d[0],glob_corr);
+				}
 		 } //end of entry loop
 
 		f->Close();
@@ -115,14 +119,18 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 	int SBNcovar::formCovarianceMatrix(){
 
-		full_covariance.ResizeTo(num_bins_total, num_bins_total );
+		full_covariance.ResizeTo(num_bins_total, num_bins_total);
 		TH2D * h2 = new TH2D("test","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
+		
 
+		std::cout<<"Starting formCovariance: we have "<<multi_hists.size()<<" histograms "<<std::endl;
 		for(int i=0; i< num_multisim;i++){
 			multi_hists[i].calcFullVector();
 		}
-		
-		std::vector<double> CV = multi_hists[0].fullVec;
+	
+		spec_CV.calcFullVector();	
+		std::vector<double> CV = spec_CV.fullVec;
+
 
 		for(int i=0; i<num_bins_total; i++){
 		  for(int j=0; j<num_bins_total; j++){
@@ -130,12 +138,20 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			full_covariance(i,j)=0;
 
 			//Remember that m=0 is CV!
-			for(int m=1; m < num_multisim; m++){
+			for(int m=1; m < multi_hists.size(); m++){
 				full_covariance(i,j) += (CV[i]-multi_hists[m].fullVec[i])*(CV[j]-multi_hists[m].fullVec[j]);
 			}
-			full_covariance(i,j) = full_covariance(i,j)/( (double)num_multisim-1.0);
+			full_covariance(i,j) = full_covariance(i,j)/( multi_hists.size()-1.0)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]) ;
 			h2->SetBinContent(i+1,j+1,full_covariance(i,j));
 
+		  }
+		}
+		std::cout<<"Final Matrix"<<std::endl;
+		
+		for(int i=0; i<num_bins_total; i++){
+		  for(int j=0; j<num_bins_total; j++){
+			std::cout<<i<<" "<<j<<" "<<full_covariance(i,j)<<std::endl;
+			//full_covariance(i,j)= full_covariance(i,j)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]);
 		  }
 		}
 
@@ -143,6 +159,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		 *		Quality Testing Suite			    *
 		 * *********************************************************/
 
+	
 
 		if(full_covariance.IsSymmetric()){
 			std::cout<<"Generated covariance matrix is symmetric"<<std::endl;
@@ -176,16 +193,26 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 
+		for (int i=1;i<=11 ;i++){
+		       	h2->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		       	h2->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		}
+
 		TFile *ftest=new TFile("qtest.root","RECREATE");
 		ftest->cd();
 		TCanvas *c1 =  new TCanvas();
 		c1->cd();
 		//full_covariance.Draw();
+		h2->SetTitle("Fractional Covariance Matrix (sys only)");
+		h2->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h2->GetXaxis()->SetTitle("E_{#nu}^{truth}");
 		h2->Draw("COLZ");
 		c1->Write();
+		full_covariance.Write();
 		ftest->Close();
 
 
+		spec_CV.writeOut("CV.root");
 
 
 

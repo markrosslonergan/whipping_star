@@ -24,7 +24,7 @@ include(${ROOT_USE_FILE})
 include_directories("${PROJECT_BINARY_DIR}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-ROOT_GENERATE_DICTIONARY(G__Event MCEventWeight.h LINKDEF MCEventWeightLinkDef.h)
+#ROOT_GENERATE_DICTIONARY(G__Event MCEventWeight.h LINKDEF MCEventWeightLinkDef.h)
 
 #add_subdirectory(inc)
 add_subdirectory(tinyxml)
