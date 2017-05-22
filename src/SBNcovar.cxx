@@ -57,7 +57,8 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 		 // So for every entry..
 		 std::cout<<"Starting loop over entries: "<<nentries<<std::endl;
-		 for (int i = 0; i < nentries; i++) { 
+		 for (int i = 0; i < nentries; i++) {
+			weights.clear(); 
 			 double glob_corr=1;
 			 
 		 	 std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
@@ -85,7 +86,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 				std::cout<<" starting weight loop:"<<std::endl;
 				for(auto &j: it->second){
-						std::cout<<"Weight: "<<j<<std::endl;
+					//	std::cout<<"Weight: "<<j<<std::endl;
 						weights.push_back(j*glob_corr);
 				}
 				
@@ -98,13 +99,12 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 			std::cout<<"Num Sim "<<num_sim<<std::endl;
 			for(int m=0; m<num_sim; m++){
-				std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
+				//std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
 				//Then in this sim, fill every histogram! 
 				for(auto & h: multi_hists[m].hist){	
 					h.Fill(vars_i[0],weights[m]);
 				}
 			 }
-
 		 } //end of entry loop
 
 		f->Close();

@@ -215,6 +215,5 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	num_bins_total_compressed = num_modes*num_bins_mode_block_compressed;
 
 
-	std::cout<<"Finishe SBNconfig init"<<std::endl;
 }//end constructor
 

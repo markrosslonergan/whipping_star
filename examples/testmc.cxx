@@ -100,9 +100,9 @@ while(iarg != -1)
 std::cout<<"Strating covariance"<<std::endl;
 SBNcovar my_covar(filename,xml);
 
-return 0;
 my_covar.formCovarianceMatrix();
 
+return 0;
 
 	SBNspec bkg_spec("../data/precomp/SBN_bkg_all", xml);
 	bkg_spec.compressVector();
