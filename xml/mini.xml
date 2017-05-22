@@ -21,7 +21,6 @@
 		<branch name="type"/>
 		<branch name="target"/>
 		<branch name="nuPDG"/>
-		<branch name="nuPDG"/>
 		<branch name="leptonPDG"/>
 	</btype>
 	<btype type= "1" names="double">

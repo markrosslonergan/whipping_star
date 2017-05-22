@@ -7,11 +7,11 @@ add_library (SBNfitlib SBNconfig.cxx SBNcovar.cxx SBNspec.cxx SBNfit.cxx SBNchi.
 # when other libraries or executables link to Hello
 
 
-target_include_directories (SBNfitlib PUBLIC ${CMAKE_SOURCE_DIR}/inc/)
-target_include_directories (SBNfitlib PUBLIC ${CMAKE_SOURCE_DIR}/src/)
-target_include_directories (SBNfitlib PUBLIC ${CMAKE_SOURCE_DIR}/tinyxml/)
+include_directories ( ${CMAKE_SOURCE_DIR}/inc/)
+include_directories ( ${CMAKE_SOURCE_DIR}/src/)
+include_directories ( ${CMAKE_SOURCE_DIR}/tinyxml/)
 
-ROOT_GENERATE_DICTIONARY(LINKDEF mdict.h )
+#ROOT_GENERATE_DICTIONARY(LINKDEF mdict.h )
 #target_link_libraries(SBNfitlib mdict)
 target_link_libraries(SBNfitlib ${ROOT_LIBRARIES})
 target_link_libraries(SBNfitlib tinyxmllib)

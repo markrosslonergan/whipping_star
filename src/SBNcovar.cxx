@@ -8,7 +8,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	gROOT->ProcessLine("#include <map>");
 	gROOT->ProcessLine("#include <vector>");
 	gROOT->ProcessLine("#include <string>");
-	gSystem->Load("/home/mark/work/sbnfit_reduce/src/mdict_h.so");
+	gSystem->Load("/uboone/app/users/markrl/sbnfit/whipping_star/src/mdict_h.so");
 	gStyle->SetOptStat(0);
 
 	tolerence_positivesemi = 1e-10;
@@ -55,7 +55,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 		 int nentries = full_mc->GetEntries(); // read the number of entries
 
-
+			nentries = 50000;
 		 // So for every entry..
 		 std::cout<<"Starting loop over entries: "<<nentries<<std::endl;
 		 for (int i = 0; i < nentries; i++) {
@@ -64,8 +64,10 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			 
 		 	 std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
 			 full_mc->GetEntry(i);
-		 	 std::cout<<"Gotten entry :"<<i<<" over entries: "<<nentries<<std::endl;
-			
+		
+			//if(vars_i[2] != 12 || vars_i[3] != 11) continue;
+			if(vars_i[0] != 1001 ) continue;
+	
 			 for(int h=0;h<branch_names_double.size();h++){
 				std::cout<<h<<" "<<branch_names_double[h].c_str()<<" "<<vars_d[h]<<std::endl;
 			 }
@@ -120,7 +122,12 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	int SBNcovar::formCovarianceMatrix(){
 
 		full_covariance.ResizeTo(num_bins_total, num_bins_total);
-		TH2D * h2 = new TH2D("test","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
+		frac_covariance.ResizeTo(num_bins_total, num_bins_total);
+		full_correlation.ResizeTo(num_bins_total, num_bins_total);
+
+		TH2D * h2 = new TH2D("Frac Cov","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
+		TH2D * h3 = new TH2D("Corr","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
+		TH2D * h4 = new TH2D("Full Cov","",num_bins_total,1,num_bins_total, num_bins_total,1,num_bins_total);
 		
 
 		std::cout<<"Starting formCovariance: we have "<<multi_hists.size()<<" histograms "<<std::endl;
@@ -141,17 +148,24 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			for(int m=1; m < multi_hists.size(); m++){
 				full_covariance(i,j) += (CV[i]-multi_hists[m].fullVec[i])*(CV[j]-multi_hists[m].fullVec[j]);
 			}
-			full_covariance(i,j) = full_covariance(i,j)/( multi_hists.size()-1.0)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]) ;
-			h2->SetBinContent(i+1,j+1,full_covariance(i,j));
+			full_covariance(i,j) = full_covariance(i,j)/( multi_hists.size()-1.0);
 
 		  }
 		}
 		std::cout<<"Final Matrix"<<std::endl;
-		
+	
+	
 		for(int i=0; i<num_bins_total; i++){
 		  for(int j=0; j<num_bins_total; j++){
 			std::cout<<i<<" "<<j<<" "<<full_covariance(i,j)<<std::endl;
-			//full_covariance(i,j)= full_covariance(i,j)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]);
+
+frac_covariance(i,j) = full_covariance(i,j)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]) ;
+full_correlation(i,j)= full_covariance(i,j)/(full_covariance(i,i)*full_covariance(j,j));
+
+			h2->SetBinContent(i+1,j+1,frac_covariance(i,j));
+			h3->SetBinContent(i+1,j+1,full_correlation(i,j));
+			h4->SetBinContent(i+1,j+1,full_covariance(i,j));
+
 		  }
 		}
 
@@ -194,9 +208,13 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 		for (int i=1;i<=11 ;i++){
-		       	h2->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 		       	h2->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
-		}
+		       	h2->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		       	h4->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		       	h4->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		       	h3->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+		       	h3->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
+	}
 
 		TFile *ftest=new TFile("qtest.root","RECREATE");
 		ftest->cd();
@@ -208,6 +226,24 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		h2->GetXaxis()->SetTitle("E_{#nu}^{truth}");
 		h2->Draw("COLZ");
 		c1->Write();
+
+		TCanvas *c2 =  new TCanvas();
+		c2->cd();
+
+		h3->SetTitle("Correlation Matrix (sys only)");
+		h3->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h3->GetXaxis()->SetTitle("E_{#nu}^{truth}");
+		h3->Draw("COLZ");
+	
+		TCanvas *c3 =  new TCanvas();
+		c3->cd();
+
+		h4->SetTitle("Covariance Matrix (sys only)");
+		h4->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h4->GetXaxis()->SetTitle("E_{#nu}^{truth}");
+		h4->Draw("COLZ");
+	
+
 		full_covariance.Write();
 		ftest->Close();
 

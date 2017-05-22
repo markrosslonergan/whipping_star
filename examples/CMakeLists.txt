@@ -5,10 +5,10 @@ add_executable (mcdemo testmc.cxx)
 # Link the executable to the Hello library. Since the Hello library has
 # public include directories we will use those link directories when building
 # helloDemo
-target_include_directories (exampledemo PUBLIC ${PROJECT_BINARY_DIR}/inc)
-target_link_libraries (exampledemo LINK_PUBLIC SBNfitlib)
+include_directories ( ${CMAKE_SOURCE_DIR}/inc)
+target_link_libraries (exampledemo SBNfitlib)
+target_link_libraries (exampledemo tinyxmllib)
 
 #ROOT_GENERATE_DICTIONARY(H__vec mymap.h LINKDEF mymapLinkDef.h)
 
-target_include_directories (mcdemo PUBLIC ${PROJECT_BINARY_DIR}/inc)
-target_link_libraries (mcdemo LINK_PUBLIC SBNfitlib)
+target_link_libraries (mcdemo SBNfitlib)

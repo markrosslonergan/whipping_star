@@ -44,6 +44,9 @@ class SBNcovar : public SBNconfig{
 	
 	int formCovarianceMatrix();
 	TMatrixD full_covariance;
+	TMatrixD frac_covariance;
+	TMatrixD full_correlation;
+
 };
 
 

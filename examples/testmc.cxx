@@ -31,7 +31,7 @@
 #include "SBNfit.h"
 #include "SBNfit3pN.h"
 #include "SBNcovar.h"
-#include "MCEventWeight.h"
+//#include "MCEventWeight.h"
 
 #define no_argument 0
 #define required_argument 1

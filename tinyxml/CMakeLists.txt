@@ -3,4 +3,5 @@ add_library (tinyxmllib  tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.
 
 # Make sure the compiler can find include files for our Hello library
 # when other libraries or executables link to Hello
-target_include_directories (tinyxmllib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#target_include_directories (tinyxmllib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories ( ${CMAKE_CURRENT_SOURCE_DIR})
