@@ -16,6 +16,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH2D.h"
+#include "TNtuple.h"
 
 #include "TROOT.h"
 #include "TRint.h"
@@ -37,6 +38,7 @@ class SBNcovar : public SBNconfig{
 	double tolerence_positivesemi;
 
 	SBNspec spec_CV;	
+	SBNspec spec_CV2;	
 	SBNcovar(std::string rootfile, std::string xmlname);
 
 	// a vector of num_multisim vectors, with a vector of subchannel*bin histograms in each	
