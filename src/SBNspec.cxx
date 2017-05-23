@@ -10,7 +10,14 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 		for(int c=0; c<channel_names.size(); c++){
 			if(fn.find(channel_names[c])!=std::string::npos ){
 				double * tbins =&bin_edges[c][0];
-				std::string thisname = fn+"_MS"+std::to_string(which_universe);
+				std::string thisname;
+				if(which_universe<0){
+
+				 thisname = fn;
+				}else{
+
+				 thisname = fn+"_MS"+std::to_string(which_universe);
+				}
 				TH1D thischan(thisname.c_str(),"",num_bins[c], tbins );
 				hist.push_back(thischan);
 			}
@@ -212,11 +219,21 @@ int SBNspec::writeOut(std::string filename){
 	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
 
 	std::vector<int> mycol = {416-6, 800+3, 616+1, 632-7, 600-7, 432+1, 900}; 				
+	std::string fn1= "SBN"+filename;
+	TFile *f2 = new TFile(fn1.c_str(),"RECREATE" ); 
+
+	for(auto& h: hist){
+		h.Write();
+	}
+	f2->Close();	
+
 
 	TFile *f = new TFile(filename.c_str(),"RECREATE" ); 
 	f->cd();
 
 	std::vector<TH1D> temp = hist;
+
+	
 
 	for(auto m: mode_names){
 	for(auto d: detector_names){

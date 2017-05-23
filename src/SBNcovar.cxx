@@ -13,7 +13,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 	tolerence_positivesemi = 1e-10;
 	is_small_negative_eigenvalue = false;
-
+	bool DEBUG_BOOL = false;
 
 	//Initialise all the things
 	//for every multisim, create a SBNspec
@@ -55,41 +55,52 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 		 int nentries = full_mc->GetEntries(); // read the number of entries
 
-			nentries = 50000;
+		 //	nentries = 50000;
 		 // So for every entry..
 		 std::cout<<"Starting loop over entries: "<<nentries<<std::endl;
-		 for (int i = 0; i < nentries; i++) {
+
+		 //for (int i = 50000; i <  60000 ; i++) {
+		 for (int i = 0; i <  nentries ; i++) {
+			int mm=0;
 			weights.clear(); 
 			 double glob_corr=1;
 			 
-		 	 std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
+			if(i%1000==0) std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
+
+		 	if(DEBUG_BOOL) std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
 			 full_mc->GetEntry(i);
 		
 			//if(vars_i[2] != 12 || vars_i[3] != 11) continue;
 			if(vars_i[0] != 1001 ) continue;
 	
 			 for(int h=0;h<branch_names_double.size();h++){
-				std::cout<<h<<" "<<branch_names_double[h].c_str()<<" "<<vars_d[h]<<std::endl;
+				if(DEBUG_BOOL)std::cout<<h<<" "<<branch_names_double[h].c_str()<<" "<<vars_d[h]<<std::endl;
 			 }
 	
 			 for(int h=0;h<branch_names_int.size();h++){
-				std::cout<<h<<" "<<branch_names_int[h].c_str()<<" "<<vars_i[h]<<std::endl;
+				if(DEBUG_BOOL)std::cout<<h<<" "<<branch_names_int[h].c_str()<<" "<<vars_i[h]<<std::endl;
 			 }
 
 			
-			std::cout<<"Gonna loop over weight maps now:"<<std::endl;			
 			for(std::map<std::string, std::vector<double> >::iterator  it = fWeight->begin(); it != fWeight->end(); ++it) {
-				std::cout << it->first <<" "<<it->second.size()<<std::endl;
+				if(DEBUG_BOOL)std::cout << it->first <<" "<<it->second.size()<<std::endl;
 				
 				if(it->first == "bnbcorrection_FluxHist"){
-					std::cout<<"Got the bnb flux correction"<<std::endl;	
+					if(DEBUG_BOOL)std::cout<<"Got the bnb flux correction"<<std::endl;	
 					glob_corr = it->second.at(0);		
 					continue;
 				}
-
 				for(auto &j: it->second){
-					//	std::cout<<"Weight: "<<j<<std::endl;
-						weights.push_back(j*glob_corr);
+
+					if(i==1529 || i == 1629)continue;
+					if(DEBUG_BOOL)std::cout<<i<<" Weight: "<<j<<" d: "<<mm<<std::endl;
+						double wei = j;
+						if(wei==0) {
+							wei= 0.0000001;
+							if(DEBUG_BOOL)std::cout<<"ERROR: Weight 0 on event: "<<i<<" Weight: "<<j<<" multisim: "<<mm<<" "<<it->first<<" size: "<<it->second.size()<<std::endl;
+						}
+						weights.push_back(wei*glob_corr);
+						mm++;
 				}
 				
 			}
@@ -99,18 +110,34 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			 // the first must be 1, i.e the CV or mean case.
 			double num_sim = weights.size();	 
 
-			std::cout<<"Num Sim "<<num_sim<<std::endl;
+			//if(num_sim != multi_hists.size()){
+			//	std::cout<<"ERROR: numsim!= nulti_hist"<<num_sim<<" "<<multi_hists.size()<<std::endl;
+				//exit(EXIT_FAILURE);
+			//}
+
+			if(DEBUG_BOOL)std::cout<<"Num Sim "<<num_sim<<std::endl;
 			for(int m=0; m<num_sim; m++){
 				//std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
 				//Then in this sim, fill every histogram! 
 				for(auto & h: multi_hists[m].hist){	
-					h.Fill(vars_d[0],weights[m]);
+
+				if(vars_d[0]!=vars_d[0] || weights[m]!= weights[m]){
+				std::cout<<"ERROR: vars_d[0]: "<<vars_d[0]<<" weights: "<<weights[m]<<" m: "<<m<<std::endl;
+				//exit(EXIT_FAILURE);
+				//continue;
+
+				}
+
+
+				h.Fill(vars_d[0],weights[m]);
 				}
 			 }
 			
 				for(auto & h: spec_CV.hist){	
 					h.Fill(vars_d[0],glob_corr);
 				}
+			
+			
 		 } //end of entry loop
 
 		f->Close();
@@ -131,7 +158,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		
 
 		std::cout<<"Starting formCovariance: we have "<<multi_hists.size()<<" histograms "<<std::endl;
-		for(int i=0; i< num_multisim;i++){
+		for(int i=0; i< multi_hists.size(); i++){
 			multi_hists[i].calcFullVector();
 		}
 	
@@ -147,9 +174,19 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			//Remember that m=0 is CV!
 			for(int m=1; m < multi_hists.size(); m++){
 				full_covariance(i,j) += (CV[i]-multi_hists[m].fullVec[i])*(CV[j]-multi_hists[m].fullVec[j]);
+			
+
+				if(full_covariance(i,j)!=full_covariance(i,j)){
+					
+				std::cout<<"ERROR: nan : at (i,j):  "<<i<<" "<<j<<" fullcov: "<<full_covariance(i,j)<<" multi hist sise "<<multi_hists.size()<<" CV: "<<CV[i]<<" "<<CV[j]<<" multihisg "<<multi_hists[m].fullVec[i]<<" "<<multi_hists[m].fullVec[j]<<" on dim : "<<m<<std::endl;
+					
+				}
+
+
+
 			}
 			full_covariance(i,j) = full_covariance(i,j)/( multi_hists.size()-1.0);
-
+			
 		  }
 		}
 		std::cout<<"Final Matrix"<<std::endl;
@@ -160,7 +197,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			std::cout<<i<<" "<<j<<" "<<full_covariance(i,j)<<std::endl;
 
 frac_covariance(i,j) = full_covariance(i,j)/(spec_CV.fullVec[i]*spec_CV.fullVec[j]) ;
-full_correlation(i,j)= full_covariance(i,j)/(full_covariance(i,i)*full_covariance(j,j));
+full_correlation(i,j)= full_covariance(i,j)/(sqrt(full_covariance(i,i))*sqrt(full_covariance(j,j)));
 
 			h2->SetBinContent(i+1,j+1,frac_covariance(i,j));
 			h3->SetBinContent(i+1,j+1,full_correlation(i,j));
@@ -172,6 +209,45 @@ full_correlation(i,j)= full_covariance(i,j)/(full_covariance(i,i)*full_covarianc
 		/************************************************************
 		 *		Quality Testing Suite			    *
 		 * *********************************************************/
+
+		TFile *ftest=new TFile("qtest.root","RECREATE");
+		ftest->cd();
+		TCanvas *c1 =  new TCanvas();
+		c1->cd();
+		//full_covariance.Draw();
+		h2->SetTitle("Fractional Covariance Matrix (sys only)");
+		h2->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h2->GetXaxis()->SetTitle("E_{#nu}^{truth}");
+		h2->Draw("COLZ");
+		c1->Write();
+
+		TCanvas *c2 =  new TCanvas();
+		c2->cd();
+
+		h3->SetTitle("Correlation Matrix (sys only)");
+		h3->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h3->GetXaxis()->SetTitle("E_{#nu}^{truth}");
+		h3->Draw("COLZ");
+		c2->Write();	
+
+		TCanvas *c3 =  new TCanvas();
+		c3->cd();
+
+		h4->SetTitle("Covariance Matrix (sys only)");
+		h4->GetYaxis()->SetTitle("E_{#nu}^{truth}");
+		h4->GetXaxis()->SetTitle("E_{#nu}^{truth}");
+		h4->Draw("COLZ");
+		c3->Write();
+	
+
+		full_covariance.Write();
+		ftest->Close();
+
+
+		spec_CV.writeOut("CV.root");
+
+
+
 
 	
 
@@ -206,7 +282,7 @@ full_correlation(i,j)= full_covariance(i,j)/(full_covariance(i,i)*full_covarianc
 		}
 
 
-
+/*
 		for (int i=1;i<=11 ;i++){
 		       	h2->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 		       	h2->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
@@ -215,43 +291,7 @@ full_correlation(i,j)= full_covariance(i,j)/(full_covariance(i,i)*full_covarianc
 		       	h3->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 		       	h3->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 	}
-
-		TFile *ftest=new TFile("qtest.root","RECREATE");
-		ftest->cd();
-		TCanvas *c1 =  new TCanvas();
-		c1->cd();
-		//full_covariance.Draw();
-		h2->SetTitle("Fractional Covariance Matrix (sys only)");
-		h2->GetYaxis()->SetTitle("E_{#nu}^{truth}");
-		h2->GetXaxis()->SetTitle("E_{#nu}^{truth}");
-		h2->Draw("COLZ");
-		c1->Write();
-
-		TCanvas *c2 =  new TCanvas();
-		c2->cd();
-
-		h3->SetTitle("Correlation Matrix (sys only)");
-		h3->GetYaxis()->SetTitle("E_{#nu}^{truth}");
-		h3->GetXaxis()->SetTitle("E_{#nu}^{truth}");
-		h3->Draw("COLZ");
-	
-		TCanvas *c3 =  new TCanvas();
-		c3->cd();
-
-		h4->SetTitle("Covariance Matrix (sys only)");
-		h4->GetYaxis()->SetTitle("E_{#nu}^{truth}");
-		h4->GetXaxis()->SetTitle("E_{#nu}^{truth}");
-		h4->Draw("COLZ");
-	
-
-		full_covariance.Write();
-		ftest->Close();
-
-
-		spec_CV.writeOut("CV.root");
-
-
-
+*/
 
 	return 0;
 	}
