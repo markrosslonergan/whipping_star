@@ -21,6 +21,10 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		SBNspec temp_spec(xmlname,m);
 		multi_hists.push_back(temp_spec);
 	}
+
+
+	std::cout<<" multi_hist_size: "<<multi_hists.size()<<" internal size: "<<multi_hists.at(0).hist.size()<<"  deeper: "<<multi_hists.at(0).hist.at(0).GetBinContent(1)<<std::endl;
+
 	SBNspec tm(xmlname,-1);
 	spec_CV = tm;
 
@@ -29,9 +33,8 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	TFile *f = new TFile(rootfile.c_str());
 	TTree * full_mc=  (TTree*)f->Get(multisim_name.c_str());
 
-	TFile *f2 = new TFile("/uboone/data/users/mastbaum/rw_test/fittree_nue.root");
+	TFile *f2 = new TFile("/uboone/data/users/mastbaum/rw_test/fittree_bnb_rw2.root");
 	TTree * full_mc2=  (TTree*)f2->Get(multisim_name.c_str());
-
 
 
 	std::vector<int> vars_i (branch_names_int.size(),0); 
@@ -41,7 +44,6 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	std::vector<int> vars_i2 (branch_names_int.size(),0); 
 	std::vector<double> vars_d2 (branch_names_double.size(),0);
 	std::map<std::string, std::vector<double> > *fWeight2 = 0;
-
 
 
 	TBranch *bweight=0;
@@ -79,74 +81,134 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 	int nentries = full_mc->GetEntries(); // read the number of entries
+	int nentries2 = full_mc2->GetEntries(); // read the number of entries
 
-	//nentries = 50000;
-	// So for every entry..
-	std::cout<<"Starting loop over entries: "<<nentries<<std::endl;
+	std::cout<<"Starting loop over entries: numu#: "<<nentries<<" numu#: "<<full_mc2->GetEntries()<<std::endl;
+	
+	std::cout<<"Init facts: multihistsize: "<<multi_hists.size()<<std::endl;
+	std::cout<<"start with mu"<<std::endl;
 
-	for (int i = 53000; i <  60000 ; i++) {
-		//for (int i = 0; i <  nentries ; i++) {
+	
+
+
+	for (int i2 = 0; i2 <  nentries2 ; i2++) {
+		bool isValid2 =true;
+		int mm2 =0;
+		std::vector<double> weights2;
+		double glob_corr2 = 1;
+
+		if(i2%10000==0)std::cout<<"On entry :"<<i2<<" over entries numu: "<<nentries2<<std::endl;
+		full_mc2->GetEntry(i2);
+
+		if(vars_i2[0] == 1001){
+
+			//Loop over all things in mcweight map
+			for(std::map<std::string, std::vector<double> >::iterator  it = fWeight2->begin(); it != fWeight2->end(); ++it) {
+				
+				if(!isValid2) break;
+
+				if(it->first == "bnbcorrection_FluxHist"){
+					glob_corr2 = it->second.at(0);		
+
+					if(std::isinf(glob_corr2)){
+						isValid2=false;
+						break;
+					}
+					
+					continue;
+				}
+
+				for(auto &j: it->second){
+
+				//	std::cout<<i<<" Weight: "<<j<<" d: "<<mm<<std::endl;
+					double wei = j*glob_corr2;
+
+					if(std::isnan(wei) || (wei!= wei) || std::isinf(glob_corr2) ){
+						std::cout<<"ERROR: "<<" weight has a value of: "<<j<<" and glob_corr: "<<glob_corr2<<" this wei: "<<wei<<". So I am skipping this event #: "<<i2<<std::endl;
+						isValid2 = false;
+						break;
+					}
+
+					weights2.push_back(wei);
+					mm2++;
+
+				}
+
+			}//end of iterator
+
+
+			if(isValid2){
+				// loop over every multisim we have in this entry
+				// the first must be 1, i.e the CV or mean case.
+				double num_sim = weights2.size();	 
+				
+				if(num_sim > multi_hists.size()){
+					std::cout<<"ERROR: numu loop numsim > nulti_hist"<<num_sim<<" "<<multi_hists.size()<<std::endl;
+					num_sim = multi_hists.size();
+				}
+
+				for(int m=0; m<num_sim; m++){
+						
+						multi_hists[m].hist.at(1).Fill(vars_d2[0],weights2[m]);
+
+						//important check. failure mode	
+						if(weights2[m]!=weights2[m] || isinf(weights2[m]) ){
+							std::cout<<"ERROR: weight has a value of: "<<weights2[m]<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d2[0]<<" global_corr is "<<glob_corr2<<std::endl;
+							exit(EXIT_FAILURE);
+						}
+
+
+
+				}
+
+					spec_CV.hist.at(1).Fill(vars_d2[0],glob_corr2);
+
+
+			}//end of validity if
+
+
+
+		}//end of mu like
+
+	} //end of entry loop
+
+
+
+	std::cout<<"Starting nue"<<std::endl;
+	for (int i = 0; i < nentries ; i++) {
 		bool isValid=true;
 		int mm=0;
 		std::vector<double> weights;
-		std::vector<double> weights2;
 		double glob_corr = 1;
 
-		if(i%1000==0) std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
+		if(i%10000==0)std::cout<<"On entry nue :"<<i<<" over entries: "<<nentries<<std::endl;
 
-		if(DEBUG_BOOL) std::cout<<"On entry :"<<i<<" over entries: "<<nentries<<std::endl;
 		full_mc->GetEntry(i);
 		tnS->GetEntry(i);
 
-		//if(vars_i[2] != 12 || vars_i[3] != 11) continue;
 		if(vars_i[0] == 1001){
 
-			if(DEBUG_BOOL){
-				for(int h=0;h<branch_names_double.size();h++){
-					std::cout<<h<<" "<<branch_names_double[h].c_str()<<" "<<vars_d[h]<<std::endl;
-				}
-				for(int h=0;h<branch_names_int.size();h++){
-					std::cout<<h<<" "<<branch_names_int[h].c_str()<<" "<<vars_i[h]<<std::endl;
-				}
-			}
-
 			for(std::map<std::string, std::vector<double> >::iterator  it = fWeight->begin(); it != fWeight->end(); ++it) {
-				//std::cout << it->first <<" "<<it->second.size()<<" "<<it->second[0]<<std::endl;
 
+				if(!isValid) break;
 				if(it->first == "bnbcorrection_FluxHist"){
 					glob_corr = it->second.at(0);		
-					glob_corr = (double)glob_corr*1.0;
+					
+					if(std::isinf(glob_corr)){
+						isValid=false;
+						break;
+					}
 
-					if(DEBUG_BOOL)if(std::isinf(glob_corr) ){
-						std::cout<<"ERROR: Its Broke. actually is inf"<<std::endl;
-						if(!std::isfinite(glob_corr)){
-							std::cout<<"ERROR: Its Broke. isnt finite"<<std::endl;
-						}
-						if(std::isinf(glob_corr*10)){
-							std::cout<<"ERROR: inf*10 is inf"<<std::endl;
-						}
-						if(std::isinf(glob_corr*0)){
-							std::cout<<"ERROR: inf*0 is inf"<<std::endl;
-						}
-						if(glob_corr*0 != glob_corr*0){
-							std::cout<<"ERROR: 0*inf != 0*inf "<<std::endl;
-						}
-
-
-						exit(EXIT_FAILURE);
-					}	
-
-					if(DEBUG_BOOL)std::cout<<"glob_corr: "<<glob_corr<<" itsec: "<<it->second.at(0)<<" size: "<<it->second.size()<<std::endl;
 
 					continue;
 				}
 
 				for(auto &j: it->second){
 
-					if(DEBUG_BOOL) std::cout<<i<<" Weight: "<<j<<" d: "<<mm<<std::endl;
+					
 					double wei = j*glob_corr;
 
-					if(std::isnan(wei) || (wei!= wei) ){
+					if(std::isnan(wei) || (wei!= wei) || std::isinf(glob_corr) ){
 						std::cout<<"ERROR: "<<" weight has a value of: "<<j<<" and glob_corr: "<<glob_corr<<" this wei: "<<wei<<". So I am skipping this event #: "<<i<<std::endl;
 						isValid = false;
 						break;
@@ -161,41 +223,28 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 			}//end of iterator
 			if(isValid){
-
 				// loop over every multisim we have in this entry
 				// the first must be 1, i.e the CV or mean case.
 				double num_sim = weights.size();	 
+				if(num_sim > multi_hists.size()){
+					std::cout<<"ERROR: nue loop: numsim> multi_hists: numsim: "<<num_sim<<" multihi"<<multi_hists.size()<<std::endl;
+					num_sim = multi_hists.size();
+				}
 
-				//if(num_sim != multi_hists.size()){
-				//	std::cout<<"ERROR: numsim!= nulti_hist"<<num_sim<<" "<<multi_hists.size()<<std::endl;
-				//exit(EXIT_FAILURE);
-				//}
-
-				if(DEBUG_BOOL)std::cout<<"Num Sim "<<num_sim<<std::endl;
 				for(int m=0; m<num_sim; m++){
-					//std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
-					//Then in this sim, fill every histogram! 
-					for(auto & h: multi_hists[m].hist){	
+						//std::cout<<"ATTN: "<<m<<" "<<multi_hists[m].hist.size()<<" nummultisim_xml: "<<num_multisim<<" where as weightts: "<<weights.size()<<" "<<num_sim<<std::endl;
+						multi_hists[m].hist.at(0).Fill(vars_d[0],weights[m]);
 
-						h.Fill(vars_d[0],weights[m]);
-
-						if(weights[m]!=weights[m]){
+						if(weights[m]!=weights[m] || std::isinf(weights[m])){
 							std::cout<<"ERROR: weight has a value of: "<<weights[m]<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d[0]<<" global_corr is "<<glob_corr<<std::endl;
 							exit(EXIT_FAILURE);
 						}
 
 
-
-					}
 				}
+					spec_CV.hist[0].Fill(vars_d[0],glob_corr);
 
-				for(auto & h: spec_CV.hist){	
-					h.Fill(vars_d[0],glob_corr);
-				}
-
-				for(auto & h: spec_sig.hist){	
-					h.Fill(vars_d[0],glob_corr*(1+lee));
-				}
+					spec_sig.hist[0].Fill(vars_d[0],glob_corr*(1+lee));
 
 			}//end of validity if
 
@@ -204,97 +253,6 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		}//end of nue file
 
 
-		if(vars_i2[0] == 1001){
-
-			for(std::map<std::string, std::vector<double> >::iterator  it = fWeight2->begin(); it != fWeight2->end(); ++it) {
-
-				if(it->first == "bnbcorrection_FluxHist"){
-					glob_corr = it->second.at(0);		
-					glob_corr = (double)glob_corr*1.0;
-
-					if(DEBUG_BOOL)if(std::isinf(glob_corr) ){
-						std::cout<<"ERROR: Its Broke. actually is inf"<<std::endl;
-						if(!std::isfinite(glob_corr)){
-							std::cout<<"ERROR: Its Broke. isnt finite"<<std::endl;
-						}
-						if(std::isinf(glob_corr*10)){
-							std::cout<<"ERROR: inf*10 is inf"<<std::endl;
-						}
-						if(std::isinf(glob_corr*0)){
-							std::cout<<"ERROR: inf*0 is inf"<<std::endl;
-						}
-						if(glob_corr*0 != glob_corr*0){
-							std::cout<<"ERROR: 0*inf != 0*inf "<<std::endl;
-						}
-
-					}	
-
-					if(DEBUG_BOOL)std::cout<<"glob_corr: "<<glob_corr<<" itsec: "<<it->second.at(0)<<" size: "<<it->second.size()<<std::endl;
-
-					continue;
-				}
-
-				for(auto &j: it->second){
-
-					if(DEBUG_BOOL) std::cout<<i<<" Weight: "<<j<<" d: "<<mm<<std::endl;
-					double wei = j*glob_corr;
-
-					if(std::isnan(wei) || (wei!= wei) ){
-						std::cout<<"ERROR: "<<" weight has a value of: "<<j<<" and glob_corr: "<<glob_corr<<" this wei: "<<wei<<". So I am skipping this event #: "<<i<<std::endl;
-						isValid = false;
-						break;
-					}
-
-
-					weights2.push_back(wei);
-					mm++;
-
-
-				}
-
-			}//end of iterator
-			if(isValid){
-
-				// loop over every multisim we have in this entry
-				// the first must be 1, i.e the CV or mean case.
-				double num_sim = weights.size();	 
-
-				//if(num_sim != multi_hists.size()){
-				//	std::cout<<"ERROR: numsim!= nulti_hist"<<num_sim<<" "<<multi_hists.size()<<std::endl;
-				//exit(EXIT_FAILURE);
-				//}
-
-				if(DEBUG_BOOL)std::cout<<"Num Sim "<<num_sim<<std::endl;
-				for(int m=0; m<num_sim; m++){
-					//std::cout<<"On Uni :"<<m<<" of "<<num_sim<<std::endl;
-					//Then in this sim, fill every histogram! 
-					for(auto & h: multi_hists[m].hist){	
-
-						h.Fill(vars_d2[0],weights2[m]);
-
-						if(weights[m]!=weights[m]){
-							std::cout<<"ERROR: weight has a value of: "<<weights[m]<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d[0]<<" global_corr is "<<glob_corr<<std::endl;
-							exit(EXIT_FAILURE);
-						}
-
-
-
-					}
-				}
-
-				for(auto & h: spec_CV.hist){	
-					h.Fill(vars_d[0],glob_corr);
-				}
-
-				for(auto & h: spec_sig.hist){	
-					h.Fill(vars_d[0],glob_corr*(1+lee));
-				}
-
-			}//end of validity if
-
-
-
-		}
 
 	} //end of entry loop
 
@@ -319,15 +277,16 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 		std::cout<<"Starting formCovariance: we have "<<multi_hists.size()<<" histograms "<<std::endl;
-		for(int i=0; i< multi_hists.size(); i++){
-			multi_hists[i].calcFullVector();
+
+		for(auto &h: multi_hists){
+			h.calcFullVector();
 		}
 
 		spec_CV.calcFullVector();	
 		std::vector<double> CV = spec_CV.fullVec;
 
 		for(auto k=0;k<spec_CV.fullVec.size();k++){
-			std::cout<<spec_CV.bin_edges[0][k]<<" "<<spec_CV.fullVec[k]<<" "<<spec_CV.hist[0].GetBinContent(k+1)<<std::endl;
+			std::cout<<" "<<spec_CV.fullVec[k]<<" "<<multi_hists.at(0).fullVec[k]<<std::endl;
 		}
 
 		for(int i=0; i<num_bins_total; i++){
@@ -336,7 +295,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 				full_covariance(i,j)=0;
 
 				for(int m=0; m < multi_hists.size(); m++){
-					full_covariance(i,j) += (CV[i]-multi_hists[m].fullVec[i])*(CV[j]-multi_hists[m].fullVec[j]);
+					full_covariance(i,j) += (CV[i]-multi_hists.at(m).fullVec.at(i))*(CV[j]-multi_hists.at(m).fullVec.at(j));
 
 
 					if(full_covariance(i,j)!=full_covariance(i,j)){
@@ -404,6 +363,8 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 		frac_covariance.Write();
+		full_covariance.Write();
+		full_correlation.Write();
 		ftest->Close();
 
 

@@ -58,6 +58,7 @@ class SBNconfig {
 	public:
 	std::string xmlname;	
 	std::string multisim_name;	
+	std::string multisim_file;	
 	std::string data_path;
 
 

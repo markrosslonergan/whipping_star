@@ -114,8 +114,10 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		// if wea re creating a covariance matrix using a ntuple and weights, here is the info
 		while(pMC)
 			{
+
 			num_multisim = strtod(pMC->Attribute("multisim"),&end);
 			multisim_name = pMC->Attribute("name");
+			multisim_file = pMC->Attribute("filename");
 
 			TiXmlElement *pBranchT;
 			pBranchT = pMC->FirstChildElement("btype");
