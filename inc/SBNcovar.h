@@ -39,10 +39,10 @@ class SBNcovar : public SBNconfig{
 
 	SBNspec spec_CV;	
 	SBNspec spec_CV2;	
-	SBNcovar(std::string rootfile, std::string xmlname);
+	SBNcovar(std::string xmlname);
 
 	// a vector of num_multisim vectors, with a vector of subchannel*bin histograms in each	
-	std::vector<SBNspec> multi_hists;
+	std::vector<SBNspec> multi_sbnspec;
 	
 	int formCovarianceMatrix();
 	TMatrixD full_covariance;

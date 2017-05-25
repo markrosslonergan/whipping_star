@@ -26,7 +26,7 @@
 	
 <covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name="TMatrixT<float>;7" />
 
-<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root">
+<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root" pot="6.6e20" potscale="3.1845e17">
 	<btype type="0" names="int">
 		<branch name="type"/>
 		<branch name="target"/>
@@ -41,7 +41,7 @@
 	</btype>
 </MCevents>
 
-<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root">
+<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_bnb_rw2.root" pot="6.6e20" potscale="1.203e15">
 	<btype type="0" names="int">
 		<branch name="type"/>
 		<branch name="target"/>

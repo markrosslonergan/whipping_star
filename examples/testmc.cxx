@@ -98,7 +98,7 @@ while(iarg != -1)
 
 
 std::cout<<"Strating covariance"<<std::endl;
-SBNcovar my_covar(filename,xml);
+SBNcovar my_covar(xml);
 
 my_covar.formCovarianceMatrix();
 

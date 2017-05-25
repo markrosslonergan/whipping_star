@@ -3,7 +3,7 @@
 
 using namespace sbn;
 
-SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlname) {
+SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 	gROOT->ProcessLine("#include <map>");
 	gROOT->ProcessLine("#include <vector>");
 	gROOT->ProcessLine("#include <string>");
@@ -16,7 +16,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 	//Initialise all the things
 	//for every multisim, create a SBNspec
-	for(int m=0; m<num_multisim; m++){
+	for(int m=0; m<num_multisim[0]; m++){
 		SBNspec temp_spec(xmlname,m);
 		multi_sbnspec.push_back(temp_spec);
 	}
@@ -46,10 +46,10 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 		nentries.push_back(t->GetEntries());
 	}
 
-	
-	
-	vars_i(Nfiles   , std::vector<int>(branch_names_int.size(),0));
-	vars_d(Nfiles   , std::vector<double>(branch_names_double.size(),0.0));
+
+
+	vars_i= std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
+	vars_d=std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
 
 	std::vector< std::map<std::string, std::vector<double> > * > fWeights(multisim_name.size(),0);
 
@@ -58,11 +58,15 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	for(int i=0; i< Nfiles; i++){
 		trees.at(i)->SetBranchAddress("mcweight", &(fWeights.at(i)), &(bweight.at(i)) );
 
-		for(auto &bni: branch_names_int){
-			trees.at(i)->SetBranchAddress(bni.c_str(), &(vars_i.at(i)));
+		for(auto &bfni: branch_names_int){
+			for(int k=0; k< bfni.size();k++){
+				trees.at(i)->SetBranchAddress(bfni[k].c_str(), &(vars_i.at(i).at(k)));
+			}
 		}
-		for(auto &bnd: branch_names_double){
-			trees.at(i)->SetBranchAddress(bnd.c_str(), &(vars_d.at(i)));
+		for(auto &bfnd: branch_names_double){
+			for(int k=0; k< bfnd.size();k++){
+				trees.at(i)->SetBranchAddress(bfnd[k].c_str(), &(vars_d.at(i).at(k)));
+			}
 		}
 	}
 
@@ -77,13 +81,15 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 	for(int j=0;j<Nfiles;j++){
+		double pot_factor = pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
+
 		for(int i=0; i< nentries.at(j); i++){
 			bool is_valid = true;
 			int n_uni = 0;
-			std::vector<double> weights = 1;
+			std::vector<double> weights;
 			double global_weight = 1;
 
-			if(i%2500==0)std::cout<<"Event: "<<j<<" of "<<nentries[j]<<" from File: "<<multisim_file[j]<<std::endl;
+			if(i%2500==0)std::cout<<"Event: "<<i<<" of "<<nentries[j]<<" from File: "<<multisim_file[j]<<" POT factor: "<<pot_factor<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 
@@ -91,18 +97,20 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 			if( this->eventSelection(j) ){
 
 				//Loop over all things in mcweight map
-				for(std::map<std::string, std::vector<double> >::iterator  it = fWeight.at(j)->begin(); it != fWeight.at(j)->end(); ++it) {
+				for(std::map<std::string, std::vector<double> >::iterator  it = fWeights.at(j)->begin(); it != fWeights.at(j)->end(); ++it) {
 
 					if(!is_valid) break;
 
 					if(it->first == "bnbcorrection_FluxHist"){
 						global_weight = it->second.at(0);		
 
+						//Skip events that fail (should they be included in POT?)
 						if(std::isinf(global_weight)){
 							is_valid=false;
 							break;
 						}
-
+						global_weight = global_weight*pot_factor;
+						
 						continue;
 					}
 
@@ -121,7 +129,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 							break;
 						}
 
-						weights.at(j).push_back(wei*global_weight);
+						weights.push_back(wei*global_weight);
 						n_uni++;
 
 					}
@@ -131,20 +139,20 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 				if(is_valid){
 					// loop over every multisim we have in this entry
-					double num_sim = weights.at(j).size();	 
+					double num_sim = weights.size();	 
 
 					if(num_sim > multi_sbnspec.size()){
-						std::cout<<"ERROR: numu loop numsim > nulti_hist"<<num_sim<<" "<<multi_sbnspec.size()<<std::endl;
+						//std::cout<<"ERROR: numu loop numsim > nulti_hist"<<num_sim<<" "<<multi_sbnspec.size()<<std::endl;
 						num_sim = multi_sbnspec.size();
 					}
 
 					for(int m=0; m<num_sim; m++){
 						//This is the part where we will every histogram in this Universe
-						this->fillHistograms(j, m, weights.at(j).at(m) );
+						this->fillHistograms(j, m, weights.at(m) );
 
 						//important check. failure mode	
-						if(weights.at(j)[m]!=weights.at(j)[m] || isinf(weights.at(j)[m]) ){
-							std::cout<<"ERROR: weight has a value of: "<<weights.at(k)[m]<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d.at(j)[0]<<" global_eright is "<<global_weight<<std::endl;
+						if(weights[m]!=weights[m] || isinf(weights[m]) ){
+							std::cout<<"ERROR: weight has a value of: "<<weights.at(m)<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d.at(j)[0]<<" global_eright is "<<global_weight<<std::endl;
 							exit(EXIT_FAILURE);
 						}
 
@@ -172,31 +180,31 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	}
 
 }
-	/***************************************************************
-	 *		Some virtual functions for selection and histogram filling
-	 * ************************************************************/
+/***************************************************************
+ *		Some virtual functions for selection and histogram filling
+ * ************************************************************/
 
 
-bool eventSelection(int which_file){
-     //from here have access to vars_i  and vars_d  to make a selection
-	
-     bool ans = false;
-     if(vars_i.at(which_file)[0] == 1001){
-	     ans = true;
-     }
+bool SBNcovar::eventSelection(int which_file){
+	//from here have access to vars_i  and vars_d  to make a selection
 
-     return ans;
+	bool ans = false;
+	if(vars_i.at(which_file)[0] == 1001){
+		ans = true;
+	}
+
+	return ans;
 }
 
-int fillHistograms(int file, int uni, double wei){
+int SBNcovar::fillHistograms(int file, int uni, double wei){
 	//Fill the histograms
 	multi_sbnspec.at(uni).hist.at(file).Fill( vars_d.at(file).at(0),wei);
-return 0;
+	return 0;
 }
 
-	/***************************************************************
-	 *		And then form a covariance matrix (well 3)
-	 * ************************************************************/
+/***************************************************************
+ *		And then form a covariance matrix (well 3)
+ * ************************************************************/
 
 
 int SBNcovar::formCovarianceMatrix(){
@@ -268,7 +276,7 @@ int SBNcovar::formCovarianceMatrix(){
 	ftest->cd();
 	TCanvas *c1 =  new TCanvas("Fractional Covariance Matrix");
 	c1->cd();
-	
+
 	h2->SetTitle("Fractional Covariance Matrix (sys only)");
 	h2->GetYaxis()->SetTitle("E_{#nu}^{truth}");
 	h2->GetXaxis()->SetTitle("E_{#nu}^{truth}");
@@ -297,7 +305,7 @@ int SBNcovar::formCovarianceMatrix(){
 	frac_covariance.Write();
 	full_covariance.Write();
 	full_correlation.Write();
-	
+
 	ftest->Close();
 
 	spec_CV.writeOut("CV.root");

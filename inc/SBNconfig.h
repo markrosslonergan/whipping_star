@@ -97,6 +97,8 @@ class SBNconfig {
 	std::vector<int> num_multisim;
 	std::vector<std::string> multisim_name;	
 	std::vector<std::string> multisim_file;	
+	std::vector<double> pot_scaling;
+	std::vector<double> pot;
 	
 	std::vector<std::vector<std::string>> branch_names_int;
 	std::vector<std::vector<std::string>> branch_names_double;
