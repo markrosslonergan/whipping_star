@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+
+
+<mode name="nu" use="1"/>
+
+<detector name="uBooNE" use="1" />
+
+<channel name="elike" use="1" numbins="29">
+		<bins 
+			edges="0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0"
+
+		        widths="0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 "	
+		/>
+		<subchannel name="intrinsic" use="1" />
+</channel>
+
+<channel name="mlike" use="1" numbins="29">
+		<bins 
+			edges="0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0"
+
+		        widths="0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 "	
+		/>
+		<subchannel name="intrinsic" use="1" />
+</channel>
+
+	
+<covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name="TMatrixT<float>;7" />
+
+<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root">
+	<btype type="0" names="int">
+		<branch name="type"/>
+		<branch name="target"/>
+		<branch name="nuPDG"/>
+		<branch name="leptonPDG"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="nuEnergy"/>
+		<branch name="nuQ2"/>
+		<branch name="nuTheta"/>
+		<branch name="leptonEnergy"/>
+	</btype>
+</MCevents>
+
+<MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root">
+	<btype type="0" names="int">
+		<branch name="type"/>
+		<branch name="target"/>
+		<branch name="nuPDG"/>
+		<branch name="leptonPDG"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="nuEnergy"/>
+		<branch name="nuQ2"/>
+		<branch name="nuTheta"/>
+		<branch name="leptonEnergy"/>
+	</btype>
+</MCevents>
+
+
+
+
+	
+<data path="/home/mark/work/sbnfit_reduce/data/" />
