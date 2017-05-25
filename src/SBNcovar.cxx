@@ -4,7 +4,6 @@
 using namespace sbn;
 
 SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlname) {
-	std::cout<<"inside SBNcovar"<<std::endl;	
 	gROOT->ProcessLine("#include <map>");
 	gROOT->ProcessLine("#include <vector>");
 	gROOT->ProcessLine("#include <string>");
@@ -28,14 +27,19 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 	SBNspec tm(xmlname,-1);
 	spec_CV = tm;
 
-	//HARDCODED!
+	//Load all files as per xml
+	std::vector<TFile *> files;	
+	std::vector<TTree *> trees;	
+	
+	for(auto &fn: multisim_file){
+		files.push_back(new TFile(fn.c_str()));
+	}
 
-	TFile *f = new TFile(rootfile.c_str());
-	TTree * full_mc=  (TTree*)f->Get(multisim_name.c_str());
+	for(int i=0; i<multisim_name.size(); i++){
+		trees.push_back((TTree*)files.at(i)->Get(multisim_name[i].c_str()) );
+	}
 
-	TFile *f2 = new TFile("/uboone/data/users/mastbaum/rw_test/fittree_bnb_rw2.root");
-	TTree * full_mc2=  (TTree*)f2->Get(multisim_name.c_str());
-
+	
 
 	std::vector<int> vars_i (branch_names_int.size(),0); 
 	std::vector<double> vars_d (branch_names_double.size(),0);
