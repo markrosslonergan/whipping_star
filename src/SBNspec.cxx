@@ -219,7 +219,7 @@ int SBNspec::writeOut(std::string filename){
 	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
 
 	std::vector<int> mycol = {416-6, 800+3, 616+1, 632-7, 600-7, 432+1, 900}; 				
-	std::string fn1= "SBN"+filename;
+	std::string fn1= "SBN_"+filename;
 	TFile *f2 = new TFile(fn1.c_str(),"RECREATE" ); 
 
 	for(auto& h: hist){

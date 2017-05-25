@@ -49,6 +49,12 @@ class SBNcovar : public SBNconfig{
 	TMatrixD frac_covariance;
 	TMatrixD full_correlation;
 
+	std::vector<std::vector<int> > vars_i;
+	std::vector<std::vector<double> > vars_d;
+
+	virtual bool eventSelection(int file);
+	virtual int fillHistograms(int file, int uni, double wei);
+
 };
 
 
