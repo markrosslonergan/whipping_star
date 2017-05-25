@@ -110,6 +110,10 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 					for(auto &wei: it->second){
 
+						//TODO: here have a SBNconfig variable where we can either have "all" for all variables
+						// or a list of strings containing the factors
+
+
 						if(std::isnan(wei) || std::isinf(wei) || std::isinf(global_weight) || std::isnan(global_weight)  ){
 							std::cout<<"ERROR: "<<" weight has a value of: "<<wei<<" and global_weight: "<<global_weight;
 							std::cout<<". So I am skipping this event #: "<<i<<std::endl;
@@ -135,7 +139,7 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 					}
 
 					for(int m=0; m<num_sim; m++){
-
+						//This is the part where we will every histogram in this Universe
 						this->fillHistograms(j, m, weights.at(j).at(m) );
 
 						//important check. failure mode	
@@ -174,6 +178,8 @@ SBNcovar::SBNcovar(std::string rootfile, std::string xmlname) : SBNconfig(xmlnam
 
 
 bool eventSelection(int which_file){
+     //from here have access to vars_i  and vars_d  to make a selection
+	
      bool ans = false;
      if(vars_i.at(which_file)[0] == 1001){
 	     ans = true;
@@ -183,6 +189,7 @@ bool eventSelection(int which_file){
 }
 
 int fillHistograms(int file, int uni, double wei){
+	//Fill the histograms
 	multi_sbnspec.at(uni).hist.at(file).Fill( vars_d.at(file).at(0),wei);
 return 0;
 }
