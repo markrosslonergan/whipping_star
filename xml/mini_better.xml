@@ -24,9 +24,12 @@
 </channel>
 
 	
-<covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name="TMatrixT<float>;7" />
+<covariance file="../build/examples/covariance_matrix.root" name="TMatrixT<double>;1" />
 
 <MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_nue_rw2.root" pot="6.6e20" potscale="3.1845e17">
+	<parameters
+		names = "genie_qema_Genie"
+	/>
 	<btype type="0" names="int">
 		<branch name="type"/>
 		<branch name="target"/>
@@ -42,6 +45,9 @@
 </MCevents>
 
 <MCevents multisim="15250" name="fittree" filename="/uboone/data/users/mastbaum/rw_test/fittree_bnb_rw2.root" pot="6.6e20" potscale="1.203e15">
+	<parameters
+			names = "genie_qema_Genie"
+	/>
 	<btype type="0" names="int">
 		<branch name="type"/>
 		<branch name="target"/>
@@ -55,9 +61,5 @@
 		<branch name="leptonEnergy"/>
 	</btype>
 </MCevents>
-
-
-
-
 	
-<data path="/home/mark/work/sbnfit_reduce/data/" />
+<data path="/uboone/app/users/markrl/sbnfit/whipping_star/data/" />

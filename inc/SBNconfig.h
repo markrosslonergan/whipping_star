@@ -100,6 +100,8 @@ class SBNconfig {
 	std::vector<double> pot_scaling;
 	std::vector<double> pot;
 	
+	std::vector<std::vector<std::string>> parameter_names;	
+	
 	std::vector<std::vector<std::string>> branch_names_int;
 	std::vector<std::vector<std::string>> branch_names_double;
 };

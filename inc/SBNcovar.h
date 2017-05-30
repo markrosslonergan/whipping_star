@@ -36,6 +36,7 @@ class SBNcovar : public SBNconfig{
 
 	public:
 	double tolerence_positivesemi;
+	int universes_used;
 
 	SBNspec spec_CV;	
 	SBNspec spec_CV2;	

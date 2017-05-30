@@ -10,9 +10,19 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 	gSystem->Load("/uboone/app/users/markrl/sbnfit/whipping_star/src/mdict_h.so");
 	gStyle->SetOptStat(0);
 
+	universes_used = 0;
 	tolerence_positivesemi = 1e-10;
 	is_small_negative_eigenvalue = false;
 	bool DEBUG_BOOL = false;
+
+
+	//std::cout<<"parm size: "<<parameter_names.size()<<std::endl;
+	///for(int i=0; i< parameter_names.size(); i++){
+	//	std::cout<<i<<" 1down"<<parameter_names.at(i).size()<<std::endl;
+	//	for(auto &nam: parameter_names.at(i)){
+	///		std::cout<<nam<<std::endl;
+	//	}
+	//	}
 
 	//Initialise all the things
 	//for every multisim, create a SBNspec
@@ -21,8 +31,10 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 		multi_sbnspec.push_back(temp_spec);
 	}
 
+	
+	
 
-	std::cout<<" multi_hist_size: "<<multi_sbnspec.size()<<" internal size: "<<multi_sbnspec.at(0).hist.size()<<"  deeper: "<<multi_sbnspec.at(0).hist.at(0).GetBinContent(1)<<std::endl;
+	//std::cout<<" multi_hist_size: "<<multi_sbnspec.size()<<" internal size: "<<multi_sbnspec.at(0).hist.size()<<"  deeper: "<<multi_sbnspec.at(0).hist.at(0).GetBinContent(1)<<std::endl;
 
 	SBNspec tm(xmlname,-1);
 	spec_CV = tm;
@@ -43,9 +55,18 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 	std::vector<int> nentries;
 	for(auto &t: trees){
+		//nentries.push_back(1000);
 		nentries.push_back(t->GetEntries());
 	}
 
+
+	//signal crap todo
+	//
+	TFile *fS = new TFile("/uboone/app/users/mastbaum/leerw/leerw.root");
+	TTree * tnS =  (TTree*)fS->Get("leerw;1");
+	float lee=0;
+	tnS->SetBranchAddress("leerw",&lee);
+	SBNspec spec_sig(xmlname,-1);
 
 
 	vars_i= std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
@@ -72,13 +93,6 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 
 
-	//signal crap todo
-	TFile *fS = new TFile("/uboone/app/users/mastbaum/leerw/fittree_lee_rw.root");
-	TTree * tnS =  (TTree*)fS->Get("leerw;1");
-	float lee=0;
-	tnS->SetBranchAddress("leerw",&lee);
-	SBNspec spec_sig(xmlname,-1);
-
 
 	for(int j=0;j<Nfiles;j++){
 		double pot_factor = pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
@@ -92,13 +106,22 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 			if(i%2500==0)std::cout<<"Event: "<<i<<" of "<<nentries[j]<<" from File: "<<multisim_file[j]<<" POT factor: "<<pot_factor<<std::endl;
 
 			trees.at(j)->GetEntry(i);
-
+			if(j==0){tnS->GetEntry(i);}
 			//here we put the selection criteria, for example nuance interaction 1001 == CCQE, virtual bool
 			if( this->eventSelection(j) ){
 
 				//Loop over all things in mcweight map
 				for(std::map<std::string, std::vector<double> >::iterator  it = fWeights.at(j)->begin(); it != fWeights.at(j)->end(); ++it) {
+					bool isThis=false;
+					
+					for(auto nam: parameter_names.at(j)){
+						if(nam == it->first || nam == "ALL"){
+							isThis=true;				
+							break;	
+						}
+					}
 
+					if(!isThis) continue;
 					if(!is_valid) break;
 
 					if(it->first == "bnbcorrection_FluxHist"){
@@ -150,6 +173,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 						//This is the part where we will every histogram in this Universe
 						this->fillHistograms(j, m, weights.at(m) );
 
+						universes_used++;
 						//important check. failure mode	
 						if(weights[m]!=weights[m] || isinf(weights[m]) ){
 							std::cout<<"ERROR: weight has a value of: "<<weights.at(m)<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d.at(j)[0]<<" global_eright is "<<global_weight<<std::endl;
@@ -160,6 +184,10 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 					//blarg, how will I treat this spectrum
 					spec_CV.hist.at(j).Fill(vars_d.at(j)[0],global_weight);
+					
+					if(j==0){
+						spec_sig.hist.at(j).Fill(vars_d.at(j)[0],global_weight*(1+lee));
+					}
 
 
 				}//end of valid if-check
@@ -198,7 +226,19 @@ bool SBNcovar::eventSelection(int which_file){
 
 int SBNcovar::fillHistograms(int file, int uni, double wei){
 	//Fill the histograms
-	multi_sbnspec.at(uni).hist.at(file).Fill( vars_d.at(file).at(0),wei);
+	//
+/*	TRandom3 rangen(0);
+	double sigma = 0;
+	if(file==0){
+		sigma=;
+	}else if(file==1){
+		sigma=;
+	}	
+	double en = rangen.Gaus( vars_d.at(file), sigma );
+*/	
+	double en = vars_d.at(file)[0];
+
+	multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
 	return 0;
 }
 
@@ -247,7 +287,7 @@ int SBNcovar::formCovarianceMatrix(){
 
 
 			}
-			full_covariance(i,j) = full_covariance(i,j)/( multi_sbnspec.size()-1.0);
+			full_covariance(i,j) = full_covariance(i,j)/( universes_used-1.0);
 
 
 
@@ -271,9 +311,53 @@ int SBNcovar::formCovarianceMatrix(){
 	/************************************************************
 	 *			Saving to file				    *
 	 * *********************************************************/
+	std::string nn = "covariance_matrix_" + parameter_names[0][0]+".root";
 
-	TFile *ftest=new TFile("covariance_matrix.root","RECREATE");
+	TFile *ftest=new TFile(nn.c_str(),"RECREATE");
 	ftest->cd();
+
+
+	TCanvas *cspline =  new TCanvas("Splines");
+	int num_hists = multi_sbnspec.at(0).hist.size();
+	cspline->Divide(num_hists,1);
+
+	for(int h=0; h<spec_CV.hist.size(); h++){
+		cspline->cd(h+1);
+		spec_CV.hist.at(h).SetLineColor(kBlack);
+		spec_CV.hist.at(h).SetLineWidth(4);
+		spec_CV.hist.at(h).SetTitle( (fullnames[h]+" : "+parameter_names[0][0]).c_str() );
+		spec_CV.hist.at(h).Draw("L SAME");
+	}
+
+	for(int m=0; m< multi_sbnspec.size(); m++){
+		for(int h=0; h<multi_sbnspec.at(m).hist.size(); h++){
+			cspline->cd(h+1);
+			TRandom3 * rangen = new TRandom3(0);
+			multi_sbnspec.at(m).hist.at(h).SetLineColor(rangen->Uniform(400,900));
+	
+			multi_sbnspec.at(m).hist.at(h).Draw("L SAME");
+		}
+	}
+
+	for(int h=0; h<spec_CV.hist.size(); h++){
+		cspline->cd(h+1);
+		spec_CV.hist.at(h).SetLineWidth(4);
+		spec_CV.hist.at(h).Draw("L SAME");
+	}
+
+
+	cspline->Write();
+	std::string ppsp = "splines_"+parameter_names[0][0]+".pdf";
+
+	cspline->SaveAs(ppsp.c_str());
+
+
+
+
+
+
+
+	//matricies
 	TCanvas *c1 =  new TCanvas("Fractional Covariance Matrix");
 	c1->cd();
 
@@ -300,6 +384,23 @@ int SBNcovar::formCovarianceMatrix(){
 	h4->GetXaxis()->SetTitle("E_{#nu}^{truth}");
 	h4->Draw("COLZ");
 	c3->Write();
+
+	std::string pp = "Fractional Covarariance and Correlation: "+parameter_names[0][0];
+	TCanvas *cboth = new TCanvas(pp.c_str());
+	cboth->SetCanvasSize(1200,600);
+
+	h2->SetTitle( ("Fractional Covariance: "+ parameter_names[0][0]).c_str());
+	h3->SetTitle( ("Correlation: "+ parameter_names[0][0]).c_str());
+	cboth->Divide(2,1);
+	cboth->SetFixedAspectRatio();
+	cboth->cd(1);
+
+	h2->Draw("COLZ");
+	cboth->cd(2);
+	h3->Draw("COLZ");
+	cboth->Write();
+	std::string ppdf = "covar_plots_"+parameter_names[0][0]+".pdf";
+	cboth->SaveAs(ppdf.c_str());
 
 
 	frac_covariance.Write();

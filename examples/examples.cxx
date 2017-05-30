@@ -99,12 +99,23 @@ int main(int argc, char* argv[])
 	 ************************************************************
 	 ************************************************************/
 	if(test_mode=10){
-		SBNspec bkg_spec("../../50k/SBNCV", xml);
-		SBNspec sig_spec("../../50k/SBNleesig", xml);
+		SBNspec bkg_spec("../../build/examples/SBN_CV", xml);
+		SBNspec sig_spec("../../build/examples/SBN_LEE_siggal", xml);
+
+		sig_spec.hist[1]=bkg_spec.hist[1];	
+
+		double kal_sig = 186.4;
+		double kal_in = 362.8;
+
+		//bkg_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
+		//sig_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
 
 
 		bkg_spec.compressVector();
 		sig_spec.compressVector();
+
+
+
 
 		std::cout<<"Full: "<<sig_spec.fullVec.size()<<" comp "<<sig_spec.compVec.size()<<std::endl;
 
@@ -113,16 +124,29 @@ int main(int argc, char* argv[])
 		std::cout<<"mat "<<test_chi.vMcI[0].size()<<" "<<test_chi.vMcI[0][0]<<std::endl;
 
 
-		int n = 40;
+		int n = 100;
 		double x[n], chi[n];
 		for(int i=0; i<n; i++){
 
-			double scale =0.8+i*0.01;		
+			double scale =0+i*0.02;		
 
 			SBNspec loop_spec = sig_spec;
+	
 
-			//Scale the dummy spectra, scaling only histograms that match "elike_misphoton" if you used Scale.("elike") it would scale ALL elikle subchannels
-			loop_spec.Scale("elike", scale);
+			std::vector<double>excess;
+
+			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
+				excess.push_back(bkg_spec.hist[0].GetBinContent(k)-sig_spec.hist[0].GetBinContent(k)  );
+			}
+
+
+			double sc=kal_in/kal_sig * bkg_spec.hist[0].GetSumOfWeights()/sig_spec.hist[0].GetSumOfWeights();
+
+			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
+				loop_spec.hist[0].SetBinContent(k, bkg_spec.hist[0].GetBinContent(k)+ excess.at(k-1)*scale*sc);
+			}
+
+
 			loop_spec.compressVector();
 
 			//Set these for plotting later
@@ -130,7 +154,7 @@ int main(int argc, char* argv[])
 			//And calculate the chi^2
 			chi[i]=test_chi.CalcChi(loop_spec);
 
-			std::cout<<"scaling: "<<scale<<" "<<"Chi^2: "<<chi[i]<<std::endl;
+			std::cout<<scale<<" "<<chi[i]<<std::endl;
 		}
 
 		//Dump your results
