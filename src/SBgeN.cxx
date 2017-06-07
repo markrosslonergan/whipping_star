@@ -26,10 +26,12 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 	//load all doubles, and int.. as mentioned in xml
 	vars_i = std::vector<std::vector<int>>(Nfiles   ,    std::vector<int>(branch_names_int.at(0).size(),0));
-	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
+	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0));
+	vars_dA = std::vector<std::vector< myarray >>(Nfiles   , std::vector<myarray>(branch_names_double_array.at(0).size()));
 	
 
 	std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
+	
 	for(int i=0; i< Nfiles; i++){
 		for(auto &bfni: branch_names_int){
 			for(int k=0; k< bfni.size();k++){
@@ -39,6 +41,11 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		for(auto &bfnd: branch_names_double){
 			for(int k=0; k< bfnd.size();k++){
 				trees.at(i)->SetBranchAddress(bfnd[k].c_str(), &(vars_d.at(i).at(k)));
+			}
+		}
+		for(auto &bfndA: branch_names_double_array){
+			for(int k=0; k< bfndA.size();k++){
+				trees.at(i)->SetBranchAddress( bfndA[k].c_str(), vars_dA.at(i).at(k).data  );
 			}
 		}
 	}

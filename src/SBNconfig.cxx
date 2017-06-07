@@ -137,6 +137,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		//			std::cout<<"Starting run over branch types"<<std::endl;
 		std::vector<std::string> TEMP_branch_names_int;
 		std::vector<std::string> TEMP_branch_names_double;
+		std::vector<std::string> TEMP_branch_names_double_array;
 
 		while(pBranchT){
 			TiXmlElement *pBranch;
@@ -151,6 +152,9 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 				else if (strtod(pBranchT->Attribute("type"),&end)  == 1){
 					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
 					TEMP_branch_names_double.push_back(pBranch->Attribute("name"));
+				}else if (strtod(pBranchT->Attribute("type"),&end)  == 2){
+					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
+					TEMP_branch_names_double_array.push_back(pBranch->Attribute("name"));
 				}
 				pBranch = pBranch->NextSiblingElement("branch");	
 			}
@@ -158,6 +162,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		}
 		
 		branch_names_double.push_back(TEMP_branch_names_double);
+		branch_names_double_array.push_back(TEMP_branch_names_double_array);
 		branch_names_int.push_back(TEMP_branch_names_int);
 		pMC=pMC->NextSiblingElement("MCevents");
 	}

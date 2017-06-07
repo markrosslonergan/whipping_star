@@ -13,6 +13,7 @@
 #include <TTree.h>
 #include <TLegend.h>
 #include <TCanvas.h>
+#include <array>
 
 #include <ctime>
 #include <TFile.h>
@@ -20,6 +21,12 @@
 #include <TRandom3.h>
 
 namespace sbn{
+
+struct myarray{
+
+	double data[20];
+};
+
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.
 // Inherits from SBNconfig as thats how its all configured/kept equal! :
 class SBgeN : public SBNspec{
@@ -31,6 +38,7 @@ class SBgeN : public SBNspec{
 
 	std::vector<std::vector<int> > vars_i;
 	std::vector<std::vector<double> > vars_d;
+	std::vector<std::vector< myarray> >  vars_dA;
 
 	std::vector<TFile *> files;	
 	std::vector<TTree *> trees;	
