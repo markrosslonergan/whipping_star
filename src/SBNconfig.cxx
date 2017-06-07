@@ -11,7 +11,6 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	subchannel_bool.resize(100);
 	char *end;
 
-
 	//Setup TiXml documents
 	TiXmlDocument doc( whichxml.c_str() );
 	bool loadOkay = doc.LoadFile();
