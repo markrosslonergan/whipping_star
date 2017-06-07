@@ -27,12 +27,22 @@ class SBgeN : public SBNspec{
 	public:
 
 	SBgeN(std::string xmlname);
+	~SBgeN();
 
 	std::vector<std::vector<int> > vars_i;
 	std::vector<std::vector<double> > vars_d;
 
+	std::vector<TFile *> files;	
+	std::vector<TTree *> trees;	
+
+	std::vector<int> nentries;
+	int Nfiles;
+
 	virtual bool eventSelection(int file);
 	virtual int fillHistograms(int file, int uni, double wei);
+
+
+	int doMC();
 
 };
 

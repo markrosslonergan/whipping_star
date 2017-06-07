@@ -5,29 +5,29 @@ using namespace sbn;
 SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 	//Load all files as per xml
-	std::vector<TFile *> files;	
-	std::vector<TTree *> trees;	
-
 	std::cout<<"SBgeN::SBgeN || Opening all files in xml: "<<whichxml<<std::endl;
 	for(auto &fn: multisim_file){
 		files.push_back(new TFile(fn.c_str()));
+		std::cout<<"SBgeN::SBgeN || Files: "<<fn<<std::endl;
 	}
+	Nfiles = files.size();
+	std::cout<<"SBgeN::SBgeN || Loaded "<<Nfiles<<" in total (multisum_file.size()): "<<multisim_file.size()<<std::endl;
 
 	std::cout<<"SBgeN::SBgeN || Getting all TTrees from Files."<<std::endl;
 	for(int i=0; i<multisim_name.size(); i++){
 		trees.push_back((TTree*)files.at(i)->Get(multisim_name[i].c_str()) );
 	}
 
-	std::vector<int> nentries;
 	for(auto &t: trees){
 		nentries.push_back(5000);
 		//nentries.push_back(t->GetEntries());
 	}
-	int Nfiles = files.size();
+	
 
 	//load all doubles, and int.. as mentioned in xml
 	vars_i = std::vector<std::vector<int>>(Nfiles   ,    std::vector<int>(branch_names_int.at(0).size(),0));
 	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
+	
 
 	std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
 	for(int i=0; i< Nfiles; i++){
@@ -43,12 +43,18 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		}
 	}
 
-	std::cout<<"SBgeN::SBgeN || Starting file and event loops."<<std::endl;
+	std::cout<<"SBgeN::SBgeN || Constructor Done."<<std::endl;
+}
+
+int SBgeN::doMC(){
+	
+	std::cout<<"SBgeN::doMC || We have "<<Nfiles<<" Files "<<std::endl;
 	for(int j=0;j<Nfiles;j++){
+		std::cout<<"SBgeN::doMC || Starting file and event loops. On File: "<<multisim_file[j]<<std::endl;
 		double pot_factor = pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
 		for(int i=0; i< nentries.at(j); i++){
-			if(i%2500==0)std::cout<<"SBgeN::SBgeN || Event: "<<i<<" of "<<nentries[j]<<" from File: "<<multisim_file[j]<<" POT factor: "<<pot_factor<<std::endl;
+			if(i%2500==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 			//here we put low level selection criteria, for example nuance interaction 1001 == CCQE, its a virtual bool.
@@ -60,6 +66,8 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		}//end of entry loop
 	}//end of file loop 
 
+	std::cout<<"SBgeN::doMC || Finished event loop  writing out "<<std::endl;
+
 
 	/***************************************************************
 	 *		Now some clean-up and Writing
@@ -67,11 +75,21 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 	this->writeOut("gen.root");
 
+
+	std::cout<<"SBgeN::doMC || Done. "<<std::endl;
+	return 0;
+}
+
+
+SBgeN::~SBgeN(){
 	for(auto &f: files){
 		f->Close();
 	}
 
+	std::cout<<"SBgeN::~SBgeN || Destructor Done"<<std::endl;
 }
+
+
 
 /***************************************************************
  *		Some virtual functions for selection and histogram filling
@@ -79,7 +97,6 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 bool SBgeN::eventSelection(int which_file){
 	//from here have access to vars_i  and vars_d  to make a selection
-
 	bool ans = false;
 	if(which_file==0){
 		if(vars_i.at(which_file)[3] == 11 || vars_i.at(which_file)[3] == -11  ){
