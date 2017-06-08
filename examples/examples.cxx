@@ -511,6 +511,54 @@ int main(int argc, char* argv[])
 
 
 		return 0;
-	}			
+	}else if(test_mode == 99)
+	{//Time for a more model dependant example
+		//using just SBNspec does not give you a huge amount of power. The idea is to make your own model dependant classes from this
+		//such as here, SBNosc, a SBNspec precoded to do oscillation phyiscs (at SBL)
 
+		//Load up your background, uboone was wierdly scaled in the rootfiles so fix here
+		double uboonepot=2;
+		SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
+		bkg_spec.Scale("uBooNE", uboonepot);
+		bkg_spec.compressVector();
+
+		//again create a SBNchi from this spectra
+		SBNchi test_chi(bkg_spec);
+
+		//Now create a oscillation spectra, constructed the same.
+		SBNosc oscSig("../../data/precomp/SBN_bkg_all",xml);
+
+		//Say we want to just look at apperance mode (as its easiest to plot 2d!)
+		oscSig.setAppMode();
+		oscSig.Scale("uBooNE",uboonepot);		
+
+		//Want to contour plot sensitivity eventually so som standard root
+		TCanvas *c1 = new TCanvas("c1","c1",600,400);
+		TH2F *hcontz = new TH2F("hcontz","MicroBooNE 3+1 90\% C.L ",100,-5,0, 100,-2,2);
+		hcontz->GetXaxis()->SetTitle("#sin^{2} 2 #theta_{e #mu}");
+		hcontz->GetYaxis()->SetTitle("#Delta m^{2}_{41} (eV^{2})");
+
+
+				double th_14 = 20 ; 
+				double th_24 = 11 ;
+				double m4=0;
+				double Ue4=pow(sin(th_14*3.14/180.0),2);
+				double Um4=cos(th_14*3.14/180.0)*sin(th24*3.14/180.0);
+
+				neutrinoModel signalModel(m4,Ue4, Um4);
+				signalModel.numsterile = 1; //this isnt really necessary as it can tell from imn, but nice for reading
+
+				//And load thus model into our spectra. At this point its comuted all the necessary mass-splittins and which frequencies they are
+				oscSig.load_model(signalModel);
+
+				//And apply this oscillaion! Adding to it the bkgSpec that it was initilised with.
+				oscSig.OscillateiThis();
+
+				//Then calculate a chu^2
+				double tchi=test_chi.CalcChi(oscSig); 
+
+				std::cout<<"th_14: "<<th_14<<" th_24: "<<th_24<<" Ue4: "<<Ue4<<" Um4: "<<Um4<<" m: "<<pow(10,m4)<<" Chi^2: "<<tchi<<std::endl;
+			
+		return 0;
+}
 }
