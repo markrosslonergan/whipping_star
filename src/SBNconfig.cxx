@@ -115,9 +115,23 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	while(pMC)
 	{
 
+		pot.push_back(strtof(pMC->Attribute("pot"),&end));
+		pot_scaling.push_back(strtof(pMC->Attribute("potscale"),&end));
 		num_multisim.push_back(strtod(pMC->Attribute("multisim"),&end));
 		multisim_name.push_back(pMC->Attribute("name"));
 		multisim_file.push_back(pMC->Attribute("filename"));
+
+		TiXmlElement *pParams = pMC->FirstChildElement("parameters");
+
+		std::stringstream sss(pParams->Attribute("names"));
+
+		std::vector<std::string> vstring;
+		std::string nam;
+		while ( sss >> nam) vstring.push_back( nam );
+
+		parameter_names.push_back(vstring);
+
+
 
 		TiXmlElement *pBranchT;
 		pBranchT = pMC->FirstChildElement("btype");
