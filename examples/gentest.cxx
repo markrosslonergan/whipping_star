@@ -44,6 +44,7 @@ class SBgeNicarus : public SBgeN{
 	SBgeNicarus(std::string xmlname):SBgeN(xmlname){};
 	bool eventSelection(int file);
 	int fillHistograms(int file, int uni, double wei);
+	int tidyHistograms();
 	~SBgeNicarus(){};
 };
 
@@ -54,15 +55,21 @@ return true;
 }
 
 int SBgeNicarus::fillHistograms(int file, int uni, double wei){
-	
-	double en = vars_d.at(file).at(0);
-	double p1 = (vars_dA.at(file).at(0).data)[0];
 
-	hist.at(0).Fill(en);
-	hist.at(1).Fill(p1);
+	//std::cout<< *vmapD[file]["Enu"]<<" "<<vars_d.at(file).at(0)<<std::endl;	
+	double en = *vmapD[file]["Enu"];//   vars_d.at(file).at(0);
+	double p1 =  vmapDA[file]["Ep"]->data[0];
+
+	hist.at( map_hist["nu_SBND_elike_dirt"] ).Fill(en);
 
 return 0;
 }
+
+int SBgeNicarus::tidyHistograms(){
+	hist.at(map_hist["nu_SBND_elike_misphoton"]).SetBinContent(1,10);
+return 0;
+}
+
 
 
 

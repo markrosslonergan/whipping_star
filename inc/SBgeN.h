@@ -14,6 +14,7 @@
 #include <TLegend.h>
 #include <TCanvas.h>
 #include <array>
+#include <map>
 
 #include <ctime>
 #include <TFile.h>
@@ -24,7 +25,7 @@ namespace sbn{
 
 struct myarray{
 
-	double data[20];
+	double data[100];
 };
 
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.
@@ -48,7 +49,12 @@ class SBgeN : public SBNspec{
 
 	virtual bool eventSelection(int file);
 	virtual int fillHistograms(int file, int uni, double wei);
+	virtual int tidyHistograms();
 
+
+	std::vector<std::map<std::string, double* >> vmapD;
+	std::vector<std::map<std::string, int* >> vmapI;
+	std::vector<std::map<std::string, myarray* >> vmapDA;
 
 	int doMC();
 

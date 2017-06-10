@@ -326,7 +326,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 					
 
 					//important check. failure mode	
-					if(weights[m]!=weights[m] || isinf(weights[m]) ){
+					if(weights[m]!=weights[m] || std::isinf(weights[m]) ){
 						std::cout<<"ERROR: weight has a value of: "<<weights.at(m)<<". So I am killing all. on Dim: "<<m<<" energy"<<vars_d.at(j)[0]<<" global_eright is "<<global_weight<<std::endl;
 						exit(EXIT_FAILURE);
 					}

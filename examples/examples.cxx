@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	 *		Example 1: 	Simple loading and scaling
 	 ************************************************************
 	 ************************************************************/
-	if(test_mode=10){
+	if(test_mode==10){
 		SBNspec bkg_spec("../../build/examples/SBN_CV", xml);
 		SBNspec sig_spec("../../build/examples/SBN_LEE_siggal", xml);
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 			double scale =0+i*0.02;		
 
 			SBNspec loop_spec = sig_spec;
-	
+
 
 			std::vector<double>excess;
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 
 		//Load a spectra for background
 		SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
-
+		std::cout<<"test_mode 1 || loaded"<<std::endl;
 		//and compress down the subchannels into a channel only vector
 		bkg_spec.compressVector();
 
@@ -529,7 +529,6 @@ int main(int argc, char* argv[])
 		SBNosc oscSig("../../data/precomp/SBN_bkg_all",xml);
 
 		//Say we want to just look at apperance mode (as its easiest to plot 2d!)
-		oscSig.setAppMode();
 		oscSig.Scale("uBooNE",uboonepot);		
 
 		//Want to contour plot sensitivity eventually so som standard root
@@ -539,26 +538,41 @@ int main(int argc, char* argv[])
 		hcontz->GetYaxis()->SetTitle("#Delta m^{2}_{41} (eV^{2})");
 
 
-				double th_14 = 20 ; 
-				double th_24 = 11 ;
-				double m4=0;
-				double Ue4=pow(sin(th_14*3.14/180.0),2);
-				double Um4=cos(th_14*3.14/180.0)*sin(th24*3.14/180.0);
+		double th_14 = 20 ; 
+		double th_24 = 10 ;
+		double Ue4=sin(th_14*3.14/180.0);
+		double Um4=cos(th_14*3.14/180.0)*sin(th_24*3.14/180.0);
 
-				neutrinoModel signalModel(m4,Ue4, Um4);
-				signalModel.numsterile = 1; //this isnt really necessary as it can tell from imn, but nice for reading
+		for(double im = -1; im<=1; im+=0.02){
+			double m4 = pow(10,im);
 
-				//And load thus model into our spectra. At this point its comuted all the necessary mass-splittins and which frequencies they are
-				oscSig.load_model(signalModel);
+			SBNosc aSig=oscSig;	
+			SBNosc dSig=oscSig;	
+			SBNosc bSig=oscSig;	
 
-				//And apply this oscillaion! Adding to it the bkgSpec that it was initilised with.
-				oscSig.OscillateiThis();
+			neutrinoModel signalModel(m4,Ue4, Um4);
+			signalModel.numsterile = 1; //this isnt really necessary as it can tell from imn, but nice for reading
 
-				//Then calculate a chu^2
-				double tchi=test_chi.CalcChi(oscSig); 
+			//And load thus model into our spectra. At this point its comuted all the necessary mass-splittins and which frequencies they are
+			aSig.load_model(signalModel);
+			bSig.load_model(signalModel);
+			dSig.load_model(signalModel);
 
-				std::cout<<"th_14: "<<th_14<<" th_24: "<<th_24<<" Ue4: "<<Ue4<<" Um4: "<<Um4<<" m: "<<pow(10,m4)<<" Chi^2: "<<tchi<<std::endl;
-			
+			aSig.setAppMode();
+			dSig.setDisMode();
+			bSig.setBothMode();
+			//And apply this oscillaion! Adding to it the bkgSpec that it was initilised with.
+			aSig.OscillateThis();
+			bSig.OscillateThis();
+			dSig.OscillateThis();
+
+			//Then calculate a chu^2
+			double tchi1=test_chi.CalcChi(aSig); 
+			double tchi2=test_chi.CalcChi(bSig); 
+			double tchi3=test_chi.CalcChi(dSig); 
+
+			std::cout<<"th_14: "<<th_14<<" th_24: "<<th_24<<" Ue4: "<<Ue4<<" Um4: "<<Um4<<" Deltam: "<<pow(m4,2)<<" log(Dm): "<<2*im<<" Chi^2 App: "<<tchi1<<" Chi^2 Dis: "<<tchi3<<" Chi^2 Both: "<<tchi2<<std::endl;
+		}
 		return 0;
-}
+	}
 }

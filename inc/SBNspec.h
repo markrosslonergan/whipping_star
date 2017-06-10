@@ -26,6 +26,7 @@ class SBNspec : public SBNconfig{
 	// this vector of hists contains all spectra used.
 	// The order of filling is the same as the order defined in xml file!
 	std::vector<TH1D > hist;
+	std::map<std::string, int> map_hist;
 
 	//This is the full concatanated vector (in xml order)	
 	std::vector<double > fullVec;

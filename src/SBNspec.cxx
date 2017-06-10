@@ -6,24 +6,30 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 
 //Initialise all the things
 //for every multisim, create a vector of histograms, one for every subchannel we want 
+	int ctr=0;
 	for(auto fn: fullnames){
 		for(int c=0; c<channel_names.size(); c++){
 			if(fn.find(channel_names[c])!=std::string::npos ){
 				double * tbins =&bin_edges[c][0];
 				std::string thisname;
 				if(which_universe<0){
-
 				 thisname = fn;
 				}else{
-
 				 thisname = fn+"_MS"+std::to_string(which_universe);
 				}
 				TH1D thischan(thisname.c_str(),"",num_bins[c], tbins );
 				hist.push_back(thischan);
+				//auto it = hist.begin()+ctr;
+				//map_hist[fn] = &(*it);
+				map_hist[fn] = ctr;
+				
+				ctr++;
 			}
 
 		}
 	}
+
+
 
 }
 
@@ -114,7 +120,7 @@ int SBNspec::Scale(std::string name, double val){
 		std::string test = h.GetName();
 		
 			if(test.find(name)!=std::string::npos ){
-				std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
+			//	std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
 				h.Scale(val,"nosw2" );
 			}
 

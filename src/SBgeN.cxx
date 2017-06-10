@@ -29,6 +29,30 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0));
 	vars_dA = std::vector<std::vector< myarray >>(Nfiles   , std::vector<myarray>(branch_names_double_array.at(0).size()));
 	
+	vmapD.resize(Nfiles);
+	vmapI.resize(Nfiles);
+	vmapDA.resize(Nfiles);
+
+
+
+	std::cout<<"SBgeN::SBgeN || Setting up Variable Maps."<<std::endl;
+	// Create a map for convienance, from variable name in XML to actual variable name. Curently file is still needed. 
+	for(int f=0; f<Nfiles; f++){
+		for(int i=0; i < branch_names_double.at(f).size(); i++){
+			vmapD.at(f)[  branch_names_double.at(f).at(i) ] = &vars_d.at(f).at(i) ;
+		}
+		for(int i=0; i < branch_names_int.at(f).size(); i++){
+			vmapI.at(f)[branch_names_int.at(f).at(i) ] = &vars_i.at(f).at(i) ;
+		}
+		for(int i=0; i < branch_names_double_array.at(f).size(); i++){
+			vmapDA.at(f)[branch_names_double_array.at(f).at(i)] = &vars_dA.at(f).at(i) ;
+		}
+
+
+
+	}
+
+
 
 	std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
 	
@@ -73,8 +97,10 @@ int SBgeN::doMC(){
 		}//end of entry loop
 	}//end of file loop 
 
-	std::cout<<"SBgeN::doMC || Finished event loop  writing out "<<std::endl;
+	std::cout<<"SBgeN::doMC || Finished event loop, running tidyHistograms"<<std::endl;
+	this->tidyHistograms();
 
+	std::cout<<"SBgeN::doMC || Finished, writing out "<<std::endl;
 
 	/***************************************************************
 	 *		Now some clean-up and Writing
@@ -118,6 +144,11 @@ bool SBgeN::eventSelection(int which_file){
 	}
 
 	return ans;
+}
+
+int SBgeN::tidyHistograms(){
+
+return 0;
 }
 
 int SBgeN::fillHistograms(int file, int uni, double wei){
