@@ -22,17 +22,19 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		nentries.push_back(5000);
 		//nentries.push_back(t->GetEntries());
 	}
-	
+
 
 	//load all doubles, and int.. as mentioned in xml
+	//WARNING!! CURRENTLY ASSUMES THAT EACHFILE HAS SAME BRANCHES. NEED TO FIX THAT!
 	vars_i = std::vector<std::vector<int>>(Nfiles   ,    std::vector<int>(branch_names_int.at(0).size(),0));
 	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0));
 	vars_dA = std::vector<std::vector< myarray >>(Nfiles   , std::vector<myarray>(branch_names_double_array.at(0).size()));
-	
+	vars_iA = std::vector<std::vector< myarrayInt >>(Nfiles   , std::vector<myarrayInt>(branch_names_int_array.at(0).size()));
+
 	vmapD.resize(Nfiles);
 	vmapI.resize(Nfiles);
 	vmapDA.resize(Nfiles);
-
+	vmapIA.resize(Nfiles);
 
 
 	std::cout<<"SBgeN::SBgeN || Setting up Variable Maps."<<std::endl;
@@ -47,7 +49,9 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		for(int i=0; i < branch_names_double_array.at(f).size(); i++){
 			vmapDA.at(f)[branch_names_double_array.at(f).at(i)] = &vars_dA.at(f).at(i) ;
 		}
-
+		for(int i=0; i < branch_names_int_array.at(f).size(); i++){
+			vmapIA.at(f)[branch_names_int_array.at(f).at(i)] = &vars_iA.at(f).at(i) ;
+		}
 
 
 	}
@@ -55,13 +59,20 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 
 	std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
-	
+
 	for(int i=0; i< Nfiles; i++){
 		for(auto &bfni: branch_names_int){
 			for(int k=0; k< bfni.size();k++){
 				trees.at(i)->SetBranchAddress(bfni[k].c_str(), &(vars_i.at(i).at(k)));
 			}
 		}
+		for(auto &bfniA: branch_names_int_array){
+			for(int k=0; k< bfniA.size();k++){
+				trees.at(i)->SetBranchAddress( bfniA[k].c_str(), vars_iA.at(i).at(k).data  );
+			}
+		}
+
+
 		for(auto &bfnd: branch_names_double){
 			for(int k=0; k< bfnd.size();k++){
 				trees.at(i)->SetBranchAddress(bfnd[k].c_str(), &(vars_d.at(i).at(k)));
@@ -74,11 +85,26 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		}
 	}
 
+
+	std::cout<<"SBgeN::SBgeN || Setting up detectors SBNdet."<<std::endl;
+	for(int i=0; i< detector_names.size(); i++){
+		if(detector_bool[i]){
+			if(detector_names[i]=="SBND")     detectors.push_back(new SBNdet(DET_SBND,0) ) ;
+			if(detector_names[i]=="uBooNE")     detectors.push_back(new SBNdet(DET_UBOONE,1) ) ;
+			if(detector_names[i]=="ICARUS")     detectors.push_back(new SBNdet(DET_SBND,2) ) ;
+		}
+
+	}
+
+	rangen = new TRandom3();
+
+
+
 	std::cout<<"SBgeN::SBgeN || Constructor Done."<<std::endl;
 }
 
 int SBgeN::doMC(){
-	
+
 	std::cout<<"SBgeN::doMC || We have "<<Nfiles<<" Files "<<std::endl;
 	for(int j=0;j<Nfiles;j++){
 		std::cout<<"SBgeN::doMC || Starting file and event loops. On File: "<<multisim_file[j]<<std::endl;
@@ -93,7 +119,7 @@ int SBgeN::doMC(){
 				//This is the part where we will every histogram in this Universe
 				this->fillHistograms(j, -1, 1);
 			}//end of low level selection
-	
+
 		}//end of entry loop
 	}//end of file loop 
 
@@ -148,7 +174,7 @@ bool SBgeN::eventSelection(int which_file){
 
 int SBgeN::tidyHistograms(){
 
-return 0;
+	return 0;
 }
 
 int SBgeN::fillHistograms(int file, int uni, double wei){

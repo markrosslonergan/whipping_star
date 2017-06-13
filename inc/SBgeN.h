@@ -20,12 +20,17 @@
 #include <TFile.h>
 #include "params.h"
 #include <TRandom3.h>
+#include "SBNdet.h"
 
 namespace sbn{
 
 struct myarray{
 
 	double data[100];
+};
+struct myarrayInt{
+
+	int data[100];
 };
 
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.
@@ -39,10 +44,15 @@ class SBgeN : public SBNspec{
 
 	std::vector<std::vector<int> > vars_i;
 	std::vector<std::vector<double> > vars_d;
+	std::vector<std::vector< myarrayInt> >  vars_iA;
 	std::vector<std::vector< myarray> >  vars_dA;
 
 	std::vector<TFile *> files;	
 	std::vector<TTree *> trees;	
+
+	TRandom3* rangen;
+
+	std::vector<SBNdet *> detectors;
 
 	std::vector<int> nentries;
 	int Nfiles;
@@ -51,10 +61,10 @@ class SBgeN : public SBNspec{
 	virtual int fillHistograms(int file, int uni, double wei);
 	virtual int tidyHistograms();
 
-
 	std::vector<std::map<std::string, double* >> vmapD;
 	std::vector<std::map<std::string, int* >> vmapI;
 	std::vector<std::map<std::string, myarray* >> vmapDA;
+	std::vector<std::map<std::string, myarrayInt* >> vmapIA;
 
 	int doMC();
 

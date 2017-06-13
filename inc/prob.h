@@ -4,6 +4,18 @@
 #include <cmath>
 #include <vector>
 #include <complex>
+#include <iostream>
+#include <TRandom3.h>
+#include <TMatrixT.h>
+
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
+#include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_matrix.h>
+
+
+#include <gsl/gsl_blas.h>
 
 namespace sbn{
 
@@ -14,6 +26,30 @@ namespace sbn{
  ************************************************************
  ************************************************************/
 
+
+struct complex_matrix{
+	complex_matrix(int dim);
+	
+	int dimension;
+	TMatrixT<double> real;
+	TMatrixT<double> imag;
+	int mult(complex_matrix* in);
+	int multI();
+	int mult(double );
+	int mult(double ,double);
+	int add(complex_matrix* in );
+	
+	std::vector<double> matrixExp();
+
+	int setRotation(int,int, double);
+	int setComplexRotation(int,int,double,double);
+	int setDiagonal(std::vector<double> ms);
+	int setIdentity();
+
+	int hermitianConjugate();
+
+	int print();
+};
 struct neutrinoModel{
 	double mNu[3], Ue[3], Um[3], phi[3];
 	double dm41Sq, dm51Sq, dm61Sq, dm54Sq, dm64Sq, dm65Sq;

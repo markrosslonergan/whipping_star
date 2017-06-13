@@ -103,6 +103,7 @@ class SBNconfig {
 	std::vector<std::vector<std::string>> parameter_names;	
 	
 	std::vector<std::vector<std::string>> branch_names_int;
+	std::vector<std::vector<std::string>> branch_names_int_array;
 	std::vector<std::vector<std::string>> branch_names_double;
 	std::vector<std::vector<std::string>> branch_names_double_array;
 
