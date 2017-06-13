@@ -58,13 +58,7 @@ int complex_matrix::multI(){
 
 int complex_matrix::mult(double val){
 
-	for(int i =0; i< dimension; i++){
-		for(int j =0; j< dimension; j++){
-			real(i,j) *= val; 
-			imag(i,j) *= val; 
-		}
-	}
-
+	this->mult(val,1.0);
 	return 0;
 }
 
@@ -79,6 +73,76 @@ int complex_matrix::mult(double valRe, double valIm){
 
 	return 0;
 }
+
+std::vector<double> complex_matrix::matrixExpTest(double L, std::vector<double>* out_vec, complex_matrix * out_mat){
+	std::vector<double> ans;
+
+	gsl_eigen_hermv_workspace * w = gsl_eigen_hermv_alloc(dimension);
+	gsl_vector *eigenval = gsl_vector_alloc(dimension);
+
+	gsl_matrix_complex * M = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex * temp = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex * eigenvec = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex *diagonal = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex *answer = gsl_matrix_complex_calloc(dimension,dimension);
+
+
+	for(int i=0; i<dimension;i++){
+		for(int j=0; j< dimension; j++){
+			gsl_matrix_complex_set(M,i,j,gsl_complex_rect( real(i,j),imag(i,j) ));
+		}
+	}
+
+
+	gsl_eigen_hermv(M, eigenval, eigenvec, w);
+
+	gsl_eigen_genhermv_sort(eigenval,eigenvec,GSL_EIGEN_SORT_ABS_ASC);
+
+
+	for(int i=0; i<dimension;i++){
+		ans.push_back(gsl_vector_get(eigenval,i));
+		gsl_matrix_complex_set( diagonal,i, i,  gsl_complex_rect( cos(L*gsl_vector_get(eigenval,i) ), -sin(  L*gsl_vector_get(eigenval,i ) ) ));   
+
+	}
+
+	//Function: int gsl_blas_zgemm (CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, const gsl_complex alpha, const gsl_matrix_complex * A, const gsl_matrix_complex * B, const gsl_complex beta, gsl_matrix_complex * C)
+	//
+	//These functions compute the matrix-matrix product and sum C = \alpha op(A) op(B) + \beta C where op(A) = A, A^T, A^H for TransA = CblasNoTrans, CblasTrans, CblasConjTrans and similarly for the parameter TransB.
+
+
+	// U^dag . diagonal = M
+	gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, gsl_complex_rect(1.0, 0.0), eigenvec, diagonal, gsl_complex_rect(0.0,0.0) ,temp);
+	// temp . U = final answer
+	gsl_blas_zgemm(CblasNoTrans, CblasConjTrans, gsl_complex_rect(1.0, 0.0), temp, eigenvec, gsl_complex_rect(0.0,0.0) ,answer);
+
+
+	for(int i=0; i<dimension; i++){
+		out_vec->push_back(gsl_vector_get(eigenval,i));
+
+		for(int j=0; j< dimension; j++){
+			real(i,j) = gsl_matrix_complex_get(answer, i, j).dat[0]; 
+			imag(i,j) = gsl_matrix_complex_get(answer, i, j).dat[1];
+
+			out_mat->real(i,j) = gsl_matrix_complex_get(eigenvec, i, j).dat[0]; 
+			out_mat->imag(i,j) = gsl_matrix_complex_get(eigenvec, i, j).dat[1]; 
+
+		}
+	}
+
+
+
+
+	gsl_matrix_complex_free(answer);
+	gsl_matrix_complex_free(diagonal);
+	gsl_matrix_complex_free(M);
+	gsl_matrix_complex_free(temp);
+	gsl_matrix_complex_free(eigenvec);
+	gsl_vector_free(eigenval);
+	gsl_eigen_hermv_free(w);
+
+	return ans;
+}
+
 
 std::vector<double> complex_matrix::matrixExp(){
 	std::vector<double> ans;
@@ -95,8 +159,8 @@ std::vector<double> complex_matrix::matrixExp(){
 	for(int i=0; i<dimension;i++){
 		for(int j=0; j< dimension; j++){
 			gsl_matrix_complex_set(M,i,j,gsl_complex{{ real(i,j),imag(i,j) }});
-		//	std::cout<<"##2: "<<real(i,j)<<" "<<imag(i,j)<<std::endl;
-		//	std::cout<<"#: "<<gsl_matrix_complex_get(M,i,j).dat[0]<<" "<<gsl_matrix_complex_get(M,i,j).dat[1]<<std::endl;
+			//	std::cout<<"##2: "<<real(i,j)<<" "<<imag(i,j)<<std::endl;
+			//	std::cout<<"#: "<<gsl_matrix_complex_get(M,i,j).dat[0]<<" "<<gsl_matrix_complex_get(M,i,j).dat[1]<<std::endl;
 		}
 	}
 
@@ -104,16 +168,16 @@ std::vector<double> complex_matrix::matrixExp(){
 	gsl_eigen_hermv(M, eigenval, eigenvec, w);
 	gsl_eigen_genhermv_sort(eigenval,eigenvec,GSL_EIGEN_SORT_ABS_ASC);
 
-	
+
 	for(int i=0; i<dimension;i++){
 		ans.push_back(gsl_vector_get(eigenval,i));
 
 		gsl_matrix_complex_set( diagonal,i,i,  gsl_complex{{ cos( gsl_vector_get(eigenval,i)  ), -sin(  gsl_vector_get(eigenval,i ) ) }});   
 		std::cout<<"EigenVal: "<<gsl_vector_get(eigenval,i)<<" ";
-//		for(int j=0; j<dimension;j++){
-//			if(i!=j) gsl_matrix_complex_set(diagonal,i,j,gsl_complex{{0.0,0.0}});
-//
-//		}
+		//		for(int j=0; j<dimension;j++){
+		//			if(i!=j) gsl_matrix_complex_set(diagonal,i,j,gsl_complex{{0.0,0.0}});
+		//
+		//		}
 
 	}
 	std::cout<<std::endl;
@@ -202,20 +266,18 @@ int complex_matrix::setComplexRotation(int row, int col, double theta, double ph
 		exit(EXIT_FAILURE);
 	}
 
-	for(int i=0; i<dimension; i++){
-		real(i,i) = 1.0;
-	}
-
+	this->setIdentity();
 
 	real(row-1,row-1) = cos(theta);
 	real(col-1,col-1) = cos(theta);
 
+	//Sin[\[Theta]] Cos[\[Delta]] - I Sin[\[Theta]] Sin[\[Delta]]
+	real(row-1,col-1) = sin(theta)*cos(phi);
+	imag(row-1,col-1) = -sin(theta)*sin(phi);
 
-	real(row-1,col-1) += sin(theta)*cos(phi);
-	real(col-1,row-1) -= sin(theta)*cos(phi);
-
-	imag(row-1,col-1) -= sin(theta)*sin(phi);
-	imag(col-1,row-1) += sin(theta)*sin(phi);
+	//-Sin[\[Theta]] Cos[\[Delta]] - I Sin[\[Theta]] Sin[\[Delta]] 
+	real(col-1,row-1) = -sin(theta)*cos(phi);
+	imag(col-1,row-1) = -sin(theta)*sin(phi);
 
 	return 0;
 }
@@ -253,18 +315,30 @@ int complex_matrix::setDiagonal(std::vector<double> ms){
 	return 0;
 }
 
-
-int complex_matrix::hermitianConjugate(){
+int complex_matrix::transpose(){
 	TMatrixT<double> tempR = real;
 	TMatrixT<double> tempI = imag;
 
 	for(int i=0; i< dimension; i++){
 		for(int j =0; j< dimension; j++){
 			real(i,j) = tempR(j,i);
-			imag(i,j) = -tempI(j,i);
+			imag(i,j) = tempI(j,i);
 		}
 	}
 
+
+	return 0;
+}
+
+
+int complex_matrix::hermitianConjugate(){
+	this->transpose();
+
+	for(int i=0; i< dimension;i++){
+		for(int j=0; j< dimension;j++){
+			imag(i,j) = - imag(i,j);
+		}
+	}
 
 	return 0;
 }
