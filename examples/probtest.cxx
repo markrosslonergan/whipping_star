@@ -58,7 +58,7 @@ using namespace sbn;
 int main(int argc, char* argv[])
 {
 
-
+	double T34=0;
 	std::string xml = "default.xml";
 	int iarg = 0;
 	opterr=1;
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 't':
-				test_mode = strtof(optarg,NULL);
+				T34 = strtod(optarg,NULL);
 				break;
 			case '?':
 			case 'h':
@@ -140,36 +140,23 @@ M.mult(&M);
 
 
 
-SBNprob myprob(4);
+std::vector<double> angles = {33,40, 8, 20,15,20};
+std::vector<double> phases = {0,0,0};
+std::vector<double> mass = {7.5e-5, 2.552e-3, 1.0};
 
-//double ans = myprob.probabilityMatterExact(2,1,5.0,1300);
-//std::cout<<ans<<std::endl;
-
-//return 0;
-
-for(double ee=-1; ee<=2; ee+=0.005){
-	double Ee = pow(10,ee);
-
-	double ansA = myprob.probabilityMatterExact(1,0,Ee,1300);
-	double ansD = myprob.probabilityMatterExact(1,1,Ee,1300);
-	double ansT = myprob.probabilityMatterExact(1,2,Ee,1300);
-	double ansS = myprob.probabilityMatterExact(1,3,Ee,1300);
-
-	double steps = 1000.0;
-	double ansA_s = myprob.probabilityMatterExactSmear(1,0,Ee,1300,0.15,steps);
-	double ansD_s = myprob.probabilityMatterExactSmear(1,1,Ee,1300,0.15,steps);
-	double ansT_s = myprob.probabilityMatterExactSmear(1,2,Ee,1300,0.15,steps);
-	double ansS_s = myprob.probabilityMatterExactSmear(1,3,Ee,1300,0.15,steps);
+SBNprob myprob(4, angles, phases, mass);
+myprob.setMatterEffect(false);
+myprob.t34 = T34*3.14159/180.0;
+myprob.init();
 
 
 
-
-	std::cout<<Ee<<" "<<ansA<<" "<<ansD<<" "<<ansT<<" "<<ansS<<" "<<ansA_s<<" "<<ansD_s<<" "<<ansT_s<<" "<<ansS_s<<std::endl;
-
-
-
-}
-
+std::cout<<"# t34: "<<T34<<std::endl;
+//int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
+myprob.plotProbabilityMatter(1, 0, -1, 2, 1300, 0.1, 1500);
+myprob.plotProbabilityMatter(1, 1, -1, 2, 1300, 0.1, 1500);
+myprob.plotProbabilityMatter(1, 2, -1, 2, 1300, 0.1, 1500);
+myprob.plotProbabilityMatter(1, 3, -1, 2, 1300, 0.1, 1500);
 
 }
 

@@ -17,11 +17,16 @@ namespace sbn{
 	struct SBNprob{
 		public:	
 			SBNprob(int);
+			SBNprob(int, std::vector<double>,std::vector<double>, std::vector<double>);
+			int init();
+
 			double t12,t13,t23,t14,t24,t34;
 			double Dm21, Dm31,Dm41;
 			double d13,d24,d34;
 
 			double Vcc,Vnc;
+			bool useMatterEffect;
+
 
 			int dimension;
 			double eV2GeV;	
@@ -39,12 +44,14 @@ namespace sbn{
 			complex_matrix UtVU;
 			complex_matrix U;
 			complex_matrix Uconj;	
-
-
+	
+			int setMatterEffect(bool);
+			int setParameters( std::vector<double>,std::vector<double>, std::vector<double>);
 
 			double probabilityMatterExact(int a, int b ,double E, double L);
 			double probabilityMatterExactSmear(int, int ,double, double, double p, double n);
 
+			int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
 
 	};
 
