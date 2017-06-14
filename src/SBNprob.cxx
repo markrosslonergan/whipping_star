@@ -114,3 +114,38 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 
 };
 
+double SBNprob::probabilityMatterExactSmear(int a, int b, double E, double L ,double percen, double n){
+	
+	double sigma = percen*E;///sqrt(E);
+
+	double low = E-4*sigma;
+	if (low<0) low=0.01;
+
+	double high = E+4*sigma;
+
+	double step = fabs(low-high)/n;
+
+	//std::cout<<E<<" low: "<<low<<" high: "<<high<<" step: "<<step<<" sigma: "<<sigma<<std::endl;
+	double avg_prob = 0.0;
+	for(double et = low; et<=high; et+=step){
+		double tmp1 =	probabilityMatterExact(a,b,et,L);
+		double tmp2 =	gaussian(et, E, sigma);
+		double tmp3 =	tmp1*tmp2*step;
+		//std::cout<<E<<" "<<et<<" "<<tmp1<<" "<<tmp2<<" "<<tmp3<<" "<<avg_prob<<std::endl;
+	        avg_prob += tmp3;	
+	}
+
+	return avg_prob;
+
+};
+	
+
+double SBNprob::gaussian(double x, double mean, double sigma){
+	double pi=3.14159;
+	return 1.0/(sqrt(2*pi)*sigma)*exp( -pow(x-mean,2.0)/(2.0*sigma*sigma));
+
+
+}
+
+
+

@@ -344,6 +344,16 @@ int complex_matrix::hermitianConjugate(){
 }
 
 
+double smearEnergy(double E, double percen, TRandom3 * rangen){
+
+	double ans = 0;
+	while(ans <=0){
+		ans = rangen->Gaus(E,percen*E/sqrt(E));
+	}
+	return ans;
+
+}
+
 /*********************************************
  *  Constructors for neutrinoModel
  * *******************************************/

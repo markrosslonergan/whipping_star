@@ -147,13 +147,27 @@ SBNprob myprob(4);
 
 //return 0;
 
-for(double ee=-2; ee<2; ee+=0.0033){
+for(double ee=-1; ee<=2; ee+=0.005){
 	double Ee = pow(10,ee);
+
 	double ansA = myprob.probabilityMatterExact(1,0,Ee,1300);
 	double ansD = myprob.probabilityMatterExact(1,1,Ee,1300);
 	double ansT = myprob.probabilityMatterExact(1,2,Ee,1300);
+	double ansS = myprob.probabilityMatterExact(1,3,Ee,1300);
 
-std::cout<<Ee<<" "<<ansA<<" "<<ansD<<" "<<ansT<<std::endl;
+	double steps = 1000.0;
+	double ansA_s = myprob.probabilityMatterExactSmear(1,0,Ee,1300,0.15,steps);
+	double ansD_s = myprob.probabilityMatterExactSmear(1,1,Ee,1300,0.15,steps);
+	double ansT_s = myprob.probabilityMatterExactSmear(1,2,Ee,1300,0.15,steps);
+	double ansS_s = myprob.probabilityMatterExactSmear(1,3,Ee,1300,0.15,steps);
+
+
+
+
+	std::cout<<Ee<<" "<<ansA<<" "<<ansD<<" "<<ansT<<" "<<ansS<<" "<<ansA_s<<" "<<ansD_s<<" "<<ansT_s<<" "<<ansS_s<<std::endl;
+
+
+
 }
 
 

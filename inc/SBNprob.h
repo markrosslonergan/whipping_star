@@ -31,6 +31,8 @@ namespace sbn{
 			double Nneutrino;
 			double conversion_parameter;
 
+			double gaussian(double x, double mean, double sigma);
+
 			complex_matrix hamiltonian;
 			complex_matrix hamil_kin;
 			complex_matrix potential;
@@ -40,8 +42,9 @@ namespace sbn{
 
 
 
+			double probabilityMatterExact(int a, int b ,double E, double L);
+			double probabilityMatterExactSmear(int, int ,double, double, double p, double n);
 
-			double probabilityMatterExact(int, int ,double, double);
 
 	};
 

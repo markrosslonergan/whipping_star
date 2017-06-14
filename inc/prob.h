@@ -26,6 +26,8 @@ namespace sbn{
  ************************************************************
  ************************************************************/
 
+double smearEnergy(double E, double percen, TRandom3 * rangen);
+
 
 struct complex_matrix{
 	complex_matrix(int dim);
