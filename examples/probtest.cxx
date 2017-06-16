@@ -106,58 +106,35 @@ int main(int argc, char* argv[])
 	}
 
 
-complex_matrix M(3);
+	std::vector<double> angles = {33, 40, 8, 20, 20, 20};
+	//std::vector<double> angles = {33,40, 8, 0,0,0};
 
-M.real(0,0) = 1.0;
-M.real(1,1) = 2.0;
-M.real(2,2) = 3.0;
+	std::vector<double> phases = {0,0,0};
+	std::vector<double> mass = {7.5e-5, 2.552e-3, 1.0};
 
-M.real(0,1) = 0.1;
-M.real(1,0) = 0.2;
-M.real(0,2) = 0.3;
-M.real(1,2) = 0.4;
-M.real(2,0) = 0.5;
-M.real(2,1) = 0.6;
+	SBNprob myprob(4, angles, phases, mass);
+	myprob.setMatterEffect(true);
 
-M.imag(0,0) = -1.0;
-M.imag(1,1) = -2.0;
-M.imag(2,2) = -3.0;
-
-M.imag(0,1) = -0.1;
-M.imag(1,0) = -0.2;
-M.imag(0,2) = -0.3;
-M.imag(1,2) = -0.4;
-M.imag(2,0) = -0.5;
-M.imag(2,1) = -0.6;
-
-//M.matrixExp();
-
-//M.print();
-
-M.mult(&M);
-//M.print();
+	myprob.plotProbabilityMatter(1, 0, -3, 2, 1300, 0.1, 1500);
+	myprob.plotProbabilityMatter(1, 1, -3, 2, 1300, 0.1, 1500);
+	myprob.plotProbabilityMatter(1, 2, -3, 2, 1300, 0.1, 1500);
+	myprob.plotProbabilityMatter(1, 3, -3, 2, 1300, 0.1, 1500);
 
 
 
-
-std::vector<double> angles = {33,40, 8, 20,15,20};
-std::vector<double> phases = {0,0,0};
-std::vector<double> mass = {7.5e-5, 2.552e-3, 1.0};
-
-SBNprob myprob(4, angles, phases, mass);
-myprob.setMatterEffect(false);
-myprob.t34 = T34*3.14159/180.0;
-myprob.init();
+	if(false){//this is giff mode!
+		myprob.t34 = T34*3.14159/180.0;
+		myprob.init();
 
 
 
-std::cout<<"# t34: "<<T34<<std::endl;
-//int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
-myprob.plotProbabilityMatter(1, 0, -1, 2, 1300, 0.1, 1500);
-myprob.plotProbabilityMatter(1, 1, -1, 2, 1300, 0.1, 1500);
-myprob.plotProbabilityMatter(1, 2, -1, 2, 1300, 0.1, 1500);
-myprob.plotProbabilityMatter(1, 3, -1, 2, 1300, 0.1, 1500);
-
+		std::cout<<"# t34: "<<T34<<std::endl;
+		//int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
+		myprob.plotProbabilityMatter(1, 0, -1, 2, 1300, 0.1, 1500);
+		myprob.plotProbabilityMatter(1, 1, -1, 2, 1300, 0.1, 1500);
+		myprob.plotProbabilityMatter(1, 2, -1, 2, 1300, 0.1, 1500);
+		myprob.plotProbabilityMatter(1, 3, -1, 2, 1300, 0.1, 1500);
+	}
 }
 
 

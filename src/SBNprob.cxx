@@ -44,16 +44,17 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 
 int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phases, std::vector<double> mass){
 
-	t12= angles.at(0);
-	t23=angles.at(1);
-	t13=angles.at(2);
-	t14=angles.at(3);
-	t24=angles.at(4);
-	t34=angles.at(5);
+	t12= angles.at(0)*degree;
+	t23=angles.at(1)*degree;
+	t13=angles.at(2)*degree;
+	
+	t14=angles.at(3)*degree;
+	t24=angles.at(4)*degree;
+	t34=angles.at(5)*degree;
 
-	d13=phases.at(0);
-	d24=phases.at(1);
-	d34=phases.at(2);
+	d13=phases.at(0)*degree;
+	d24=phases.at(1)*degree;
+	d34=phases.at(2)*degree;
 
 	Dm21=mass.at(0);
 	Dm31=mass.at(1);
@@ -70,7 +71,7 @@ int SBNprob::init(){
 	
 
 	Vcc= 2.0*0.27*rho/(1000.0);
-	Vnc= -0.5*Vcc;
+	Vnc=0;// -0.5*Vcc;
 
 	complex_matrix R12(Nneutrino);
 	complex_matrix R13(Nneutrino);
