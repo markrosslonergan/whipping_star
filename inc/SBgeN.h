@@ -13,6 +13,7 @@
 #include <TTree.h>
 #include <TLegend.h>
 #include <TCanvas.h>
+#include <TLorentzVector.h>
 #include <array>
 #include <map>
 
@@ -27,10 +28,12 @@ namespace sbn{
 struct myarray{
 
 	double data[100];
+	double data3[100][3];
 };
 struct myarrayInt{
 
 	int data[100];
+	int data3[100][3];
 };
 
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.

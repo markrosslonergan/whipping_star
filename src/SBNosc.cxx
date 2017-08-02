@@ -64,6 +64,9 @@ int SBNosc::calcMassSplittings(){
 
 
 int SBNosc::OscillateThis(){
+		this->calcFullVector();
+		this->compressVector();
+
 	calcMassSplittings();
 
 	for(auto ms: mass_splittings){
@@ -113,6 +116,15 @@ int SBNosc::OscillateThis(){
 						prob_muebar = workingModel.oscAmp(-2,-1,which_dm,1);	
 						prob_muebar_sq = workingModel.oscAmp(-2,-1,which_dm,2);			
 						break;
+					case DISE_ONLY: // A strange version where nu_e can appear but not disapear 
+						prob_mumu = 0.0;
+						prob_ee = workingModel.oscAmp(1,1,which_dm,2);
+						prob_mue = 0;
+						prob_mue_sq = 0;
+						prob_muebar = 0;	
+						prob_muebar_sq = 0;			
+						break;
+
 				}
 
 
@@ -150,6 +162,16 @@ int SBNosc::OscillateThis(){
 
 	return 0;
 };
+
+std::vector<double> SBNosc::Oscillate(double scale){
+
+	std::vector<double> tmp = this->Oscillate();
+	for(auto & v: tmp){
+		v=v*scale;
+	}
+
+	return tmp;
+}
 
 
 std::vector<double> SBNosc::Oscillate(){
@@ -207,6 +229,15 @@ std::vector<double> SBNosc::Oscillate(){
 						prob_muebar = workingModel.oscAmp(-2,-1,which_dm,1);	
 						prob_muebar_sq = workingModel.oscAmp(-2,-1,which_dm,2);			
 						break;
+					case DISE_ONLY: // A strange version where nu_e can appear but not disapear 
+						prob_mumu = 0.0;
+						prob_ee = workingModel.oscAmp(1,1,which_dm,2);
+						prob_mue = 0;
+						prob_mue_sq = 0;
+						prob_muebar = 0;	
+						prob_muebar_sq = 0;			
+						break;
+
 				}
 
 
@@ -276,5 +307,7 @@ void SBNosc::setWierdMode(){
 	setMode(WIERD_ONLY);
 }
 
-
+void SBNosc::setDisEMode(){
+	setMode(DISE_ONLY);
+}
 

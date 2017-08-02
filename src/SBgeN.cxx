@@ -19,7 +19,7 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 	}
 
 	for(auto &t: trees){
-		nentries.push_back(5000);
+		nentries.push_back(100000);
 		//nentries.push_back(t->GetEntries());
 	}
 
@@ -38,7 +38,7 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 
 
 	std::cout<<"SBgeN::SBgeN || Setting up Variable Maps."<<std::endl;
-	// Create a map for convienance, from variable name in XML to actual variable name. Curently file is still needed. 
+	// Create a map for convienance, from variable name in XML to actual variable name. Curently file is still needed... 
 	for(int f=0; f<Nfiles; f++){
 		for(int i=0; i < branch_names_double.at(f).size(); i++){
 			vmapD.at(f)[  branch_names_double.at(f).at(i) ] = &vars_d.at(f).at(i) ;
@@ -64,11 +64,13 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		for(auto &bfni: branch_names_int){
 			for(int k=0; k< bfni.size();k++){
 				trees.at(i)->SetBranchAddress(bfni[k].c_str(), &(vars_i.at(i).at(k)));
+				std::cout<<"SBgeN::SBgeN || Setting Integer Branch: "<<bfni[k]<<std::endl;
 			}
 		}
 		for(auto &bfniA: branch_names_int_array){
 			for(int k=0; k< bfniA.size();k++){
 				trees.at(i)->SetBranchAddress( bfniA[k].c_str(), vars_iA.at(i).at(k).data  );
+				std::cout<<"SBgeN::SBgeN || Setting Integer Array Branch: "<<bfniA[k]<<std::endl;
 			}
 		}
 
@@ -76,12 +78,22 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		for(auto &bfnd: branch_names_double){
 			for(int k=0; k< bfnd.size();k++){
 				trees.at(i)->SetBranchAddress(bfnd[k].c_str(), &(vars_d.at(i).at(k)));
+				std::cout<<"SBgeN::SBgeN || Setting Double Branch: "<<bfnd[k]<<std::endl;
 			}
 		}
+		int jj=0;
 		for(auto &bfndA: branch_names_double_array){
 			for(int k=0; k< bfndA.size();k++){
-				trees.at(i)->SetBranchAddress( bfndA[k].c_str(), vars_dA.at(i).at(k).data  );
+				if( branch_names_double_array_dimension.at(jj).at(k) == 3){
+					trees.at(i)->SetBranchAddress(bfndA[k].c_str(), vars_dA.at(i).at(k).data3);
+					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch Dim 3: "<<bfndA[k]<<std::endl;
+				}else{
+					trees.at(i)->SetBranchAddress(bfndA[k].c_str(), vars_dA.at(i).at(k).data);
+					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch "<<bfndA[k]<<std::endl;
+				}
+
 			}
+		jj++;
 		}
 	}
 

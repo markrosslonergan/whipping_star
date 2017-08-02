@@ -36,6 +36,7 @@ class SBNconfig {
 
 	protected:
 	
+	public:
 	int num_detectors;
 	int num_channels;
 	int num_modes;
@@ -55,7 +56,6 @@ class SBNconfig {
 	std::string correlation_matrix_rootfile;
 	std::string correlation_matrix_name;
 
-	public:
 	std::string xmlname;	
 	
 
@@ -106,6 +106,7 @@ class SBNconfig {
 	std::vector<std::vector<std::string>> branch_names_int_array;
 	std::vector<std::vector<std::string>> branch_names_double;
 	std::vector<std::vector<std::string>> branch_names_double_array;
+	std::vector<std::vector<int>> branch_names_double_array_dimension;
 
 };
 

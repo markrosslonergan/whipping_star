@@ -8,12 +8,17 @@ using namespace sbn;
 
 SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
 	lastChi = -9999999;
-	load_bkg(bkgSpec);
+
+	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
+	stat_only = false;
+	load_bkg();
 }
 
 
 SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgSpec(in){
+	stat_only = false;
 
+	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
 	if(fullnames.size() !=in.fullnames.size()){
 		std::cerr<<"ERROR: SBNchi::SBNchi | Selected covariance matrix and background spectrum are different sizes!"<<std::endl;
 		exit(EXIT_FAILURE);
@@ -29,12 +34,15 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 
 	lastChi = -9999999;
 
-	load_bkg(bkgSpec);
+	bkgSpec.compressVector();
+	load_bkg();
 }
 
 
 SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msys) : SBNconfig(in.xmlname), bkgSpec(in){
 	lastChi = -9999999;
+	stat_only= false;
+	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
 
 	if(Msys.GetNcols()!=num_bins_total ){
 		std::cerr<<"ERROR: trying to pass a matrix to SBNchi that isnt the right size"<<std::endl;
@@ -56,19 +64,67 @@ SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msys) : SBNconfig(in.xmlname), bkgSp
 	TMatrixT <double> Mstat(num_bins_total,num_bins_total);
 	stats_fill(Mstat, in.fullVec);
 
-
 	//And then define the total covariance matrix in all its glory
-	TMatrixT <double > Mtotal(num_bins_total,num_bins_total);
-	Mtotal = Mstat+Msys;
+	TMatrixT <double> Mtotal(num_bins_total,num_bins_total);
 
+	if(stat_only){
+		std::cout<<"SBNchi::SBNchi(SBNspec,TMatrixD) || Using stats only in covariance matrix"<<std::endl;
+		Mtotal = Mstat;
+	}else{
+		//std::cout<<"SBNchi::load_bkg(SBNspec, TMatrixD) || Using stats+sys in covariance matrix"<<std::endl;
+		Mtotal = Mstat + Msys;
+	}
 	TMatrixT<double > Mctotal(num_bins_total_compressed,num_bins_total_compressed);
 	collapse_layer3(Mtotal, Mctotal);
+
+	matrix_collapsed = Mctotal;
+
 	vMc = to_vector(Mctotal);
 	double invdet=0;
 
 	TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
 	McI = Mctotal.Invert(&invdet);
 	vMcI = to_vector(McI);
+
+
+
+
+	// test for validity
+	bool is_small_negative_eigenvalue = false;
+	double tolerence_positivesemi = 1e-5; 
+	if(Mtotal.IsSymmetric()){
+		std::cout<<"Generated covariance matrix is symmetric"<<std::endl;
+	}else{
+		std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, result is not symmetric!"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+
+	//if a matrix is (a) real and (b) symmetric (checked above) then to prove positive semi-definite, we just need to check eigenvalues and >=0;
+	TMatrixDEigen eigen (Mtotal);
+	TVectorD eigen_values = eigen.GetEigenValuesRe();
+
+
+	for(int i=0; i< eigen_values.GetNoElements(); i++){
+		if(eigen_values(i)<0){
+			is_small_negative_eigenvalue = true;
+			if(fabs(eigen_values(i))> tolerence_positivesemi ){
+				std::cerr<<"ERROR: SBNcovar::formCovarianceMatrix, contains (at least one)  negative eigenvalue: "<<eigen_values(i)<<std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+
+
+	if(is_small_negative_eigenvalue){	
+		std::cout<<"Generated covariance matrix is (allmost) positive semi-definite. It did contain small negative values of absolute value <= :"<<tolerence_positivesemi<<std::endl;
+	}else{
+		std::cout<<"Generated covariance matrix is also positive semi-definite."<<std::endl;
+	}
+
+
+
+
 
 }
 
@@ -77,7 +133,12 @@ SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msys) : SBNconfig(in.xmlname), bkgSp
  *		Rest for now
  * ********************************************/
 
-int SBNchi::load_bkg(SBNspec inSpec){
+int SBNchi::load_bkg(){
+	lastChi_vec.clear();
+	lastChi_vec.resize(num_bins_total_compressed, std::vector<double>( num_bins_total_compressed,0) );
+
+	bkgSpec.compressVector();
+	bkgSpec.calcFullVector();
 
 	TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
 	// Fill systematics from pre-computed files
@@ -92,25 +153,32 @@ int SBNchi::load_bkg(SBNspec inSpec){
 	{
 		for(int j =0; j<Msys.GetNrows(); j++)
 		{
-			Msys(i,j)=Msys(i,j)*inSpec.fullVec[i]*inSpec.fullVec[j];
+			//std::cout<<"#: "<<Msys(i,j)<<" "<<bkgSpec.fullVec[i]<<" "<<bkgSpec.fullVec[j]<<std::endl;
+			Msys(i,j)=Msys(i,j)*bkgSpec.fullVec[i]*bkgSpec.fullVec[j];
 		}
 	}
 
 	// Fill stats from the back ground vector
 	TMatrixT <double> Mstat(num_bins_total,num_bins_total);
-	stats_fill(Mstat, inSpec.fullVec);
+	stats_fill(Mstat, bkgSpec.fullVec);
 
 
 	//And then define the total covariance matrix in all its glory
 	TMatrixT <double > Mtotal(num_bins_total,num_bins_total);
 
-	Mtotal = Mstat+Msys;
-
+	if(stat_only){
+		std::cout<<"SBNchi::load_bkg() || Using stats only in covariance matrix"<<std::endl;
+		Mtotal = Mstat;
+	}else{
+		//std::cout<<"SBNchi::load_bkg() || Using stats+sys in covariance matrix"<<std::endl;
+		Mtotal = Mstat + Msys;
+	}
 	// Now contract back the larger antimatrix
 	TMatrixT<double > Mctotal(num_bins_total_compressed,num_bins_total_compressed);
 
 	collapse_layer3(Mtotal, Mctotal);
 
+	matrix_collapsed = Mctotal;
 	vMc = to_vector(Mctotal);
 	// just to hold determinant
 	double invdet=0; 
@@ -126,6 +194,39 @@ int SBNchi::load_bkg(SBNspec inSpec){
 }
 
 
+TMatrixT<double> * SBNchi::getCompressedMatrix(){
+	TMatrixT<double> * tmp = new TMatrixT<double>(num_bins_total_compressed,num_bins_total_compressed);
+	for(int i=0; i<num_bins_total_compressed;i++){
+		for(int j=0; j<num_bins_total_compressed;j++){
+			(*tmp)(i,j) = vMc.at(i).at(j);
+		}
+	}
+
+	return tmp;
+}
+
+double SBNchi::CalcChiLog(SBNspec *sigSpec){
+	double tchi = 0;	
+
+	if(sigSpec->compVec.size()==0){
+		std::cout<<"WARNING: SBNchi::CalcChi, inputted sigSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
+		sigSpec->compressVector();
+	}
+
+	for(int i =0; i<num_bins_total_compressed; i++){
+		for(int j =0; j<num_bins_total_compressed; j++){
+			lastChi_vec.at(i).at(j) =(bkgSpec.compVec[i]-sigSpec->compVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec->compVec[j] ); 
+			tchi += lastChi_vec.at(i).at(j);
+		}
+	}
+
+	double absDetM = log(fabs(matrix_collapsed.Determinant())); 
+
+	lastChi = tchi+absDetM;
+	return tchi+absDetM;
+}
+
+
 double SBNchi::CalcChi(SBNspec sigSpec){
 	double tchi = 0;	
 
@@ -136,7 +237,8 @@ double SBNchi::CalcChi(SBNspec sigSpec){
 
 	for(int i =0; i<num_bins_total_compressed; i++){
 		for(int j =0; j<num_bins_total_compressed; j++){
-			tchi += (bkgSpec.compVec[i]-sigSpec.compVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec.compVec[j] );
+			lastChi_vec.at(i).at(j) =(bkgSpec.compVec[i]-sigSpec.compVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigSpec.compVec[j] ); 
+			tchi += lastChi_vec.at(i).at(j);
 		}
 	}
 
@@ -154,7 +256,6 @@ double SBNchi::CalcChi(std::vector<double> sigVec){
 		exit(EXIT_FAILURE);
 	}
 
-
 	for(int i =0; i<num_bins_total_compressed; i++){
 		for(int j =0; j<num_bins_total_compressed; j++){
 			tchi += (bkgSpec.compVec[i]-sigVec[i])*vMcI[i][j]*(bkgSpec.compVec[j]-sigVec[j] );
@@ -163,6 +264,30 @@ double SBNchi::CalcChi(std::vector<double> sigVec){
 
 	lastChi = tchi;
 	return tchi;
+}
+
+double SBNchi::CalcChi(SBNspec *sigSpec, SBNspec *obsSpec){
+	double tchi=0;
+	if(sigSpec->compVec.size()==0){
+		std::cout<<"WARNING: SBNchi::CalcChi, inputted sigSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
+		sigSpec->compressVector();
+	}
+
+	if(obsSpec->compVec.size()==0){
+		std::cout<<"WARNING: SBNchi::CalcChi, inputted obsSpec has un-compressed vector, I am doing it now, but this is inefficient!"<<std::endl;
+		obsSpec->compressVector();
+	}
+
+
+	for(int i =0; i<num_bins_total_compressed; i++){
+		for(int j =0; j<num_bins_total_compressed; j++){
+			tchi += (obsSpec->compVec[i]-sigSpec->compVec[i])*vMcI[i][j]*(obsSpec->compVec[j]-sigSpec->compVec[j] );
+		}
+	}
+
+	lastChi = tchi;
+	return tchi;
+
 }
 
 
@@ -224,7 +349,11 @@ void SBNchi::stats_fill(TMatrixT <double> &M, std::vector<double> diag){
 
 	for(int i=0; i<matrix_size; i++)
 	{
-		M(i,i) = diag[i];	
+
+		//This NEEDS to be removed soon
+		if(i>=11 && i< 30) continue;
+		if(i>=41) continue;
+			M(i,i) = diag[i];	
 
 	}
 
@@ -242,6 +371,7 @@ TMatrixT<double> SBNchi::sys_fill_direct(){
 
 TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matname){
 
+	//std::cout<<"SBNchi::sys_fill_direct || filling from "<<rootname<<std::endl;
 
 	TMatrixT<double> temp2(num_bins_total,num_bins_total);
 	TFile *fm= new TFile(rootname.c_str());
@@ -385,6 +515,23 @@ void SBNchi::collapse_layer3(TMatrixT <double> & M, TMatrixT <double> & Mc){
 	}
 
 	return;
+}
+
+TH2D SBNchi::getChiogram(){
+	TH2D tmp("","",num_bins_total_compressed,0, num_bins_total_compressed ,num_bins_total_compressed,0, num_bins_total_compressed);
+
+	for(int i =0; i<num_bins_total_compressed; i++){
+		for(int j =0; j<num_bins_total_compressed; j++){
+
+			tmp.SetBinContent(i+1, j+1, lastChi_vec.at(i).at(j));
+		}
+
+	}
+
+
+	return tmp;
+
+
 }
 
 

@@ -286,7 +286,7 @@ double SBNdet::osc_length(TRandom3 * rangen){
 
 
 
-double smear_energy(double En, double Percen, TRandom3 * rangen){
+double SBNdet::smear_energy(double En, double Percen, TRandom3 * rangen){
 	double ans = 0;
 	while(ans <=0){
 		ans = rangen->Gaus(En,Percen*En/sqrt(En));

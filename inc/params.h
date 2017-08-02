@@ -35,6 +35,7 @@
 #define DIS_ONLY 1
 #define BOTH_ONLY 2
 #define WIERD_ONLY 3 	// This is combined, but with e_disapearance off.
+#define DISE_ONLY 4
 
 #define NU_MODE 0
 #define NU_NUBAR_MODE 1

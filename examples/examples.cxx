@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
 		//such as here, SBNosc, a SBNspec precoded to do oscillation phyiscs (at SBL)
 
 		//Load up your background, uboone was wierdly scaled in the rootfiles so fix here
-		double uboonepot=2;
+		double uboonepot=0.5;
 		SBNspec bkg_spec("../../data/precomp/SBN_bkg_all", xml);
 		bkg_spec.Scale("uBooNE", uboonepot);
 		bkg_spec.compressVector();
@@ -326,8 +326,8 @@ int main(int argc, char* argv[])
 		SBNosc oscSig("../../data/precomp/SBN_bkg_all",xml);
 
 		//Say we want to just look at apperance mode (as its easiest to plot 2d!)
-		oscSig.setAppMode();
 		oscSig.Scale("uBooNE",uboonepot);		
+		oscSig.setAppMode();
 
 		//Want to contour plot sensitivity eventually so som standard root
 		TCanvas *c1 = new TCanvas("c1","c1",600,400);
@@ -574,5 +574,110 @@ int main(int argc, char* argv[])
 			std::cout<<"th_14: "<<th_14<<" th_24: "<<th_24<<" Ue4: "<<Ue4<<" Um4: "<<Um4<<" Deltam: "<<pow(m4,2)<<" log(Dm): "<<2*im<<" Chi^2 App: "<<tchi1<<" Chi^2 Dis: "<<tchi3<<" Chi^2 Both: "<<tchi2<<std::endl;
 		}
 		return 0;
-	}
+	}else if(test_mode==911){
+
+		std::cout<<"1"<<std::endl;
+		SBNspec bkg_spec1("../../data/precomp/SBN_bkg_all", xml);
+		SBNspec bkg_spec2("../../data/precomp/SBN_bkg_all", xml);
+		SBNspec bkg_spec05("../../data/precomp/SBN_bkg_all", xml);
+
+		std::cout<<"2"<<std::endl;
+		bkg_spec2.Scale("uBooNE",2);
+		bkg_spec05.Scale("uBooNE",0.5);
+
+		std::cout<<"3"<<std::endl;
+		SBNchi test_chi1(bkg_spec1);
+		SBNchi test_chi2(bkg_spec2);
+		SBNchi test_chi05(bkg_spec05);
+
+		std::cout<<"4"<<std::endl;
+		//bkg_spec.Scale("uBooNE", uboonepot);
+
+		std::cout<<"5"<<std::endl;
+		SBNosc oscSig("../../data/precomp/SBN_bkg_all",xml);
+		oscSig.setAppMode();
+
+
+
+		//Its the full osc...Thats why
+
+
+		//Want to contour plot sensitivity eventually so som standard root
+		TCanvas *c1 = new TCanvas("c1","c1",600,400);
+		TH2F *hcontz1 = new TH2F("hcontz1","MicroBooNE 3+1 90\% C.L ",100,-5,0, 100,-2,2);
+		TH2F *hcontz2 = new TH2F("hcontz2","MicroBooNE 3+1 90\% C.L ",100,-5,0, 100,-2,2);
+		TH2F *hcontz05 = new TH2F("hcontz05","MicroBooNE 3+1 90\% C.L ",100,-5,0, 100,-2,2);
+		hcontz1->GetXaxis()->SetTitle("#sin^{2} 2 #theta_{e #mu}");
+		hcontz05->GetYaxis()->SetTitle("#Delta m^{2}_{41} (eV^{2})");
+
+		std::cout<<"7"<<std::endl;
+		//so varying over all Dela M and sin^2 2 theta
+		for(double m = -2.00; m <=2.04; m=m+0.04){
+			for(double sins2 = 0.0 ; sins2 >= -5; sins2 = sins2 - 0.05){
+
+				//always work in proper UPMNS elements!!
+				double uei = 0.1;
+				double umi = sqrt(pow(10,sins2))/(2*uei);
+
+				//This is where you can set up 3+N
+				double imn[3] = {sqrt(pow(10,m)),0,0};
+				double iue[3] = {umi,0,0};
+				double ium[3] = {uei,0,0};
+				double iph[3] = {0,0,0};
+
+				//construct a signalModel
+				neutrinoModel signalModel(imn,iue,ium,iph);
+				signalModel.numsterile = 1; //this isnt really necessary as it can tell from imn, but nice for reading
+
+				//And load thus model into our spectra. At this point its comuted all the necessary mass-splittins and which frequencies they are
+				oscSig.load_model(signalModel);
+
+				//And apply this oscillaion! Adding to it the bkgSpec that it was initilised with.
+				std::vector<double> ans1 = oscSig.Oscillate();
+				std::vector<double> ans2 = oscSig.Oscillate(2.0);
+				std::vector<double> ans05 = oscSig.Oscillate(0.5);
+
+
+				//Then calculate a chu^2
+				double tchi1=test_chi1.CalcChi(ans1); 
+				double tchi2=test_chi2.CalcChi(ans2); 
+				double tchi05=test_chi05.CalcChi(ans05); 
+
+				//for(int i=0; i<ans1.size(); i++){
+				//	std::cout<<"#@# "<<ans1[i]<<" "<<ans2[i]<<" "<<ans05[i]<<" "<<test_chi1.bkgSpec.compVec[i]<<" "<<test_chi2.bkgSpec.compVec[i]<<" "<<test_chi05.bkgSpec.compVec[i]<<std::endl;
+				//}
+
+				std::cout<<"Dm^2: "<<m<<" sin^2 th: "<<sins2<<" chi2: "<<tchi2<<" chi1: "<<tchi1<<" chi05: "<<tchi05<<std::endl;
+				//and save wherever you like , this si just a quick hodge podge example
+				hcontz1->SetBinContent( 1+floor(-(-5.0-sins2)/0.05+0.00001) , 1+floor(-(-2.00-m)/0.04+0.00001), tchi1);
+				hcontz2->SetBinContent( 1+floor(-(-5.0-sins2)/0.05+0.00001) , 1+floor(-(-2.00-m)/0.04+0.00001), tchi2);
+				hcontz05->SetBinContent( 1+floor(-(-5.0-sins2)/0.05+0.00001) , 1+floor(-(-2.00-m)/0.04+0.00001), tchi05);
+
+
+			}
+		}
+		Double_t contours[1];
+		contours[0] = 1.64;
+		hcontz1->SetContour(1, contours);
+		hcontz2->SetContour(1, contours);
+		hcontz05->SetContour(1, contours);
+
+		hcontz1->SetLineColor(kBlack);
+		hcontz2->SetLineColor(kGreen);
+		hcontz05->SetLineColor(kRed);
+
+		c1->cd();
+
+		hcontz1->Draw("CONT3");
+		hcontz2->Draw("CONT3 SAME");
+		hcontz05->Draw("CONT3 SAME");
+
+		TFile * ff = new TFile("example_911.root","RECREATE");
+		ff->cd();
+		c1->Write();
+		ff->Close();
+
+		return 0;
+}
+
 }

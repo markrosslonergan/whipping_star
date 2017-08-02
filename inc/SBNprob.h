@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <array>
 #include <map>
@@ -26,7 +27,8 @@ namespace sbn{
 
 			double Vcc,Vnc;
 			bool useMatterEffect;
-
+			bool useNCMatterEffect;
+			bool useAntiNeutrino;
 
 			int dimension;
 			double eV2GeV;	
@@ -46,12 +48,14 @@ namespace sbn{
 			complex_matrix Uconj;	
 	
 			int setMatterEffect(bool);
+			int setAntiNeutrinoMode(bool);
+			int setNCMatterEffect(bool);
 			int setParameters( std::vector<double>,std::vector<double>, std::vector<double>);
 
 			double probabilityMatterExact(int a, int b ,double E, double L);
 			double probabilityMatterExactSmear(int, int ,double, double, double p, double n);
 
-			int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
+			int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n, std::ofstream *filestream);
 
 	};
 

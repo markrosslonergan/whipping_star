@@ -1,6 +1,9 @@
 #include "SBNspec.h"
 using namespace sbn;
 
+SBNspec::SBNspec(std::string whichxml): SBNspec(whichxml,-1){
+}
+
 
 SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml){
 
@@ -28,6 +31,7 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 
 		}
 	}
+
 
 
 
@@ -66,6 +70,31 @@ int SBNspec::Add(SBNspec *in){
 
 
 	return 0;
+}
+
+int SBNspec::setAsGaussian(double mean, double sigma, int ngen){
+	TRandom3 *seedgetter = new TRandom3(0);
+	int seed = seedgetter->Integer(1000000);
+
+	for(auto &h: hist){
+		TRandom3 *rangen = new TRandom3(seed);
+		h.Reset();
+		for(int i=0; i<ngen; i++){
+			double eve = rangen->Gaus(mean,sigma); 
+			h.Fill( eve ); 
+		}	
+	}
+	
+	return 0;
+
+}
+
+int SBNspec::setAsFlat(double val){
+	for(auto &h: hist){
+		for(int i=0; i<h.GetSize(); i++){
+			h.SetBinContent(i, val );
+		}	
+	}
 }
 
 
@@ -110,8 +139,10 @@ return 0;
 
 int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
-		h.Scale(sc,"nosw2");
+		h.Scale(sc, "nosw2");
 	}
+	this->compressVector();
+
 return 0;
 }
 
@@ -125,6 +156,8 @@ int SBNspec::Scale(std::string name, double val){
 			}
 
 	}
+
+	this->compressVector();
 return 0;
 }
 
@@ -184,7 +217,7 @@ int SBNspec::compressVector(){
 
 					for(int sc = 0; sc < num_subchannels[ic]; sc++){
 
-						
+	//					std::cout<<im<<"/"<<num_modes<<" "<<id<<"/"<<num_detectors<<" "<<ic<<"/"<<num_channels<<" "<<j<<"/"<<num_bins[ic]<<" "<<sc<<"/"<<num_subchannels[ic]<<std::endl;
 						tempval += fullVec[j+sc*num_bins[ic]+corner];
 						edge +=1;	//when your done with a channel, add on every bin you just summed
 					}

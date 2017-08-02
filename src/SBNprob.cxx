@@ -11,6 +11,8 @@ SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases,
 	rho = 2.8;
 
 	useMatterEffect = true;
+	useNCMatterEffect = true;
+	useAntiNeutrino = false;
 	this->init();
 }
 
@@ -39,6 +41,7 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 	rho = 2.8;
 
 	useMatterEffect = true;
+	useNCMatterEffect = true;
 	this->init();
 }
 
@@ -69,9 +72,18 @@ int SBNprob::init(){
 	//eV2GeV = 1e-9;	
 	//km2invGeV = 5.06842e18;
 	
+	Vcc= 0.27*2*rho/(1000.0);
+	if(useAntiNeutrino){
+		Vcc=-Vcc;
+	}
 
-	Vcc= 2.0*0.27*rho/(1000.0);
-	Vnc=0;// -0.5*Vcc;
+
+	
+	Vnc= -0.5*2*0.27*rho/(1000.0);
+
+	if(!useNCMatterEffect){
+		Vnc =0.0;
+	}
 
 	complex_matrix R12(Nneutrino);
 	complex_matrix R13(Nneutrino);
@@ -104,8 +116,8 @@ int SBNprob::init(){
 	std::vector<double> mass_splittings = {0.0,Dm21,Dm31,Dm41};
 	hamil_kin.setDiagonal(mass_splittings);
 
-		potential.real(0,0)= Vcc;
-		potential.real(dimension-1,dimension-1)=-Vnc;
+	potential.real(0,0)= Vcc;
+	potential.real(dimension-1,dimension-1)=-Vnc;
 
 	UtVU=U;
 	UtVU.mult(&potential);
@@ -122,6 +134,23 @@ int SBNprob::setMatterEffect(bool in){
 	return 0;
 }
 
+int SBNprob::setNCMatterEffect(bool in){
+	useNCMatterEffect = in;
+	this->init();
+	return 0;
+}
+
+
+int SBNprob::setAntiNeutrinoMode(bool in){
+       useAntiNeutrino = in;
+       d13 = -d13;
+       d24 = -d24;
+       d34 = -d34;
+       this->init();
+       return 0;
+
+}
+
 
 double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 
@@ -129,7 +158,7 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 
 	hamiltonian = hamil_kin;
 	hamiltonian.mult(conversion_parameter/(2.0*E));
-	//	UtVU.multI();//artifact
+	
 	if(useMatterEffect){
 		hamiltonian.add(&UtVU);
 	}
@@ -165,7 +194,9 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 
 double SBNprob::probabilityMatterExactSmear(int a, int b, double E, double L ,double percen, double n){
 
-	double sigma = percen*E+0.05;///sqrt(E);
+
+
+	double sigma = percen*E/sqrt(E)+0.05*E;
 
 	double low = E-4*sigma;
 	if (low<0) low=0.01;
@@ -196,11 +227,15 @@ double SBNprob::gaussian(double x, double mean, double sigma){
 
 }
 
-int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, double L, double percen, double n){
+int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, double L, double percen, double n, std::ofstream *filestream){
+
+	std::cout<<"Starting "<<a<<" "<<b<<" plot. L: "<<L<<" VNC: "<<Vnc<<" VCC: "<<Vcc<<" useMatter? "<<useMatterEffect<<" Neutrino or Anti?: "<<useAntiNeutrino<<std::endl;
 
 	double Emin = 1.5*EminT;//(1-0.5*percen)*EminT;
 	double Emax = 1.5*EmaxT;//(1.5*percen)*EmaxT;
 
+	int ua=abs(a);
+	int ub=abs(b);
 
 	std::vector<double> prob_vec_exact;
 	std::vector<double> E_vec;
@@ -209,7 +244,7 @@ int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, dou
 
 	for(double ee=Emin; ee<=Emax; ee+=step){
 		double Ee = pow(10,ee);
-		prob_vec_exact.push_back( probabilityMatterExact(a,b,Ee,L));
+		prob_vec_exact.push_back( probabilityMatterExact(ua-1,ub-1,Ee,L));
 		E_vec.push_back(Ee);
 	}
 
@@ -231,7 +266,7 @@ int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, dou
 			avg_prob += tmp1*tmp2*step_vec.at(j);	
 		//	std::cout<<E_vec.at(i)<<" "<<prob_vec_exact.at(i)<<" "<<E_vec.at(j)<<" "<<prob_vec_exact.at(j)<<" "<<sigma<<" "<<tmp1<<" "<<tmp2<<" "<<avg_prob<<std::endl;
 		}
-		std::cout<<a<<b<<" "<<E_vec.at(i)<<" "<<prob_vec_exact.at(i)<<" "<<avg_prob<<std::endl;
+		*filestream<<a<<b<<" "<<L<<" "<<E_vec.at(i)<<" "<<prob_vec_exact.at(i)<<" "<<avg_prob<<std::endl;
 	}
 
 

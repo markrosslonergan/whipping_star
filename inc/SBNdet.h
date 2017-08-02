@@ -17,7 +17,6 @@ namespace sbn{
  *	    (4) overload detectors so I can just pass identifiers DONE
  ************************************************************
  ************************************************************/
-	double smear_energy(double En, double Percen, TRandom3 *rangen);
 	double smear_angle(double the, double ang, TRandom3 *rangen);
 	double massive_smear_energy(double En, double Percen, TRandom3 * rangen,double mass);
 	
@@ -69,6 +68,7 @@ class SBNdet {
 	bool is_fully_contained(double *vertex,double * endpoint);
 	
 
+	double smear_energy(double En, double Percen, TRandom3 *rangen);
 
 };
 

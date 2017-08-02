@@ -139,13 +139,14 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		std::vector<std::string> TEMP_branch_names_int_array;
 		std::vector<std::string> TEMP_branch_names_double;
 		std::vector<std::string> TEMP_branch_names_double_array;
+		std::vector<int> TEMP_branch_names_double_array_dimension;
 
 		while(pBranchT){
 			TiXmlElement *pBranch;
 			pBranch = pBranchT->FirstChildElement("branch");
 
 				while(pBranch){
-				//std::cout<<pBranch->Attribute("name")<<" Type: "<<pBranchT->Attribute("type") <<std::endl;
+					//std::cout<<pBranch->Attribute("name")<<" Type: "<<pBranchT->Attribute("type") <<std::endl;
 				if( strtod(pBranchT->Attribute("type"),&end)  == 0){
 					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" int"<<std::endl;
 					TEMP_branch_names_int.push_back(pBranch->Attribute("name"));
@@ -160,14 +161,17 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 				else if (strtod(pBranchT->Attribute("type"),&end)  == 3){
 					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
 					TEMP_branch_names_double_array.push_back(pBranch->Attribute("name"));
+					//std::cout<<"Hi: "<<strtod(pBranch->Attribute("dimension"),&end)<<std::endl; 
+					TEMP_branch_names_double_array_dimension.push_back(strtod(pBranch->Attribute("dimension"),&end));
 				}
 				pBranch = pBranch->NextSiblingElement("branch");	
 			}
 			pBranchT= pBranchT->NextSiblingElement("btype");
 		}
-		
 		branch_names_double.push_back(TEMP_branch_names_double);
 		branch_names_double_array.push_back(TEMP_branch_names_double_array);
+		branch_names_double_array_dimension.push_back(TEMP_branch_names_double_array_dimension);
+
 		branch_names_int_array.push_back(TEMP_branch_names_int_array);
 		branch_names_int.push_back(TEMP_branch_names_int);
 		pMC=pMC->NextSiblingElement("MCevents");
