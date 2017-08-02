@@ -5,7 +5,7 @@ SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases,
 	dimension=dim;
 	Nneutrino = dim;
 	degree = 3.14159/180.0;
-	conversion_parameter = 5.06842;
+	conversion_parameter = 5.06842; //this is Gev->inv KM of course
 
 	this->setParameters(angles,phases,mass);
 	rho = 2.8;
@@ -70,16 +70,20 @@ int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phase
 int SBNprob::init(){
 
 	//eV2GeV = 1e-9;	
-	//km2invGeV = 5.06842e18;
 	
-	Vcc= 0.27*2*rho/(1000.0);
+	double Ye=0.4957;
+	//formula from KOPP theisis
+	Vcc= conversion_parameter*7.56e-14*1e9*rho*Ye;// want potential to be in inv km also.
+
+
+
 	if(useAntiNeutrino){
 		Vcc=-Vcc;
 	}
 
-
+	//does the VNC flip slight also with antineutrino, check. I believe so.
+	Vnc= -0.5*Vcc;
 	
-	Vnc= -0.5*2*0.27*rho/(1000.0);
 
 	if(!useNCMatterEffect){
 		Vnc =0.0;
@@ -120,10 +124,9 @@ int SBNprob::init(){
 	potential.real(dimension-1,dimension-1)=-Vnc;
 
 	UtVU=U;
-	UtVU.mult(&potential);
+	UtVU.mult(&hamil_kin);
 	UtVU.mult(&Uconj);
 
-	//Checked this far
 
 return 0;
 }
@@ -156,11 +159,12 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 
 	complex_matrix S0(Nneutrino);
 
-	hamiltonian = hamil_kin;
+	hamiltonian = UtVU;
+	
 	hamiltonian.mult(conversion_parameter/(2.0*E));
 	
 	if(useMatterEffect){
-		hamiltonian.add(&UtVU);
+		hamiltonian.add(&potential);
 	}
 
 
@@ -171,6 +175,7 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 	complex_matrix eigenvec(Nneutrino);
 	complex_matrix eigenvecTr(Nneutrino);
 
+	//hamiltonian has units of inverse km at this point I believe. 
 	S0=hamiltonian;
 	S0.matrixExpTest(L, &eigenval, &eigenvec);
 
@@ -180,9 +185,10 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 	eigenvecTr = eigenvec;
 	eigenvecTr.hermitianConjugate();
 
-	ans = Uconj; //should be eigenvecTr
-	ans.mult(&S0);
-	ans.mult(&U); //should be eigenvec
+	ans=S0;
+	//ans = Uconj; //should be eigenvecTr
+	//ans.mult(&S0);
+//	ans.mult(&U); //should be eigenvec ?? wish i knew that comment timestamp.
 
 	double re = ans.real(b,a);
 	double im = ans.imag(b,a);
