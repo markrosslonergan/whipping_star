@@ -119,9 +119,9 @@ int main(int argc, char* argv[])
 	double t12 = 33.5;
 	double t23 = 41.6;
 	double t13 = 8.5;
-	double t14 = 20;
+	double t14 = 0;
 	double t24 = 20;
-	double t34 = 20;
+	double t34 = 0;
 
 	double d13=0;
 	double d24=0;

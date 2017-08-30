@@ -17,18 +17,13 @@ namespace sbn{
  *	    (4) overload detectors so I can just pass identifiers DONE
  ************************************************************
  ************************************************************/
-	double smear_angle(double the, double ang, TRandom3 *rangen);
 	double massive_smear_energy(double En, double Percen, TRandom3 * rangen,double mass);
 	
-	double muon_track_length(double El);
-	double pion_track_length(double El);
-	double photon_conversion_length(double ep, TRandom3 * r);
 	double bethe(double beta);
 
 	double CSDA_integrand(double Emu);
 	double pion_containment(double posX, double posY, double posZ, TRandom3 * r);
 
-	int get_endpoint(double *vertex,double track_L,double * pl,double *  endpoint);
 
 
 
@@ -69,7 +64,18 @@ class SBNdet {
 	
 
 	double smear_energy(double En, double Percen, TRandom3 *rangen);
+	double smear_angle(double the, double ang, TRandom3 *rangen);
 
+	double sanford_wang(double,double);
+	double get_pion(TRandom3*);
+	double get_baseline(TRandom3*, double);
+
+	double muon_track_length(double El);
+
+	double pion_track_length(double El);
+	double photon_conversion_length(double ep, TRandom3 * r);
+
+	int get_endpoint(double *vertex,double track_L,double * pl,double *  endpoint);
 };
 
 };

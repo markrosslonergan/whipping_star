@@ -290,6 +290,7 @@ int SBNspec::writeOut(std::string filename){
 		for(auto &h : temp){
 			std::string test = h.GetName();
 			if(test.find(canvas_name)!=std::string::npos ){
+				h.Sumw2(false);
 				h.Scale(1,"width,nosw2");
 				h.GetYaxis()->SetTitle("Events/GeV");
 				h.SetMarkerStyle(20);
@@ -299,7 +300,11 @@ int SBNspec::writeOut(std::string filename){
 				h.SetTitle(h.GetName());
 				h.Write();
 
-				legStack.AddEntry(&h,h.GetName(), "f");
+				std::ostringstream out;
+				out << std::setprecision(6) << h.GetSumOfWeights();
+				std::string hmm = " , Total : ";
+				std::string tmp = h.GetName() +hmm+ out.str();
+				legStack.AddEntry(&h, tmp.c_str() , "f");
 	
 				hs->Add(&h);
 				n++;
@@ -315,7 +320,7 @@ int SBNspec::writeOut(std::string filename){
 		hs->Draw();
 		Cstack->Update();
 		legStack.Draw();	
-		Cstack->Write();
+		Cstack->Write("hist");
 	}
 	
 	}

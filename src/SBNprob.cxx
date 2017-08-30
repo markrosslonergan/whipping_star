@@ -167,8 +167,6 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 		hamiltonian.add(&potential);
 	}
 
-
-
 	//Blarg, hermitian->antihermitian...  Using the fact Exp[-I M] = Cos[M]-I Sin[M], even for matricies
 	//And calculate the matrix exponant 
 	std::vector<double> eigenval;
@@ -188,7 +186,7 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 	ans=S0;
 	//ans = Uconj; //should be eigenvecTr
 	//ans.mult(&S0);
-//	ans.mult(&U); //should be eigenvec ?? wish i knew that comment timestamp.
+//	ans.mult(&U); //should be eigenvec ?? 
 
 	double re = ans.real(b,a);
 	double im = ans.imag(b,a);

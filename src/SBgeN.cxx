@@ -19,8 +19,8 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 	}
 
 	for(auto &t: trees){
-		nentries.push_back(100000);
-		//nentries.push_back(t->GetEntries());
+	//	nentries.push_back(100000);
+		nentries.push_back(t->GetEntries());
 	}
 
 
@@ -103,7 +103,7 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 		if(detector_bool[i]){
 			if(detector_names[i]=="SBND")     detectors.push_back(new SBNdet(DET_SBND,0) ) ;
 			if(detector_names[i]=="uBooNE")     detectors.push_back(new SBNdet(DET_UBOONE,1) ) ;
-			if(detector_names[i]=="ICARUS")     detectors.push_back(new SBNdet(DET_SBND,2) ) ;
+			if(detector_names[i]=="ICARUS")     detectors.push_back(new SBNdet(DET_ICARUS,2) ) ;
 		}
 
 	}
@@ -120,10 +120,10 @@ int SBgeN::doMC(){
 	std::cout<<"SBgeN::doMC || We have "<<Nfiles<<" Files "<<std::endl;
 	for(int j=0;j<Nfiles;j++){
 		std::cout<<"SBgeN::doMC || Starting file and event loops. On File: "<<multisim_file[j]<<std::endl;
-		double pot_factor = pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
+		double pot_factor = 1;//pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
 		for(int i=0; i< nentries.at(j); i++){
-			if(i%2500==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<std::endl;
+			if(i%10000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 			//here we put low level selection criteria, for example nuance interaction 1001 == CCQE, its a virtual bool.
