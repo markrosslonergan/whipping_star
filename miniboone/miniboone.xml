@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+
+
+<mode name="nu" use="1"/>
+
+<detector name="uBooNE" use="1" />
+
+
+<channel name="elike" use="1" numbins="11">
+	<bins 
+		edges="0.2 0.3 0.375 0.475 0.55  0.675  0.8  0.95  1.1 1.3  1.5 3.0"
+		widths="0.1 0.075 0.1 0.075 0.125 0.125 0.15 0.15 0.2 0.2 1.5"	
+		/>
+	<subchannel name="fullosc" use="1" />
+	<subchannel name="intrinsic" use="1" />
+</channel>
+
+<channel name="mlike" use="1" numbins="8">
+	<bins
+		edges ="0 0.500 0.700 0.900 1.100 1.300 1.500 1.700 1.900"
+		widths = "0.5 0.2 0.2 0.2 0.2 0.2 0.2 0.2" 
+		/>
+	<subchannel name="intrinsic" use="1" />
+</channel>
+
+
+<covariance file="miniboone/miniboone_cov_numode.root" name="TMatrixT<double>;1"/>
+
+<MCevents  multisim="15000" name="mainTree;12" filename="/home/mark/projects/sbn_3pN/git/SBN_3plusN/rootfiles/ntuple.SBND.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="PDGnu"/>
+		<branch name="Np"/>
+		<branch name="No"/>
+		<branch name="Nph"/>
+		<branch name="CC"/>
+		<branch name="NC"/>
+		<branch name="Npim"/>
+		<branch name="Npip"/>
+		<branch name="Npi0dph"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Enu"/>
+		<branch name="El"/>
+	</btype>
+	<btype type= "2" names="int_array">
+		<branch name="pdgo"/>
+	</btype>
+
+	<btype type= "3" names="double_array">
+		<branch name="Ep" dimension="1"/>
+		<branch name="Eo" dimension="1"/>
+		<branch name="pph" dimension="3"/>
+		<branch name="ppi0dph" dimension="3"/>
+		<branch name="Eph" dimension="1"/>
+		<branch name="Epim" dimension="1"/>
+		<branch name="Epip" dimension="1"/>
+		<branch name="Epi0dph" dimension="1"/>
+
+	</btype>
+
+</MCevents>
+
+	<data path="/home/mark/work/sbnfit_reduce/data/" />
