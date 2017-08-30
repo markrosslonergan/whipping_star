@@ -112,17 +112,17 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 			std::cout<<i<<" "<<"bnb kzero_PrimaryHadronSanfordWang "<<fWeights.at(1)->at("kzero_PrimaryHadronSanfordWang").size()<<std::endl;
 			std::cout<<"kplus: ";
 			for(auto wei: fWeights.at(0)->at("kplus_PrimaryHadronFeynmanScaling")){
-			std::cout<<wei<<" ";
+				std::cout<<wei<<" ";
 			}
 			std::cout<<std::endl;
 			std::cout<<"kmin: ";
 			for(auto wei: fWeights.at(0)->at("kminus_PrimaryHadronNormalization")){
-			std::cout<<wei<<" ";
+				std::cout<<wei<<" ";
 			}
 			std::cout<<std::endl;
 			std::cout<<"kzero: ";
 			for(auto wei: fWeights.at(0)->at("kzero_PrimaryHadronSanfordWang")){
-			std::cout<<wei<<" ";
+				std::cout<<wei<<" ";
 			}
 			std::cout<<std::endl;
 
@@ -157,7 +157,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 			if( used_multisims.at(i)!= used_multisims.at(i-1)){
 				std::cerr<<"ERROR: number of Multisims for "<<parameter_names.at(0)[0]<<" are different between files in "<<"  "<<parameter_names.at(i)[0]<<std::endl;
-					exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			universes_used = used_multisims.at(0);
 		}	
@@ -190,7 +190,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 			std::cout<<"File: "<<i<<" has "<<used_multisims.at(i)<<" multisims"<<std::endl;
 			if( used_multisims.at(i)!= used_multisims.at(i-1)){
 				std::cerr<<"ERROR: number of Multisims for "<<parameter_names.at(0)[0]<<" are different between files"<<std::endl;
-					exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			universes_used = used_multisims.at(0);
 		}	
@@ -198,7 +198,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 	}
 
-	
+
 	//Ok now we know now many universes we have, initilize all the sbnspecs
 	std::cout<<"Initilizing "<<universes_used<<" universes for "<<parameter_names[0][0]<<std::endl;
 
@@ -210,7 +210,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 	}
 
 
-	
+
 	//TNtuple * weight_tuple("weight_tuple","weight_tuple",);
 
 
@@ -240,11 +240,11 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 			//Check to see if event is ok of kaon event-bug
 			if(parameter_names.at(j)[0]=="kplus_PrimaryHadronFeynmanScaling" || parameter_names.at(j)[0] == "kminus_PrimaryHadronNormalization" || parameter_names.at(j)[0]== "kzero_PrimaryHadronSanfordWang"){
-			if( fWeights.at(j)->at("kplus_PrimaryHadronFeynmanScaling").size()!=1000 || fWeights.at(j)->at("kminus_PrimaryHadronNormalization").size()!=1000 || fWeights.at(j)->at("kzero_PrimaryHadronSanfordWang").size() != 1000){
-				std::cout<<"Skipping event # "<<i<<" in File "<<multisim_file.at(j)<<" as one of the kplus/zero/minus is broke"<<std::endl;
-				num_skipped_kaon++;
-				continue;
-			}
+				if( fWeights.at(j)->at("kplus_PrimaryHadronFeynmanScaling").size()!=1000 || fWeights.at(j)->at("kminus_PrimaryHadronNormalization").size()!=1000 || fWeights.at(j)->at("kzero_PrimaryHadronSanfordWang").size() != 1000){
+					std::cout<<"Skipping event # "<<i<<" in File "<<multisim_file.at(j)<<" as one of the kplus/zero/minus is broke"<<std::endl;
+					num_skipped_kaon++;
+					continue;
+				}
 			}
 
 
@@ -265,7 +265,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 						if(it->first == "bnbcorrection_FluxHist") continue;
 
 
-					//	std::cout<<"file: "<<j<<" "<<it->first<<" "<<" size "<<it->second.size()<<std::endl;
+						//	std::cout<<"file: "<<j<<" "<<it->first<<" "<<" size "<<it->second.size()<<std::endl;
 						for(auto &wei: it->second)
 						{
 							if(std::isinf(wei) || wei!= wei){
@@ -323,7 +323,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 					//This is the part where we will every histogram in this Universe
 					this->fillHistograms(j, m, weights.at(m) );
 
-					
+
 
 					//important check. failure mode	
 					if(weights[m]!=weights[m] || std::isinf(weights[m]) ){
@@ -395,7 +395,7 @@ int SBNcovar::fillHistograms(int file, int uni, double wei){
 		sigma=;
 		}	
 		double en = rangen.Gaus( vars_d.at(file), sigma );
-		*/	
+	 */	
 	double en = vars_d.at(file)[0];
 	multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
 
@@ -630,7 +630,7 @@ int SBNcovar::formCovarianceMatrix(){
 	   hist_full_cor->GetYaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 	   hist_full_cor->GetXaxis()->SetBinLabel(i,std::to_string( bin_edges[0][i-1] ).c_str());
 	   }
-	   */
+	 */
 
 	return 0;
 }
