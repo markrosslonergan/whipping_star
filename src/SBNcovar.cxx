@@ -54,8 +54,8 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 	SBNspec spec_sig(xmlname,-1);
 
 
-	vars_i= std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
-	vars_d=std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
+	vars_i = std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
+	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
 
 	std::vector< std::map<std::string, std::vector<double> > * > fWeights(multisim_name.size(),0);
 
@@ -395,7 +395,10 @@ int SBNcovar::fillHistograms(int file, int uni, double wei){
 		sigma=;
 		}	
 		double en = rangen.Gaus( vars_d.at(file), sigma );
-	 */	
+	 */
+	
+
+	
 	double en = vars_d.at(file)[0];
 	multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
 
