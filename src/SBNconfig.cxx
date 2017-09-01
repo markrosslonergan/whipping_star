@@ -76,20 +76,21 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
 		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
 
-		// What are the bin edges and bin widths
+		// What are the bin edges and bin widths (bin widths just calculated from edges now)
 		TiXmlElement *pBin = pChan->FirstChildElement("bins");
 		std::stringstream iss(pBin->Attribute("edges"));
-		std::stringstream pss(pBin->Attribute("widths"));
+		//std::stringstream pss(pBin->Attribute("widths"));
 
 		double number;
 		std::vector<double> binedge;
 		std::vector<double> binwidth;
 		while ( iss >> number ) binedge.push_back( number );
-		while ( pss >> number ) binwidth.push_back( number );
-
+		//while ( pss >> number ) binwidth.push_back( number );
+		for(int b = 0; b<binedge.size()-1; b++){
+			binwidth.push_back(fabs(binedge.at(b)-binedge.at(b+1)));
+		}			
 		bin_edges.push_back(binedge);
 		bin_widths.push_back(binwidth);
-
 
 		// Now loop over all this channels subchanels. Not the names must be UNIQUE!!
 		TiXmlElement *pSubChan;
@@ -184,6 +185,8 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	num_modes = mode_names.size();
 	num_detectors  = detector_names.size();
 
+	//Calculate bin_widths from bin_edges
+	
 
 
 	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.

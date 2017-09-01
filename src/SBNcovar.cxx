@@ -4,10 +4,15 @@
 using namespace sbn;
 
 SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
+	std::string SBNdir = std::getenv("SBNFITDIR");
+	std::string dict_location = SBNdir + "/src/AutoDict_map_string__vector_double____cxx.so";
 	gROOT->ProcessLine("#include <map>");
 	gROOT->ProcessLine("#include <vector>");
 	gROOT->ProcessLine("#include <string>");
-	gSystem->Load("/uboone/app/users/markrl/sbnfit/whipping_star/src/mdict_h.so");
+	//	gSystem->Load("/uboone/app/users/markrl/sbnfit/whipping_star/src/mdict_h.so");
+
+	std::cout<<"Trying to load dictionary: "<<dict_location<<std::endl;
+	gSystem->Load(  (dict_location).c_str());
 	gStyle->SetOptStat(0);
 
 	universes_used = 0;
@@ -39,30 +44,33 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 	std::vector<int> nentries;
 	for(auto &t: trees){
-		//nentries.push_back(3000);
-		nentries.push_back(t->GetEntries());
+		nentries.push_back(75000);
+		//nentries.push_back(t->GetEntries());
 	}
 
 
 
 	//signal crap todo
 	//
-	TFile *fS = new TFile("/uboone/app/users/mastbaum/leerw/leerw.root");
+	TFile *fS = new TFile("~/work/uBooNE/uboone_covariance_builder/rootfiles/leerw.root");
 	TTree * tnS =  (TTree*)fS->Get("leerw;1");
 	float lee=0;
 	tnS->SetBranchAddress("leerw",&lee);
 	SBNspec spec_sig(xmlname,-1);
 
 
-	vars_i = std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
-	vars_d = std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
+	vars_i= std::vector<std::vector<int>>(Nfiles   , std::vector<int>(branch_names_int.at(0).size(),0));
+	vars_d=std::vector<std::vector<double>>(Nfiles   , std::vector<double>(branch_names_double.at(0).size(),0.0));
 
 	std::vector< std::map<std::string, std::vector<double> > * > fWeights(multisim_name.size(),0);
+	std::vector<TLorentzVector * > fLepMom(Nfiles,0);
 
 	std::vector< TBranch *> bweight(Nfiles,0);
+	std::vector< TBranch *> bweight2(Nfiles,0);
 
 	for(int i=0; i< Nfiles; i++){
 		trees.at(i)->SetBranchAddress("mcweight", &(fWeights.at(i)), &(bweight.at(i)) );
+		trees.at(i)->SetBranchAddress("leptonMom", &(fLepMom.at(i)), &(bweight2.at(i))  );
 
 		for(auto &bfni: branch_names_int){
 			for(int k=0; k< bfni.size();k++){
@@ -176,7 +184,6 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 			{
 				if( it->first == "bnbcorrection_FluxHist") continue;
 
-
 				//	if(it->first == "kplus_PrimaryHadronFeynmanScaling")continue;
 				//	|| it->first == "kzero_PrimaryHadronSanfordWang" || it->first== "kminus_PrimaryHadronNormalization")continue;
 
@@ -192,9 +199,9 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 				std::cerr<<"ERROR: number of Multisims for "<<parameter_names.at(0)[0]<<" are different between files"<<std::endl;
 				exit(EXIT_FAILURE);
 			}
-			universes_used = used_multisims.at(0);
 		}	
 
+		universes_used = used_multisims.at(0);
 
 	}
 
@@ -218,6 +225,10 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 	for(int j=0;j<Nfiles;j++){
 		double pot_factor = pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
+		//comment out for energy
+		//if(j==1) continue;	
+
+
 		for(int i=0; i< nentries.at(j); i++){
 			if(i%100==0)std::cout<<"Event: "<<i<<" of "<<nentries[j]<<" from File: "<<multisim_file[j]<<" POT factor: "<<pot_factor<<std::endl;
 
@@ -239,9 +250,9 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 
 			//Check to see if event is ok of kaon event-bug
-			if(parameter_names.at(j)[0]=="kplus_PrimaryHadronFeynmanScaling" || parameter_names.at(j)[0] == "kminus_PrimaryHadronNormalization" || parameter_names.at(j)[0]== "kzero_PrimaryHadronSanfordWang"){
+			if(parameter_names.at(j)[0] =="ALL" || parameter_names.at(j)[0]=="kplus_PrimaryHadronFeynmanScaling" || parameter_names.at(j)[0] == "kminus_PrimaryHadronNormalization" || parameter_names.at(j)[0]== "kzero_PrimaryHadronSanfordWang"){
 				if( fWeights.at(j)->at("kplus_PrimaryHadronFeynmanScaling").size()!=1000 || fWeights.at(j)->at("kminus_PrimaryHadronNormalization").size()!=1000 || fWeights.at(j)->at("kzero_PrimaryHadronSanfordWang").size() != 1000){
-					std::cout<<"Skipping event # "<<i<<" in File "<<multisim_file.at(j)<<" as one of the kplus/zero/minus is broke"<<std::endl;
+					//std::cout<<"Skipping event # "<<i<<" in File "<<multisim_file.at(j)<<" as one of the kplus/zero/minus is broke"<<std::endl;
 					num_skipped_kaon++;
 					continue;
 				}
@@ -265,6 +276,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 						if(it->first == "bnbcorrection_FluxHist") continue;
 
 
+
 						//	std::cout<<"file: "<<j<<" "<<it->first<<" "<<" size "<<it->second.size()<<std::endl;
 						for(auto &wei: it->second)
 						{
@@ -275,7 +287,7 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 							if(wei> 10){
 								std::cout<<"ATTENTION: Large weight: "<<wei<<" at "<<it->first<<" event "<<i<<" file "<<j<<std::endl;
-							}
+							}	
 							weights.push_back(wei*global_weight);
 
 
@@ -294,7 +306,6 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 
 					std::vector<double> this_param_weights = fWeights.at(j)->at(parameter_names.at(j)[0]);
 					for(double wei : this_param_weights){
-						std::cout<<"Weights: "<<wei<<" event: "<<i<<std::endl;
 
 						if(std::isnan(wei) || wei != wei){
 							std::cout<<"Killing. event # "<<i<<" in File "<<multisim_file.at(j)<<" weight: "<<wei<<" global bnb: "<<global_weight<<" in "<<parameter_names.at(j)[0]<<std::endl;
@@ -312,17 +323,25 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 				}//end of single parameter scan
 
 
-				//So the size of weights must equal global universes ya?
+				//So the size of weights must equal global universes ya? changing to <= for now
 				if(weights.size() != universes_used){
-					std::cerr<<"num_sim (weights.size()) != universes_used "<<weights.size()<<" "<<universes_used<<std::endl;
+					std::cerr<<"num_sim (weights.size()) > universes_used "<<weights.size()<<" "<<universes_used<<std::endl;
 					exit(EXIT_FAILURE);
 
 				}
 
-				for(int m=0; m<universes_used; m++){
+				TVector3 zaxis(0,0,1);
+				for(int m=0; m<universes_used; m++){ 
 					//This is the part where we will every histogram in this Universe
-					this->fillHistograms(j, m, weights.at(m) );
+					//this->fillHistograms(j, m, weights.at(m) );
 
+
+
+					double en = vars_d.at(j)[3];
+					multi_sbnspec.at(m).hist.at(2*j).Fill(en, weights.at(m));
+
+					double lepAngle = zaxis.Angle(fLepMom.at(j)->Vect());					
+					multi_sbnspec.at(m).hist.at(2*j+1).Fill(cos(lepAngle), weights.at(m));
 
 
 					//important check. failure mode	
@@ -334,11 +353,14 @@ SBNcovar::SBNcovar(std::string xmlname) : SBNconfig(xmlname) {
 				}
 
 				//blarg, how will I treat this spectrum
-				spec_CV.hist.at(j).Fill(vars_d.at(j)[0],global_weight);
+				spec_CV.hist.at(2*j).Fill(vars_d.at(j)[3],global_weight);
+				double lepAngle = zaxis.Angle(fLepMom.at(j)->Vect());		
+				spec_CV.hist.at(2*j+1).Fill(cos(lepAngle),global_weight);
 
 				if(j==0){
 					spec_sig.hist.at(j).Fill(vars_d.at(j)[0],global_weight*(1+lee));
 				}
+
 
 
 			}//end of CCQE..interaction type check.. OH no this should be in fillHistograms
@@ -395,12 +417,16 @@ int SBNcovar::fillHistograms(int file, int uni, double wei){
 		sigma=;
 		}	
 		double en = rangen.Gaus( vars_d.at(file), sigma );
-	 */
-	
+	 */	
+	double en = vars_d.at(file)[3];
+	double cosTh = cos(vars_d.at(file)[2] );
+	//this is one that works
+	//multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
 
-	
-	double en = vars_d.at(file)[0];
-	multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
+
+	//multi_sbnspec.at(uni).hist.at(file).Fill(en, wei);
+	//multi_sbnspec.at(uni).hist.at(1).Fill(cosTh, wei);
+
 
 	return 0;
 }
