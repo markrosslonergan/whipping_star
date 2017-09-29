@@ -55,10 +55,14 @@ class SBNspec : public SBNconfig{
 	int NormAll(double);
 	int Norm(std::string name, double val);
 
+	int Clear();
 
 	//Recaculates the fullVec and compVec's
 	int calcFullVector();
 	int compressVector();
+
+	int getBinNumber(double invar, int which_hist);
+	
 
 	//Just some debugging/checking
 	int printFullVec();

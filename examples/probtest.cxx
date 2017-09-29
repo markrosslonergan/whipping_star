@@ -32,7 +32,6 @@
 #include "SBgeN.h"
 #include "SBNfit.h"
 #include "SBNfit3pN.h"
-#include "SBNcovar.h"
 #include "prob.h"
 #include "SBNprob.h"
 

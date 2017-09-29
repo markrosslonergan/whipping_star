@@ -101,9 +101,9 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 	std::cout<<"SBgeN::SBgeN || Setting up detectors SBNdet."<<std::endl;
 	for(int i=0; i< detector_names.size(); i++){
 		if(detector_bool[i]){
-			if(detector_names[i]=="SBND")     detectors.push_back(new SBNdet(DET_SBND,0) ) ;
-			if(detector_names[i]=="uBooNE")     detectors.push_back(new SBNdet(DET_UBOONE,1) ) ;
-			if(detector_names[i]=="ICARUS")     detectors.push_back(new SBNdet(DET_ICARUS,2) ) ;
+			if(detector_names[i]=="SBND")       detectors.push_back(new SBNdet(DET_SBND,0) 	 );
+			if(detector_names[i]=="uBooNE")     detectors.push_back(new SBNdet(DET_UBOONE,1) );
+			if(detector_names[i]=="ICARUS")     detectors.push_back(new SBNdet(DET_ICARUS,2) );
 		}
 
 	}

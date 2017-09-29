@@ -3,7 +3,6 @@
 
 add_executable (exampledemo examples.cxx)
 add_executable (quickplot quickplot.cxx)
-add_executable (build_uboone_cov build_microboone_covariance.cxx)
 add_executable (unit unit_test.cxx)
 add_executable (gentest gentest.cxx)
 add_executable (probtest probtest.cxx)
@@ -16,7 +15,6 @@ target_link_libraries (exampledemo SBNfitlib)
 target_link_libraries (exampledemo tinyxmllib)
 
 #ROOT_GENERATE_DICTIONARY(H__vec mymap.h LINKDEF mymapLinkDef.h)
-target_link_libraries (build_uboone_cov SBNfitlib)
 target_link_libraries (gentest SBNfitlib)
 target_link_libraries (probtest SBNfitlib)
 

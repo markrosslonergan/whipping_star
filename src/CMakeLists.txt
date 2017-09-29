@@ -2,7 +2,7 @@
 
 
 
-add_library (SBNfitlib SBNconfig.cxx SBNcovar.cxx SBNspec.cxx SBNfit.cxx SBNchi.cxx prob.cxx SBNfit3pN.cxx SBNosc.cxx SBNdet.cxx  SBgeN.cxx SBNprob.cxx mdict_h.so )
+add_library (SBNfitlib SBNconfig.cxx SBNspec.cxx SBNfit.cxx SBNchi.cxx prob.cxx SBNfit3pN.cxx SBNosc.cxx SBNdet.cxx  SBgeN.cxx SBNprob.cxx mdict_h.so )
 # Make sure the compiler can find include files for our Hello library
 # when other libraries or executables link to Hello
 

@@ -32,7 +32,6 @@
 #include "SBgeN.h"
 #include "SBNfit.h"
 #include "SBNfit3pN.h"
-#include "SBNcovar.h"
 
 #define no_argument 0
 #define required_argument 1
