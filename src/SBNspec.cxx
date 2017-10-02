@@ -347,12 +347,13 @@ int SBNspec::writeOut(std::string filename){
 int SBNspec::getBinNumber(double invar, int which_hist)
 {
 	int localbin = hist.at(which_hist).GetXaxis()->FindBin(invar);
-	double bin = localbin;
+	double bin = localbin-1;
 
 	for(int i=0; i<which_hist; i++){
 		bin += hist.at(i).GetNbinsX();	
 	}
 
+	if(localbin==0 || localbin > hist.at(which_hist).GetNbinsX() ){bin = -99;}
 	return bin;
 }
 
