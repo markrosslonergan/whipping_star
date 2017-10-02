@@ -61,7 +61,8 @@ class SBNspec : public SBNconfig{
 	int calcFullVector();
 	int compressVector();
 
-	int getBinNumber(double invar, int which_hist);
+	int getGlobalBinNumber(double invar, int which_hist);
+	int getLocalBinNumber(double invar, int which_hist);
 	
 
 	//Just some debugging/checking

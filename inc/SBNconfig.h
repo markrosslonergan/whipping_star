@@ -61,6 +61,8 @@ class SBNconfig {
 
 	std::string data_path;
 
+	int calcTotalBins();
+
 
 	//the xml names are the way we track which channels and subchannels we want to use later
 	std::vector<std::string> mode_names; 			
@@ -90,6 +92,8 @@ class SBNconfig {
 
 	SBNconfig(std::string);
 	SBNconfig(){};
+	SBNconfig(std::vector<std::string>, std::vector<std::string>, std::vector<std::string>, std::vector<std::vector<std::string>>, std::vector<std::vector<double>>);
+
 
 	//For generating a covariance matrix from scratch, this contains the number of multisims (weights in weight vector) and their names.
 	// For some reason I have decided that the first multisim, weight[0] must be the central value, =1

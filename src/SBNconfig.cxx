@@ -1,6 +1,85 @@
 #include "SBNconfig.h"
 using namespace sbn;
 
+SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> detin, std::vector<std::string> chanin, std::vector<std::vector<std::string>> subchanin, std::vector<std::vector<double>> binin){
+
+	num_detectors = detin.size();
+	num_channels = chanin.size();
+	num_modes = modein.size();
+	
+	if(subchanin.size() != chanin.size()){
+		std::cout<<"SUBCHAN.size() != chanin.size()"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	for(auto sb: subchanin){
+		num_subchannels.push_back( sb.size());
+	}
+
+	for(auto bn: binin){
+		num_bins.push_back(bn.size()-1);
+	}
+
+	this->calcTotalBins();
+
+	xmlname = "NULL";	
+
+
+	//the xml names are the way we track which channels and subchannels we want to use later
+	mode_names = modein; 			
+	detector_names = detin; 		
+	channel_names = chanin; 		
+	subchannel_names = subchanin; 
+
+	for(auto c: chanin){
+		channel_bool.push_back(true);
+	}
+	for(auto m: modein){
+		mode_bool.push_back(true);
+	}
+	for(auto d: detin){
+		detector_bool.push_back(true);
+	}
+	for(auto c: chanin){
+		std::vector<bool> tml;
+		for(int i=0; i< num_subchannels.size(); i++){
+			tml.push_back(true);
+		}
+		subchannel_bool.push_back(tml);
+	}
+
+	//self explanatory
+	bin_edges = binin;
+
+	for(auto binedge: bin_edges){
+		std::vector<double> binwidth;
+		for(int b = 0; b<binedge.size()-1; b++){
+				binwidth.push_back(fabs(binedge.at(b)-binedge.at(b+1)));
+		}
+		bin_widths.push_back(binwidth);	
+	}
+
+	// The order is IMPORTANT its the same as defined in xml
+	for(auto m: mode_names){
+		for(auto d: detector_names){
+			for(int c = 0; c< num_channels; c++){
+				for(auto sb: subchannel_names.at(c)){
+					std::string tmp = m +"_"+ d+"_"+channel_names.at(c)+"_"+sb;
+					fullnames.push_back(tmp);
+				}
+			}
+		}
+	}
+	
+
+	for(int i=0; i< num_bins_total; i++){
+		used_bins.push_back(i);
+	}
+
+
+};
+
+
 
 SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	//standard constructor given an xml.
@@ -240,6 +319,13 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	}
 
 
+	this->calcTotalBins();
+
+}//end constructor
+
+
+int SBNconfig::calcTotalBins(){
+
 	// These variables are important
 	// They show how big each mode block and decector block are, for any given number of channels/subchannels
 	// both before and after compression!
@@ -249,11 +335,14 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		num_bins_detector_block += num_subchannels[i]*num_bins[i];
 		num_bins_detector_block_compressed += num_bins[i];	
 	}		
+
 	num_bins_mode_block = num_bins_detector_block*num_detectors;
 	num_bins_mode_block_compressed = num_bins_detector_block_compressed*num_detectors;
+
 	num_bins_total = num_modes*num_bins_mode_block;
 	num_bins_total_compressed = num_modes*num_bins_mode_block_compressed;
 
+	return 0;
+}
 
-}//end constructor
 
