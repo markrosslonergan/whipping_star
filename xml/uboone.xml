@@ -34,11 +34,5 @@
 
 	
 <covariance file="rootfiles/covariance_matrices_xcheck_690x690.root" name="TMatrixT<float>;7" />
-
-<MCevents multisim="5" name="MCtree">
-		<branch name="Enu"/>
-		<branch name="Etype"/>
-		<branch name="weights"/>
-</MCevents>
 	
-<data path="/home/mark/work/sbnfit_reduce/data/" />
+<data path="/home/mark/work/SBNfit/whipping_star/data/" />

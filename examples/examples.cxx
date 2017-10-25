@@ -87,100 +87,6 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	//Test 1: just a signal, varying the normalisation, fit a landau, fit something more cpmplcated 3+1 sensitivity
-	//
-	//Test 2: landau fit, then inject a signal and other fit
-
-
-
-	/*************************************************************
-	 *************************************************************
-	 *		Example 1: 	Simple loading and scaling
-	 ************************************************************
-	 ************************************************************/
-	if(test_mode==10){
-		SBNspec bkg_spec("../../build/examples/SBN_CV", xml);
-		SBNspec sig_spec("../../build/examples/SBN_LEE_siggal", xml);
-
-		sig_spec.hist[1]=bkg_spec.hist[1];	
-
-		double kal_sig = 186.4;
-		double kal_in = 362.8;
-
-		//bkg_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
-		//sig_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
-
-
-		bkg_spec.compressVector();
-		sig_spec.compressVector();
-
-
-
-
-		std::cout<<"Full: "<<sig_spec.fullVec.size()<<" comp "<<sig_spec.compVec.size()<<std::endl;
-
-		SBNchi test_chi(bkg_spec);
-
-		std::cout<<"mat "<<test_chi.vMcI[0].size()<<" "<<test_chi.vMcI[0][0]<<std::endl;
-
-
-		int n = 100;
-		double x[n], chi[n];
-		for(int i=0; i<n; i++){
-
-			double scale =0+i*0.02;		
-
-			SBNspec loop_spec = sig_spec;
-
-
-			std::vector<double>excess;
-
-			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
-				excess.push_back(bkg_spec.hist[0].GetBinContent(k)-sig_spec.hist[0].GetBinContent(k)  );
-			}
-
-
-			double sc=kal_in/kal_sig * bkg_spec.hist[0].GetSumOfWeights()/sig_spec.hist[0].GetSumOfWeights();
-
-			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
-				loop_spec.hist[0].SetBinContent(k, bkg_spec.hist[0].GetBinContent(k)+ excess.at(k-1)*scale*sc);
-			}
-
-
-			loop_spec.compressVector();
-
-			//Set these for plotting later
-			x[i]=scale;
-			//And calculate the chi^2
-			chi[i]=test_chi.CalcChi(loop_spec);
-
-			std::cout<<scale<<" "<<chi[i]<<std::endl;
-		}
-
-		//Dump your results
-		TGraph *gr  = new TGraph(n,x,chi);
-		TFile * ff = new TFile("lee_scale.root","RECREATE");
-		TCanvas *c1 = new TCanvas("c1","Scale LEE ");
-
-		gr->SetTitle("chi^2 of LEE off CV ");
-		gr->GetXaxis()->SetTitle("Scale factor");
-		gr->GetYaxis()->SetTitle("#chi^{2}");
-		gr->Draw("ACP");
-
-		c1->Write();
-		ff->Close();
-
-
-
-		return 0;
-
-
-	}
-
-
-
-
-
 
 
 
@@ -512,7 +418,19 @@ int main(int argc, char* argv[])
 
 		return 0;
 	}else if(test_mode == 99)
-	{//Time for a more model dependant example
+	{
+
+
+
+		//OK everything below here a bit more random and unnecessary
+
+
+
+
+
+
+
+		//Time for a more model dependant example
 		//using just SBNspec does not give you a huge amount of power. The idea is to make your own model dependant classes from this
 		//such as here, SBNosc, a SBNspec precoded to do oscillation phyiscs (at SBL)
 
@@ -679,5 +597,96 @@ int main(int argc, char* argv[])
 
 		return 0;
 }
+
+
+
+	/*************************************************************
+	 *************************************************************
+	 *		Example 1: 	Simple loading and scaling
+	 ************************************************************
+	 ************************************************************/
+	if(test_mode==10){
+		SBNspec bkg_spec("../../build/examples/SBN_CV", xml);
+		SBNspec sig_spec("../../build/examples/SBN_LEE_siggal", xml);
+
+		sig_spec.hist[1]=bkg_spec.hist[1];	
+
+		double kal_sig = 186.4;
+		double kal_in = 362.8;
+
+		//bkg_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
+		//sig_spec.Scale("elike", kal_in/bkg_spec.hist[0].GetSumOfWeights() );
+
+
+		bkg_spec.compressVector();
+		sig_spec.compressVector();
+
+
+
+
+		std::cout<<"Full: "<<sig_spec.fullVec.size()<<" comp "<<sig_spec.compVec.size()<<std::endl;
+
+		SBNchi test_chi(bkg_spec);
+
+		std::cout<<"mat "<<test_chi.vMcI[0].size()<<" "<<test_chi.vMcI[0][0]<<std::endl;
+
+
+		int n = 100;
+		double x[n], chi[n];
+		for(int i=0; i<n; i++){
+
+			double scale =0+i*0.02;		
+
+			SBNspec loop_spec = sig_spec;
+
+
+			std::vector<double>excess;
+
+			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
+				excess.push_back(bkg_spec.hist[0].GetBinContent(k)-sig_spec.hist[0].GetBinContent(k)  );
+			}
+
+
+			double sc=kal_in/kal_sig * bkg_spec.hist[0].GetSumOfWeights()/sig_spec.hist[0].GetSumOfWeights();
+
+			for(int k=1; k<=bkg_spec.hist[0].GetNbinsX(); k++){
+				loop_spec.hist[0].SetBinContent(k, bkg_spec.hist[0].GetBinContent(k)+ excess.at(k-1)*scale*sc);
+			}
+
+
+			loop_spec.compressVector();
+
+			//Set these for plotting later
+			x[i]=scale;
+			//And calculate the chi^2
+			chi[i]=test_chi.CalcChi(loop_spec);
+
+			std::cout<<scale<<" "<<chi[i]<<std::endl;
+		}
+
+		//Dump your results
+		TGraph *gr  = new TGraph(n,x,chi);
+		TFile * ff = new TFile("lee_scale.root","RECREATE");
+		TCanvas *c1 = new TCanvas("c1","Scale LEE ");
+
+		gr->SetTitle("chi^2 of LEE off CV ");
+		gr->GetXaxis()->SetTitle("Scale factor");
+		gr->GetYaxis()->SetTitle("#chi^{2}");
+		gr->Draw("ACP");
+
+		c1->Write();
+		ff->Close();
+
+
+
+		return 0;
+
+
+	}
+
+
+
+
+
 
 }

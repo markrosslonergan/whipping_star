@@ -7,6 +7,7 @@
 #include "SBNspec.h"
 #include "SBNconfig.h"
 
+#include "TH1.h"
 #include "TH2.h"
 #include "TMatrixT.h"
 #include "TRandom3.h"
@@ -42,8 +43,12 @@ class SBNchi : public SBNconfig{
 	SBNchi(SBNspec,TMatrixT<double>);
 	//If you want to change background, run after change bkgSpec internally 
 	int load_bkg();
+	int reload_core_spec(SBNspec *bkgin);
 
+	int setStatOnly(bool in);
 
+	TMatrixT<double> Msys;
+	TMatrixT<double> MfracCov;
 
 	//load up systematic covariabnce matrix from a rootfile, location in xml
 	TMatrixT<double> sys_fill_direct(std::string, std::string);
@@ -67,6 +72,7 @@ class SBNchi : public SBNconfig{
 
 	//Return chi^2 from eith a SBnspec (RECCOMENDED as it checks to make sure xml compatable)
 	double CalcChi(SBNspec sigSpec);
+	double CalcChi(SBNspec *sigSpec);
 	// Or a vector
 	double CalcChi(std::vector<double> );
 	//Or you are taking covariance from one, and prediciton from another
@@ -74,6 +80,9 @@ class SBNchi : public SBNconfig{
 	//or a log ratio (miniboone esque)
 	double CalcChiLog(SBNspec *sigSpec);
 
+
+	TH1D toyMC_varyCore(SBNspec *specin, int num_MC);
+	TH1D toyMC_varyInput(SBNspec *specin, int num_MC);
 
 	//Some reason eventually store the reuslt in vectors, I think there was memory issues. 
 	std::vector<std::vector<double >> to_vector(TMatrixT <double> McI);

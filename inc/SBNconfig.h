@@ -37,6 +37,8 @@ class SBNconfig {
 	protected:
 	
 	public:
+	bool isVerbose;
+
 	int num_detectors;
 	int num_channels;
 	int num_modes;

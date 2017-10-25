@@ -42,6 +42,7 @@ class SBNspec : public SBNconfig{
 
 	int randomScale(); //mainly a debugging function, just randomly scales each hist by 0-2
 	int poissonScale(); //Scales every histogram by a poissonian random number
+	int poissonScale(TRandom3*); //Scales every histogram by a poissonian random number
 	int setAsGaussian(double mean, double sigma, int n);
 	int setAsFlat(double val);
 

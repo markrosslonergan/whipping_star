@@ -3,6 +3,8 @@ using namespace sbn;
 
 SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> detin, std::vector<std::string> chanin, std::vector<std::vector<std::string>> subchanin, std::vector<std::vector<double>> binin){
 
+	isVerbose = true;
+
 	num_detectors = detin.size();
 	num_channels = chanin.size();
 	num_modes = modein.size();
@@ -85,6 +87,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	//standard constructor given an xml.
 	//Using a very simple xml format that I directly coppied from an old project.
 
+	isVerbose = true;
 	//max subchannels 100?
 	subchannel_names.resize(100);
 	subchannel_bool.resize(100);

@@ -119,6 +119,16 @@ int SBNspec::poissonScale(){
 	return 0;
 }
 
+int SBNspec::poissonScale(TRandom3* rangen){
+	for(auto &h: hist){
+		for(int i=0; i<h.GetSize(); i++){
+			h.SetBinContent(i, rangen->Poisson( h.GetBinContent(i)    ));
+		}	
+	}
+	return 0;
+}
+
+
 
 int SBNspec::randomScale(){
 	TRandom3 *rangen    = new TRandom3(0);
