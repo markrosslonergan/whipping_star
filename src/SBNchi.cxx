@@ -650,14 +650,13 @@ TH1D SBNchi::toyMC_varyInput(SBNspec *specin, int num_MC){
 	
 	TRandom3 *rangen = new TRandom3(0);
 
-	SBNspec input = *specin;	
 	TH1D ans("","",250,0,100);
 	//So save the core one that we will sample for
 	ans.GetXaxis()->SetCanExtend(kTRUE);
 	isVerbose = false;
 	for(int i=0; i < num_MC;i++){
 
-		SBNspec tmp = input;
+		SBNspec tmp = *specin;
 		tmp.poissonScale(rangen);
 		tmp.compressVector(); //this line important isnt it!
 		//tmp.printFullVec();

@@ -88,9 +88,13 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	//Using a very simple xml format that I directly coppied from an old project.
 
 	isVerbose = true;
+	has_oscillation_patterns = false;
+
+
 	//max subchannels 100?
 	subchannel_names.resize(100);
 	subchannel_bool.resize(100);
+	subchannel_osc_patterns.resize(100);
 	char *end;
 
 	//Setup TiXml documents
@@ -98,7 +102,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	bool loadOkay = doc.LoadFile();
 	TiXmlHandle hDoc(&doc);
 
-	// we have Modes, Detectors, Channels, Covariance matricies, MC multisim data
+	// we have Modes, Detectors, Channels, Covariance matricies, MC multisim data, oscillation pattern matching
 	TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC, *pData;
 
 
@@ -109,6 +113,10 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	pCov  = doc.FirstChildElement("covariance");
 	pMC   = doc.FirstChildElement("MCevents");
 	pData   = doc.FirstChildElement("data");
+
+
+
+
 
 	//Where is the "data" folder that keeps pre-computed spectra and rootfiles
 	//Will eventuall just configure this in CMake
@@ -144,7 +152,6 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		//std::cout<<"Detector: "<<pDet->Attribute("name")<<" "<<pDet->Attribute("use")<<std::endl;
 		detector_names.push_back(pDet->Attribute("name"));
 		detector_bool.push_back(strtod(pDet->Attribute("use"),&end));
-
 		pDet = pDet->NextSiblingElement("detector");	
 	}
 
@@ -183,11 +190,20 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 			//std::cout<<"Subchannel: "<<pSubnum_subchannels->Attribute("name")<<" use: "<<pSubnum_subchannels->Attribute("use")<<std::endl;
 			subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
 			subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
+			//0 means dont oscillate, 11 means electron disapearance, -11 means antielectron dis..etc..
+			if( pSubChan->Attribute("osc"))
+			{
+				has_oscillation_patterns = true;
+			}
+			subchannel_osc_patterns[nchan].push_back(strtod(pSubChan->Attribute("osc"), &end));
 
 			nsubchan++;
 			pSubChan = pSubChan->NextSiblingElement("subchannel");	
 		}
 		num_subchannels.push_back(nsubchan);
+
+
+
 
 		nchan++;
 		pChan = pChan->NextSiblingElement("channel");	
@@ -259,6 +275,8 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		branch_names_int.push_back(TEMP_branch_names_int);
 		pMC=pMC->NextSiblingElement("MCevents");
 	}
+	
+
 
 
 

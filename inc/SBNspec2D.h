@@ -27,9 +27,14 @@
 namespace sbn{
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.
 // Inherits from SBNconfig as thats how its all configured/kept equal! :
-class SBNspec2D : public SBNspec{
+class SBNspec2D : public SBNconfig{
 	
 	public:
+
+	//Currently
+	
+
+
 
 };
 

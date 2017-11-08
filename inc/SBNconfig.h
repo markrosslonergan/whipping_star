@@ -59,11 +59,14 @@ class SBNconfig {
 	std::string correlation_matrix_name;
 
 	std::string xmlname;	
-	
 
 	std::string data_path;
 
 	int calcTotalBins();
+
+
+	//Bools to contain what is and is not in the xml
+	bool has_oscillation_patterns;
 
 
 	//the xml names are the way we track which channels and subchannels we want to use later
@@ -78,6 +81,9 @@ class SBNconfig {
 	std::vector<bool> detector_bool; 
 	std::vector<bool> channel_bool; 
 	std::vector<std::vector<bool >> subchannel_bool; 
+
+	//An oscillation pattern, for oscillations
+	std::vector<std::vector<int> > subchannel_osc_patterns; 
 
 	//self explanatory
 	std::vector<std::vector<double> > bin_edges;
@@ -95,6 +101,7 @@ class SBNconfig {
 	SBNconfig(std::string);
 	SBNconfig(){};
 	SBNconfig(std::vector<std::string>, std::vector<std::string>, std::vector<std::string>, std::vector<std::vector<std::string>>, std::vector<std::vector<double>>);
+	//This is going to be a manual setup thing
 
 
 	//For generating a covariance matrix from scratch, this contains the number of multisims (weights in weight vector) and their names.
@@ -113,6 +120,7 @@ class SBNconfig {
 	std::vector<std::vector<std::string>> branch_names_double;
 	std::vector<std::vector<std::string>> branch_names_double_array;
 	std::vector<std::vector<int>> branch_names_double_array_dimension;
+
 
 };
 
