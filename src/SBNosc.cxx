@@ -128,8 +128,49 @@ int SBNosc::OscillateThis(){
 				}
 
 
+
 			//std::cout<<"mm: "<<prob_mumu<<" ee: "<<prob_ee<<" mue: "<<prob_mue<<" mueSQ: "<<prob_mue_sq<<" mubar: "<<prob_muebar<<" muebarSQ: "<<prob_muebar_sq<<std::endl;
-			single_frequency.Scale("elike_fulloscnue", prob_mue);	
+			
+			
+			for(int i=0; i<num_channels; i++){
+				for(int j=0; j<num_subchannels.at(i); j++){
+					int osc_pattern = subchannel_osc_patterns.at(i).at(j);
+					double osc_amp = 0;
+					double osc_amp_sq = 0;
+					switch(osc_pattern){
+						case 11:
+							osc_amp = prob_ee;
+							break;
+						case -11:
+							osc_amp = prob_ee;
+							break;
+						case 22:
+							osc_amp = prob_mumu;
+							break;
+						case -22:
+							osc_amp = prob_mumu;
+							break;
+						case 21:
+							osc_amp = prob_mue;
+							osc_amp_sq = prob_mue_sq;
+							break;
+						case -21:
+							osc_amp = prob_muebar;
+							osc_amp_sq = prob_muebar_sq;
+							break;
+						case 0:
+						default:
+							break;
+					}
+				
+					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp );
+					single_frequency_square.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp_sq );
+				}
+			}
+
+
+
+			/*single_frequency.Scale("elike_fulloscnue", prob_mue);	
 			single_frequency.Scale("elike_fulloscbarnue", prob_muebar);	
 			single_frequency.Scale("elike_intrinsic", prob_ee);
 			single_frequency.Scale("elike_mismuon", prob_mumu);	
@@ -148,7 +189,7 @@ int SBNosc::OscillateThis(){
 			single_frequency_square.Scale("elike_cosmic",0.0);
 			single_frequency_square.Scale("mlike_intrinsic", 0.0);
 			single_frequency_square.Scale("mlike_misncpion",0.0);
-			
+			*/
 
 			this->Add(&single_frequency);
 			this->Add(&single_frequency_square);	
@@ -240,7 +281,45 @@ std::vector<double> SBNosc::Oscillate(){
 
 				}
 
+	
+			for(int i=0; i<num_channels; i++){
+				for(int j=0; j<num_subchannels.at(i); j++){
+					int osc_pattern = subchannel_osc_patterns.at(i).at(j);
+					double osc_amp = 0;
+					double osc_amp_sq = 0;
+					switch(osc_pattern){
+						case 11:
+							osc_amp = prob_ee;
+							break;
+						case -11:
+							osc_amp = prob_ee;
+							break;
+						case 22:
+							osc_amp = prob_mumu;
+							break;
+						case -22:
+							osc_amp = prob_mumu;
+							break;
+						case 21:
+							osc_amp = prob_mue;
+							osc_amp_sq = prob_mue_sq;
+							break;
+						case -21:
+							osc_amp = prob_muebar;
+							osc_amp_sq = prob_muebar_sq;
+							break;
+						case 0:
+						default:
+							break;
+					}
+				
+					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp );
+					single_frequency_square.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp_sq );
+				}
+			}
 
+
+			/*
 			//std::cout<<"mm: "<<prob_mumu<<" ee: "<<prob_ee<<" mue: "<<prob_mue<<" mueSQ: "<<prob_mue_sq<<" mubar: "<<prob_muebar<<" muebarSQ: "<<prob_muebar_sq<<std::endl;
 			single_frequency.Scale("elike_fulloscnue", prob_mue);	
 			single_frequency.Scale("elike_fulloscbarnue", prob_muebar);	
@@ -261,7 +340,7 @@ std::vector<double> SBNosc::Oscillate(){
 			single_frequency_square.Scale("elike_cosmic",0.0);
 			single_frequency_square.Scale("mlike_intrinsic", 0.0);
 			single_frequency_square.Scale("mlike_misncpion",0.0);
-			
+			*/
 
 
 			single_frequency.calcFullVector();

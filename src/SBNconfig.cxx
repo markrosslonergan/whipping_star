@@ -8,7 +8,7 @@ SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> d
 	num_detectors = detin.size();
 	num_channels = chanin.size();
 	num_modes = modein.size();
-	
+
 	if(subchanin.size() != chanin.size()){
 		std::cout<<"SUBCHAN.size() != chanin.size()"<<std::endl;
 		exit(EXIT_FAILURE);
@@ -56,7 +56,7 @@ SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> d
 	for(auto binedge: bin_edges){
 		std::vector<double> binwidth;
 		for(int b = 0; b<binedge.size()-1; b++){
-				binwidth.push_back(fabs(binedge.at(b)-binedge.at(b+1)));
+			binwidth.push_back(fabs(binedge.at(b)-binedge.at(b+1)));
 		}
 		bin_widths.push_back(binwidth);	
 	}
@@ -72,7 +72,7 @@ SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> d
 			}
 		}
 	}
-	
+
 
 	for(int i=0; i< num_bins_total; i++){
 		used_bins.push_back(i);
@@ -100,7 +100,14 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	//Setup TiXml documents
 	TiXmlDocument doc( whichxml.c_str() );
 	bool loadOkay = doc.LoadFile();
+	if(loadOkay){
+		std::cout<<"SBNconfig::SBNconfig || Loaded "<<whichxml<<std::endl;
+	}else{
+		std::cerr<<"ERROR: SBNonfig::SBNconfig || Failed to load "<<whichxml<<std::endl;
+		exit(EXIT_FAILURE);
+	}
 	TiXmlHandle hDoc(&doc);
+
 
 	// we have Modes, Detectors, Channels, Covariance matricies, MC multisim data, oscillation pattern matching
 	TiXmlElement *pMode, *pDet, *pChan, *pCov, *pMC, *pData;
@@ -123,6 +130,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	while(pData){
 		data_path = pData->Attribute("path");
 		pData = pData->NextSiblingElement("data");
+		std::cout<<"SBNconfig::SBnconfig || data path loaded as: "<<data_path<<std::endl;
 	}
 
 
@@ -142,6 +150,8 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		mode_bool.push_back(strtod(pMode->Attribute("use"),&end));	
 
 		pMode = pMode->NextSiblingElement("mode");
+		std::cout<<"SBNconfig::SBnconfig || loading mode: "<<mode_names.back()<<" with use_bool "<<mode_bool.back()<<std::endl;
+
 	}
 
 
@@ -153,6 +163,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		detector_names.push_back(pDet->Attribute("name"));
 		detector_bool.push_back(strtod(pDet->Attribute("use"),&end));
 		pDet = pDet->NextSiblingElement("detector");	
+		std::cout<<"SBNconfig::SBnconfig || loading detector: "<<detector_names.back()<<" with use_bool "<<detector_bool.back()<<std::endl;
 	}
 
 	//How many channels do we want! At the moment each detector must have all channels
@@ -164,7 +175,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		channel_names.push_back(pChan->Attribute("name"));
 		channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
 		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
-
+		std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
 		// What are the bin edges and bin widths (bin widths just calculated from edges now)
 		TiXmlElement *pBin = pChan->FirstChildElement("bins");
 		std::stringstream iss(pBin->Attribute("edges"));
@@ -187,15 +198,18 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		pSubChan = pChan->FirstChildElement("subchannel");
 		int nsubchan=0;
 		while(pSubChan){
-			//std::cout<<"Subchannel: "<<pSubnum_subchannels->Attribute("name")<<" use: "<<pSubnum_subchannels->Attribute("use")<<std::endl;
+			//std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<" osc: "<<pSubChan->Attribute("osc")<<std::endl;
 			subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
 			subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
 			//0 means dont oscillate, 11 means electron disapearance, -11 means antielectron dis..etc..
-			if( pSubChan->Attribute("osc"))
+			if(pSubChan->Attribute("osc"))
 			{
 				has_oscillation_patterns = true;
 			}
-			subchannel_osc_patterns[nchan].push_back(strtod(pSubChan->Attribute("osc"), &end));
+
+			subchannel_osc_patterns.at(nchan).push_back(strtod(pSubChan->Attribute("osc"), &end));
+
+			std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
 
 			nsubchan++;
 			pSubChan = pSubChan->NextSiblingElement("subchannel");	
@@ -210,72 +224,74 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	}
 
 	// if wea re creating a covariance matrix using a ntuple and weights, here is the info
-	while(pMC)
-	{
+	if(pMC){
+		std::cout<<"SBNcongig::SBNconfig || Loading a MC config. This is quite depreciated here."<<std::endl;
+		while(pMC)
+		{	
+			pot.push_back(strtof(pMC->Attribute("pot"),&end));
+			pot_scaling.push_back(strtof(pMC->Attribute("potscale"),&end));
+			num_multisim.push_back(strtod(pMC->Attribute("multisim"),&end));
+			multisim_name.push_back(pMC->Attribute("name"));
+			multisim_file.push_back(pMC->Attribute("filename"));
 
-		pot.push_back(strtof(pMC->Attribute("pot"),&end));
-		pot_scaling.push_back(strtof(pMC->Attribute("potscale"),&end));
-		num_multisim.push_back(strtod(pMC->Attribute("multisim"),&end));
-		multisim_name.push_back(pMC->Attribute("name"));
-		multisim_file.push_back(pMC->Attribute("filename"));
+			TiXmlElement *pParams = pMC->FirstChildElement("parameters");
 
-		TiXmlElement *pParams = pMC->FirstChildElement("parameters");
+			std::stringstream sss(pParams->Attribute("names"));
 
-		std::stringstream sss(pParams->Attribute("names"));
+			std::vector<std::string> vstring;
+			std::string nam;
+			while ( sss >> nam) vstring.push_back( nam );
 
-		std::vector<std::string> vstring;
-		std::string nam;
-		while ( sss >> nam) vstring.push_back( nam );
-
-		parameter_names.push_back(vstring);
+			parameter_names.push_back(vstring);
 
 
 
-		TiXmlElement *pBranchT;
-		pBranchT = pMC->FirstChildElement("btype");
-		//			std::cout<<"Starting run over branch types"<<std::endl;
-		std::vector<std::string> TEMP_branch_names_int;
-		std::vector<std::string> TEMP_branch_names_int_array;
-		std::vector<std::string> TEMP_branch_names_double;
-		std::vector<std::string> TEMP_branch_names_double_array;
-		std::vector<int> TEMP_branch_names_double_array_dimension;
+			TiXmlElement *pBranchT;
+			pBranchT = pMC->FirstChildElement("btype");
+			//			std::cout<<"Starting run over branch types"<<std::endl;
+			std::vector<std::string> TEMP_branch_names_int;
+			std::vector<std::string> TEMP_branch_names_int_array;
+			std::vector<std::string> TEMP_branch_names_double;
+			std::vector<std::string> TEMP_branch_names_double_array;
+			std::vector<int> TEMP_branch_names_double_array_dimension;
 
-		while(pBranchT){
-			TiXmlElement *pBranch;
-			pBranch = pBranchT->FirstChildElement("branch");
+			while(pBranchT){
+				TiXmlElement *pBranch;
+				pBranch = pBranchT->FirstChildElement("branch");
 
 				while(pBranch){
 					//std::cout<<pBranch->Attribute("name")<<" Type: "<<pBranchT->Attribute("type") <<std::endl;
-				if( strtod(pBranchT->Attribute("type"),&end)  == 0){
-					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" int"<<std::endl;
-					TEMP_branch_names_int.push_back(pBranch->Attribute("name"));
+					if( strtod(pBranchT->Attribute("type"),&end)  == 0){
+						//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" int"<<std::endl;
+						TEMP_branch_names_int.push_back(pBranch->Attribute("name"));
+					}
+					else if (strtod(pBranchT->Attribute("type"),&end)  == 1){
+						//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
+						TEMP_branch_names_double.push_back(pBranch->Attribute("name"));
+					}
+					else if (strtod(pBranchT->Attribute("type"),&end)  == 2){
+						TEMP_branch_names_int_array.push_back(pBranch->Attribute("name"));
+					}
+					else if (strtod(pBranchT->Attribute("type"),&end)  == 3){
+						//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
+						TEMP_branch_names_double_array.push_back(pBranch->Attribute("name"));
+						//std::cout<<"Hi: "<<strtod(pBranch->Attribute("dimension"),&end)<<std::endl; 
+						TEMP_branch_names_double_array_dimension.push_back(strtod(pBranch->Attribute("dimension"),&end));
+					}
+					pBranch = pBranch->NextSiblingElement("branch");	
 				}
-				else if (strtod(pBranchT->Attribute("type"),&end)  == 1){
-					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
-					TEMP_branch_names_double.push_back(pBranch->Attribute("name"));
-				}
-				else if (strtod(pBranchT->Attribute("type"),&end)  == 2){
-					TEMP_branch_names_int_array.push_back(pBranch->Attribute("name"));
-				}
-				else if (strtod(pBranchT->Attribute("type"),&end)  == 3){
-					//std::cout<<pBranch->Attribute("name")<<" num_multisim"<<num_multisim<<" double"<<std::endl;
-					TEMP_branch_names_double_array.push_back(pBranch->Attribute("name"));
-					//std::cout<<"Hi: "<<strtod(pBranch->Attribute("dimension"),&end)<<std::endl; 
-					TEMP_branch_names_double_array_dimension.push_back(strtod(pBranch->Attribute("dimension"),&end));
-				}
-				pBranch = pBranch->NextSiblingElement("branch");	
+				pBranchT= pBranchT->NextSiblingElement("btype");
 			}
-			pBranchT= pBranchT->NextSiblingElement("btype");
-		}
-		branch_names_double.push_back(TEMP_branch_names_double);
-		branch_names_double_array.push_back(TEMP_branch_names_double_array);
-		branch_names_double_array_dimension.push_back(TEMP_branch_names_double_array_dimension);
+			branch_names_double.push_back(TEMP_branch_names_double);
+			branch_names_double_array.push_back(TEMP_branch_names_double_array);
+			branch_names_double_array_dimension.push_back(TEMP_branch_names_double_array_dimension);
 
-		branch_names_int_array.push_back(TEMP_branch_names_int_array);
-		branch_names_int.push_back(TEMP_branch_names_int);
-		pMC=pMC->NextSiblingElement("MCevents");
+			branch_names_int_array.push_back(TEMP_branch_names_int_array);
+			branch_names_int.push_back(TEMP_branch_names_int);
+			pMC=pMC->NextSiblingElement("MCevents");
+		}
 	}
-	
+
 
 
 
@@ -286,7 +302,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	num_detectors  = detector_names.size();
 
 	//Calculate bin_widths from bin_edges
-	
+
 
 
 	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.
