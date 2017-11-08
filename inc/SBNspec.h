@@ -36,6 +36,7 @@ class SBNspec : public SBNconfig{
 	std::vector<double > compVec;
 
 	SBNspec(const char *, std::string); //Load in root file and config file
+	SBNspec(const char *, std::string,bool); //Load in root file and config file, optional verbosity
 	SBNspec(std::string); //Load in config file, create EMPTY hists 
 	SBNspec(std::string, int); //Load in config file, create EMPTY hists, with optional numbering (e.g for multisims!) 
 	SBNspec() {};

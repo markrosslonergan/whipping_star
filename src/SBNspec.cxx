@@ -37,8 +37,7 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 
 }
 
-
-SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) {
+SBNspec::SBNspec(const char * name, std::string whichxml, bool isverbose) : SBNconfig(whichxml, isverbose) {
 	//Contruct from a prexisting histograms!
 
 	char namei[200];
@@ -55,6 +54,12 @@ SBNspec::SBNspec(const char * name, std::string whichxml) : SBNconfig(whichxml) 
 
 	f.Close();
 
+
+}//end constructor
+
+
+
+SBNspec::SBNspec(const char * name, std::string whichxml) : SBNspec(name, whichxml, true)  {
 
 }//end constructor
 

@@ -98,6 +98,7 @@ class SBNconfig {
 	// If you have a large covariance matrix/spectrum (say containing nu and nubar mode) but only want to run with nu-mode (so you set use=0 in nubarmode) the vector used_bins contains all the bins that are actually in use. 
 	std::vector<int> used_bins; 
 
+	SBNconfig(std::string,bool);
 	SBNconfig(std::string);
 	SBNconfig(){};
 	SBNconfig(std::vector<std::string>, std::vector<std::string>, std::vector<std::string>, std::vector<std::vector<std::string>>, std::vector<std::vector<double>>);

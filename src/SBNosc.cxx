@@ -73,10 +73,10 @@ int SBNosc::OscillateThis(){
 			char namei[200];
 			
 			sprintf(namei, "%sprecomp/SBN_SIN_%2.2f", data_path.c_str(), ms.first );
-			SBNspec single_frequency(namei , xmlname );
+			SBNspec single_frequency(namei , xmlname , false);
 			
 			sprintf(namei, "%sprecomp/SBN_SINSQ_%2.2f", data_path.c_str(),ms.first );
-			SBNspec single_frequency_square(namei , xmlname );
+			SBNspec single_frequency_square(namei , xmlname ,false);
 
 			double prob_mumu, prob_ee, prob_mue, prob_mue_sq, prob_muebar, prob_muebar_sq;
 
@@ -227,10 +227,10 @@ std::vector<double> SBNosc::Oscillate(){
 			char namei[200];
 			
 			sprintf(namei, "%sprecomp/SBN_SIN_%2.2f",data_path.c_str(), ms.first );
-			SBNspec single_frequency(namei , xmlname );
+			SBNspec single_frequency(namei , xmlname, false);
 			
 			sprintf(namei, "%sprecomp/SBN_SINSQ_%2.2f",data_path.c_str(), ms.first );
-			SBNspec single_frequency_square(namei , xmlname );
+			SBNspec single_frequency_square(namei , xmlname, false);
 
 			double prob_mumu, prob_ee, prob_mue, prob_mue_sq, prob_muebar, prob_muebar_sq;
 

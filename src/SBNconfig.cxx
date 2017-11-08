@@ -82,12 +82,13 @@ SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> d
 };
 
 
+SBNconfig::SBNconfig(std::string whichxml): SBNconfig(whichxml, true) {}
 
-SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
+SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 	//standard constructor given an xml.
 	//Using a very simple xml format that I directly coppied from an old project.
 
-	isVerbose = true;
+	isVerbose = isverbose;
 	has_oscillation_patterns = false;
 
 
@@ -101,7 +102,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	TiXmlDocument doc( whichxml.c_str() );
 	bool loadOkay = doc.LoadFile();
 	if(loadOkay){
-		std::cout<<"SBNconfig::SBNconfig || Loaded "<<whichxml<<std::endl;
+		if(isVerbose)	std::cout<<"SBNconfig::SBNconfig || Loaded "<<whichxml<<std::endl;
 	}else{
 		std::cerr<<"ERROR: SBNonfig::SBNconfig || Failed to load "<<whichxml<<std::endl;
 		exit(EXIT_FAILURE);
@@ -130,7 +131,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 	while(pData){
 		data_path = pData->Attribute("path");
 		pData = pData->NextSiblingElement("data");
-		std::cout<<"SBNconfig::SBnconfig || data path loaded as: "<<data_path<<std::endl;
+		if(isVerbose)std::cout<<"SBNconfig::SBnconfig || data path loaded as: "<<data_path<<std::endl;
 	}
 
 
@@ -150,7 +151,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		mode_bool.push_back(strtod(pMode->Attribute("use"),&end));	
 
 		pMode = pMode->NextSiblingElement("mode");
-		std::cout<<"SBNconfig::SBnconfig || loading mode: "<<mode_names.back()<<" with use_bool "<<mode_bool.back()<<std::endl;
+	if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading mode: "<<mode_names.back()<<" with use_bool "<<mode_bool.back()<<std::endl;
 
 	}
 
@@ -163,7 +164,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		detector_names.push_back(pDet->Attribute("name"));
 		detector_bool.push_back(strtod(pDet->Attribute("use"),&end));
 		pDet = pDet->NextSiblingElement("detector");	
-		std::cout<<"SBNconfig::SBnconfig || loading detector: "<<detector_names.back()<<" with use_bool "<<detector_bool.back()<<std::endl;
+	if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading detector: "<<detector_names.back()<<" with use_bool "<<detector_bool.back()<<std::endl;
 	}
 
 	//How many channels do we want! At the moment each detector must have all channels
@@ -175,7 +176,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 		channel_names.push_back(pChan->Attribute("name"));
 		channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
 		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
-		std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
+	if(isVerbose)	std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
 		// What are the bin edges and bin widths (bin widths just calculated from edges now)
 		TiXmlElement *pBin = pChan->FirstChildElement("bins");
 		std::stringstream iss(pBin->Attribute("edges"));
@@ -209,7 +210,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 			subchannel_osc_patterns.at(nchan).push_back(strtod(pSubChan->Attribute("osc"), &end));
 
-			std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
+		if(isVerbose)	std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
 
 			nsubchan++;
 			pSubChan = pSubChan->NextSiblingElement("subchannel");	
@@ -225,7 +226,7 @@ SBNconfig::SBNconfig(std::string whichxml): xmlname(whichxml) {
 
 	// if wea re creating a covariance matrix using a ntuple and weights, here is the info
 	if(pMC){
-		std::cout<<"SBNcongig::SBNconfig || Loading a MC config. This is quite depreciated here."<<std::endl;
+	if(isVerbose)	std::cout<<"SBNcongig::SBNconfig || Loading a MC config. This is quite depreciated here."<<std::endl;
 		while(pMC)
 		{	
 			pot.push_back(strtof(pMC->Attribute("pot"),&end));
