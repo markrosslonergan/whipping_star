@@ -70,6 +70,7 @@ class SBgeN : public SBNspec{
 	std::vector<std::map<std::string, myarrayInt* >> vmapIA;
 
 	int doMC();
+	int doMC(std::string);
 
 };
 

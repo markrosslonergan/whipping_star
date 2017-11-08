@@ -116,6 +116,11 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 }
 
 int SBgeN::doMC(){
+	this->doMC("gen");
+	return 0;
+}
+
+int SBgeN::doMC(std::string nam){
 
 	std::cout<<"SBgeN::doMC || We have "<<Nfiles<<" Files "<<std::endl;
 	for(int j=0;j<Nfiles;j++){
@@ -144,7 +149,7 @@ int SBgeN::doMC(){
 	 *		Now some clean-up and Writing
 	 * ************************************************************/
 
-	this->writeOut("gen.root");
+	this->writeOut(nam+".root");
 
 
 	std::cout<<"SBgeN::doMC || Done. "<<std::endl;

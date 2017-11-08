@@ -361,6 +361,13 @@ std::vector<double> SBNosc::Oscillate(){
 };
 
 
+/*************************************************
+ * for a given workingModel. 
+ *  precomute the sin and sin^2 for this,
+ *
+ * **********************************************/
+
+
 
 
 

@@ -12,9 +12,11 @@
  * *******************************************/
 namespace sbn{
 // Note for this to work, you need to have precomputed spectra in data/precomp
+// Ability to precompute is not yet included!
+
 // As this the classes used for our SBN paper, we assume that the precomputed frequencies 
 // consist of 100 samples (in both Sin^2 and Sin)  from 0.01 eV^2 to 100 eV^2 
-// They are labeled SBN_FREW_MASS_.root where  FREQ is either SIN or SINSQ and MASS is the log10 of the sterile ev^2, e.g -0.04, or 1.20 
+// They are labeled SBN_FREQ_MASS_.root where  FREQ is either SIN or SINSQ and MASS is the log10 of the sterile ev^2, e.g -0.04, or 1.20 
 // to 2 sig figures
 
 
@@ -42,6 +44,9 @@ class SBNosc : public SBNspec{
 
 	int load_model(neutrinoModel);	
 	int calcMassSplittings();	
+
+	int precomputeSpectra(double dm);
+
 
 	//Oscillation mode 
 	int setMode(int);
