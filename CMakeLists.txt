@@ -19,8 +19,12 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED)# COMPONENTS Core Cint RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread)
 include(${ROOT_USE_FILE})
 
-find_package(GSL REQUIRED)
-include_directories(${GSL_INCLUDE_DIRS})
+
+## So these next two lines on duncan
+#find_package(GSL REQUIRED)
+#include_directories(${GSL_INCLUDE_DIRS})
+#and this line for nevis
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lgsl -lgslcblas -lm -I/usr/include")
 
 
 # add the binary tree to the search path for include files

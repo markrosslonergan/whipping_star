@@ -128,7 +128,7 @@ int SBgeN::doMC(std::string nam){
 		double pot_factor = 1;//pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
 		for(int i=0; i< nentries.at(j); i++){
-			if(i%10000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
+			if(i%250000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 			//here we put low level selection criteria, for example nuance interaction 1001 == CCQE, its a virtual bool.
