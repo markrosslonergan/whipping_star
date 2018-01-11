@@ -13,6 +13,7 @@
 #include <TH1D.h>
 #include <string>
 #include <TF1.h>
+#include <TMatrixT.h>
 
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
@@ -54,6 +55,11 @@ class SBNfit : public SBNchi {
 
 	//using SBNchi::SBNchi;
 	SBNfit(SBNspec bk, SBNspec sk,int npa);
+	
+	SBNfit(SBNspec inBk, SBNspec inSg, TMatrixD mat, int npar);
+
+
+
 	int load_signal(SBNspec);
 
 	int initialize_norm(std::vector< std::pair<std::string, int>> );

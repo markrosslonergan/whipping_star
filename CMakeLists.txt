@@ -21,10 +21,11 @@ include(${ROOT_USE_FILE})
 
 
 ## So these next two lines on duncan
-#find_package(GSL REQUIRED)
-#include_directories(${GSL_INCLUDE_DIRS})
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 #and this line for nevis
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lgsl -lgslcblas -lm -I/usr/include")
+
 
 
 # add the binary tree to the search path for include files

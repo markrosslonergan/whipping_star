@@ -10,8 +10,18 @@ SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
 	lastChi = -9999999;
 
 	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
+	MfracCov.ResizeTo(num_bins_total, num_bins_total);
 	stat_only = false;
-	load_bkg();
+
+	MfracCov = sys_fill_direct();
+	Msys.ResizeTo(num_bins_total,num_bins_total);
+	Msys.Zero();
+	Msys=MfracCov;
+
+
+	this->reload_core_spec(&in);
+	//load_bkg();
+
 }
 
 
@@ -19,6 +29,8 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 	stat_only = false;
 
 	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
+	MfracCov.ResizeTo(num_bins_total, num_bins_total);
+	
 	if(fullnames.size() !=in.fullnames.size()){
 		std::cerr<<"ERROR: SBNchi::SBNchi | Selected covariance matrix and background spectrum are different sizes!"<<std::endl;
 		exit(EXIT_FAILURE);
@@ -31,18 +43,20 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 		}
 	}		
 
-
 	lastChi = -9999999;
-
 	bkgSpec.compressVector();
-	load_bkg();
+	Msys.ResizeTo(num_bins_total,num_bins_total);
+	Msys.Zero();
+	Msys=MfracCov;
+
+	this->reload_core_spec(&in);
+	//load_bkg();
 }
 
 
 SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msysin) : SBNconfig(in.xmlname), bkgSpec(in){
 	lastChi = -9999999;
 	stat_only= false;
-
 	
 	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
 	Msys.ResizeTo(Msysin.GetNrows(), Msysin.GetNcols());
@@ -60,7 +74,6 @@ int SBNchi::setStatOnly(bool in){
 
 	this->reload_core_spec(&bkgSpec);	
 	return 0;
-
 
 }
 
@@ -82,7 +95,7 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 		if(isVerbose)std::cout<<"Inputted Msys covariance matrix is symmetric"<<std::endl;
 	}else{
 		std::cerr<<"ERROR: SBNchi::formCovarianceMatrix, Msys input is not symmetric!"<<std::endl;
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 
 
@@ -230,7 +243,7 @@ int SBNchi::load_bkg(){
 
 	Msys = sys_fill_direct();
 
-
+	MfracCov = Msys;
 
 	// systematics per scaled event
 	for(int i =0; i<Msys.GetNcols(); i++)
@@ -359,7 +372,7 @@ double SBNchi::CalcChi(std::vector<double> sigVec){
 
 	if(sigVec.size() != num_bins_total_compressed ){
 		std::cerr<<"ERROR: SBNchi::CalcChi(std::vector<double>) ~ your inputed vector does not have correct dimensions"<<std::endl;
-		std::cerr<<"sigVec.size(): "<<sigVec.size()<<" num_bins_total_compressed"<<num_bins_total_compressed<<std::endl;
+		std::cerr<<"sigVec.size(): "<<sigVec.size()<<" num_bins_total_compressed: "<<num_bins_total_compressed<<std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -461,7 +474,7 @@ void SBNchi::stats_fill(TMatrixT <double> &M, std::vector<double> diag){
 		//This was just for wierd MiniBooNE run
 		//if(i>=11 && i< 30) continue;
 		//if(i>=41) continue;
-			M(i,i) = diag[i];	
+			M(i,i) = diag.at(i);	
 
 	}
 
@@ -479,13 +492,13 @@ TMatrixT<double> SBNchi::sys_fill_direct(){
 
 TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matname){
 
-	//std::cout<<"SBNchi::sys_fill_direct || filling from "<<rootname<<std::endl;
+	std::cout<<"SBNchi::sys_fill_direct || filling from "<<rootname<<std::endl;
 
 	TMatrixT<double> temp2(num_bins_total,num_bins_total);
 	TFile *fm= new TFile(rootname.c_str());
 
-	//TMatrixT<float> * temp = (TMatrixT <float>* )fm->Get(matname.c_str());
-	TMatrixT<double> * temp = (TMatrixT <double>* )fm->Get(matname.c_str());
+	TMatrixT<float> * temp = (TMatrixT <float>* )fm->Get(matname.c_str());
+	//TMatrixT<double> * temp = (TMatrixT <double>* )fm->Get(matname.c_str());
 
 
 	std::vector<std::vector<double>> mcont;
@@ -510,9 +523,21 @@ TMatrixT<double > SBNchi::sys_fill_direct(std::string rootname, std::string matn
 	}
 	delete temp;
 
+	std::cout<<"SBNchi::sys_fill_direct || loaded with dim : "<<temp2.GetNcols()<<" "<<temp2.GetNrows()<<std::endl;
 
 	fm->Close();
 	delete fm;
+
+	if(temp2.IsSymmetric()){
+		if(isVerbose)std::cout<<"Inputted fracCov covariance matrix is symmetric"<<std::endl;
+	}else{
+		std::cerr<<"ERROR: SBNchi::sys_fill_direct, Msys input is not symmetric!"<<std::endl;
+		//exit(EXIT_FAILURE);
+	}
+
+
+
+
 	return temp2;
 
 
@@ -650,7 +675,7 @@ TH1D SBNchi::toyMC_varyInput(SBNspec *specin, int num_MC){
 	
 	TRandom3 *rangen = new TRandom3(0);
 
-	TH1D ans("","",250,0,100);
+	TH1D ans("","",100,0,50);
 	//So save the core one that we will sample for
 	ans.GetXaxis()->SetCanExtend(kTRUE);
 	isVerbose = false;
@@ -676,6 +701,47 @@ TH1D SBNchi::toyMC_varyInput(SBNspec *specin, int num_MC){
 }
 
 
+//This one varies the input comparative spectrum, and as sucn has  only to calculate the Msys once
+std::vector<double> SBNchi::toyMC_varyInput_getpval(SBNspec *specin, int num_MC, std::vector<double> chival){
+	std::vector<int> nlower(chival.size(),0);
+	
+
+	TRandom3 *rangen = new TRandom3(0);
+
+	TH1D ans("","",100,0,50);
+	//So save the core one that we will sample for
+	ans.GetXaxis()->SetCanExtend(kTRUE);
+	isVerbose = false;
+	for(int i=0; i < num_MC;i++){
+
+		SBNspec tmp = *specin;
+		tmp.poissonScale(rangen);
+		tmp.compressVector(); //this line important isnt it!
+		//tmp.printFullVec();
+
+		double thischi = this->CalcChi(&tmp);
+		ans.Fill(thischi);
+		
+	for(int j=0; j< chival.size(); j++){
+			if(thischi>=chival.at(j)) nlower.at(j)++;
+		}
+			
+		if(i%1000==0) std::cout<<"SBNchi::toyMC_varyInput(SBNspec*, int) on MC :"<<i<<"/"<<num_MC<<". Ans: "<<thischi<<std::endl;
+	}
+	std::vector<double> pval;
+	for(auto n: nlower){
+		pval.push_back(n/(double)num_MC);
+
+	}
+
+	isVerbose = true;
+	return pval;
+
+
+}
+
+
+
 
 //This one varies the core spectrum, and as sucn has to recalculate the Msys each stem
 TH1D SBNchi::toyMC_varyCore(SBNspec *specin, int num_MC){
@@ -698,7 +764,7 @@ TH1D SBNchi::toyMC_varyCore(SBNspec *specin, int num_MC){
 		ans.Fill(thischi);
 		if(thischi<=center)nlower++;
 			
-		if(i%100==0) std::cout<<"SBNchi::toyMC_varyCore(SBNspec*, int) on MC :"<<i<<"/"<<num_MC<<". Ans: "<<thischi<<std::endl;
+		if(i%1000==0) std::cout<<"SBNchi::toyMC_varyCore(SBNspec*, int) on MC :"<<i<<"/"<<num_MC<<". Ans: "<<thischi<<std::endl;
 	}
 	std::cout<<"pval: "<<nlower/(double)num_MC<<std::endl;
 

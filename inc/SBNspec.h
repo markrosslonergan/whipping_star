@@ -63,6 +63,8 @@ class SBNspec : public SBNconfig{
 	int calcFullVector();
 	int compressVector();
 
+	double getTotalEvents();
+
 	int getGlobalBinNumber(double invar, int which_hist);
 	int getLocalBinNumber(double invar, int which_hist);
 	

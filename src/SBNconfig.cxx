@@ -151,7 +151,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		mode_bool.push_back(strtod(pMode->Attribute("use"),&end));	
 
 		pMode = pMode->NextSiblingElement("mode");
-	if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading mode: "<<mode_names.back()<<" with use_bool "<<mode_bool.back()<<std::endl;
+		if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading mode: "<<mode_names.back()<<" with use_bool "<<mode_bool.back()<<std::endl;
 
 	}
 
@@ -164,7 +164,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		detector_names.push_back(pDet->Attribute("name"));
 		detector_bool.push_back(strtod(pDet->Attribute("use"),&end));
 		pDet = pDet->NextSiblingElement("detector");	
-	if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading detector: "<<detector_names.back()<<" with use_bool "<<detector_bool.back()<<std::endl;
+		if(isVerbose)	std::cout<<"SBNconfig::SBnconfig || loading detector: "<<detector_names.back()<<" with use_bool "<<detector_bool.back()<<std::endl;
 	}
 
 	//How many channels do we want! At the moment each detector must have all channels
@@ -176,7 +176,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		channel_names.push_back(pChan->Attribute("name"));
 		channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
 		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
-	if(isVerbose)	std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
+		if(isVerbose)	std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
 		// What are the bin edges and bin widths (bin widths just calculated from edges now)
 		TiXmlElement *pBin = pChan->FirstChildElement("bins");
 		std::stringstream iss(pBin->Attribute("edges"));
@@ -210,7 +210,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 			subchannel_osc_patterns.at(nchan).push_back(strtod(pSubChan->Attribute("osc"), &end));
 
-		if(isVerbose)	std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
+			if(isVerbose)	std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
 
 			nsubchan++;
 			pSubChan = pSubChan->NextSiblingElement("subchannel");	
@@ -226,7 +226,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 	// if wea re creating a covariance matrix using a ntuple and weights, here is the info
 	if(pMC){
-	if(isVerbose)	std::cout<<"SBNcongig::SBNconfig || Loading a MC config. This is quite depreciated here."<<std::endl;
+		if(isVerbose)	std::cout<<"SBNcongig::SBNconfig || Loading a MC config. This is quite depreciated here."<<std::endl;
 		while(pMC)
 		{	
 			pot.push_back(strtof(pMC->Attribute("pot"),&end));
@@ -301,10 +301,135 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 	num_channels = channel_names.size();
 	num_modes = mode_names.size();
 	num_detectors  = detector_names.size();
-
 	//Calculate bin_widths from bin_edges
 
 
+
+
+
+	//Actually want num_XXX to contain only activated things
+	//For here on down everything is derivable, above is just until I actually get config working.
+	num_modes = 0;
+	for(int i=0;i<mode_bool.size(); i++){	if(mode_bool.at(i)){ num_modes++; mode_used.push_back(i);}	}
+
+	num_detectors = 0;
+	for(int i=0; i<detector_bool.size(); i++){ if(detector_bool.at(i)) {num_detectors++; detector_used.push_back(i);}	}
+
+	for(int i=0; i< num_channels; i++){
+		num_subchannels[i] = 0;
+		for(bool j: subchannel_bool[i]){ if(j) num_subchannels[i]++;}
+	}
+	//This needs to be above num_channel recalculation;
+
+	num_channels = 0;
+	for(int i=0; i< channel_bool.size(); i++){
+		if( channel_bool.at(i)){
+			num_channels++;
+			channel_used.push_back(i);
+		}	
+	}
+
+
+
+
+
+	this->calcTotalBins();
+
+
+	if(isVerbose){
+		std::cout<<"SBNconfig::SBNconfig || Checking number of XX"<<std::endl;
+		std::cout<<"--> num_modes: "<<num_modes<<std::endl;
+		std::cout<<"--> num_detectors: "<<num_detectors<<std::endl;
+		std::cout<<"--> num_channels: "<<num_channels<<std::endl;
+		for(auto i: channel_used){
+			std::cout<<"----> num_subchannels: "<<num_subchannels.at(i)<<std::endl;
+			std::cout<<"----> num_bins: "<<num_bins.at(i)<<std::endl;	
+		}
+
+
+		std::cout<<"--> num_bins_detector_block: "<<num_bins_detector_block<<std::endl;
+		std::cout<<"--> num_bins_detector_block_compressed: "<<num_bins_detector_block_compressed<<std::endl;
+		std::cout<<"--> num_bins_mode_block: "<<num_bins_mode_block<<std::endl;
+		std::cout<<"--> num_bins_mode_block_compressed: "<<num_bins_mode_block_compressed<<std::endl;
+
+
+		std::cout<<"--> num_bins_total: "<<num_bins_total<<std::endl;
+		std::cout<<"--> num_bins_total_compressed: "<<num_bins_total_compressed<<std::endl;
+
+
+	}	
+
+	//Now delete all info corresponding to NON-USED channels & subchannels.
+
+
+	//num_subchannels, num_bins, bin_edges, bin_widths, channel_names, subchannel_names;
+	auto temp_num_subchannels = num_subchannels;
+	auto temp_num_bins= num_bins;
+	auto temp_subchannel_names = subchannel_names;
+	auto temp_channel_names = channel_names;
+	auto temp_bin_edges = bin_edges;
+	auto temp_bin_widths = bin_widths;
+	auto temp_detector_names = detector_names;
+	auto temp_mode_names = mode_names;
+	auto temp_mode_bool = mode_bool;
+	auto temp_channel_bool= channel_bool;
+	auto temp_detector_bool = detector_bool;
+	auto temp_subchannel_bool = subchannel_bool;
+	auto temp_subchannel_osc_patterns = subchannel_osc_patterns;
+
+	num_subchannels.clear();
+	num_bins.clear();
+	subchannel_names.clear();
+	channel_names.clear();
+	bin_edges.clear();
+	bin_widths.clear();
+	detector_names.clear();
+	mode_names.clear();
+
+	mode_bool.clear();
+	channel_bool.clear();
+	subchannel_bool.clear();
+	detector_bool.clear();
+	
+	subchannel_osc_patterns.clear();
+
+
+	for(int c: channel_used){
+		if(isVerbose){std::cout<<"SBNconfig::SBNconfig || Adding channel: "<<c<<std::endl;}	
+		num_subchannels.push_back( temp_num_subchannels.at(c));
+		num_bins.push_back( temp_num_bins.at(c));
+		subchannel_names.push_back( temp_subchannel_names.at(c));
+		channel_names.push_back( temp_channel_names.at(c));
+		bin_edges.push_back( temp_bin_edges.at(c));
+		bin_widths.push_back( temp_bin_widths.at(c));
+
+		channel_bool.push_back(temp_channel_bool.at(c));
+		subchannel_bool.push_back(temp_subchannel_bool.at(c));
+		subchannel_osc_patterns.push_back(temp_subchannel_osc_patterns.at(c));
+	}	
+	for(int d: detector_used){
+		detector_names.push_back(temp_detector_names.at(d));
+		detector_bool.push_back(temp_detector_bool.at(d));
+		if(isVerbose) std::cout<<"SBNconfig::SBNconfig || Using Detector: "<<detector_names.back()<<std::endl;
+	}
+	
+	for(int m: mode_used){
+		mode_names.push_back(temp_mode_names.at(m));
+		mode_bool.push_back(temp_mode_bool.at(m));
+	}
+
+
+
+	if(isVerbose) {
+		std::cout<<"SBNconfig::SBNconfig || Checkc:"<<std::endl;
+
+		std::cout<<"--> num_channels: "<<num_channels<<" channel_bool.size(): "<<channel_bool.size()<<std::endl;
+		std::cout<<"--> num_modes: "<<num_modes<<" mode_bool.size(): "<<mode_bool.size()<<std::endl;
+		std::cout<<"--> num_detectors: "<<num_detectors<<" detector_bool.size(): "<<detector_bool.size()<<std::endl;
+		for(int i=0; i< num_channels; i++){
+			std::cout<<"--> num_subchannels: "<<num_subchannels.at(i)<<" subchannel_bool.size(): "<<subchannel_bool.at(i).size()<<std::endl;
+		}
+	}
 
 	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.
 	std::string tempn;
@@ -317,12 +442,15 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 				for(int sc = 0; sc < num_subchannels[ic]; sc++){
 
+					//std::cout<<im<<" "<<id<<" "<<ic<<" "<<sc<<std::endl;
 					tempn = mode_names[im] +"_" +detector_names[id]+"_"+channel_names[ic]+"_"+subchannel_names[ic][sc];
-
+					//std::cout<<tempn<<std::endl;
+				
 					// This is where you choose NOT to use some fields	
 					if(mode_bool[im] && detector_bool[id] && channel_bool[ic] && subchannel_bool[ic][sc]){					
+				
 						fullnames.push_back(tempn);
-
+						if(isVerbose) std::cout<<"SBNconfig::SBNconfig || adding fullname: "<<tempn<<std::endl;
 						for(int k = indexcount; k < indexcount+num_bins[ic]; k++){
 							used_bins.push_back(k);
 
@@ -340,24 +468,22 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		}
 	}
 
-	//Actually want num_XXX to contain only activated things
-	//For here on down everything is derivable, above is just until I actually get config working.
-	num_modes = 0;
-	for(bool i:mode_bool){	if(i) num_modes++;	}
-
-	num_detectors = 0;
-	for(bool i:detector_bool){	if(i) num_detectors++;	}
-
-	num_channels = 0;
-	for(bool i:channel_bool){	if(i) num_channels++;	}
-
-	for(int i=0; i< num_channels; i++){
-		num_subchannels[i] = 0;
-		for(bool j: subchannel_bool[i]){ if(j) num_subchannels[i]++;}
-	}
 
 
-	this->calcTotalBins();
+
+
+
+
+
+
+
+
+
+
+	if(isVerbose){std::cout<<"SBNconfig::SBNconfig || Done!"<<std::endl;}	
+
+
+
 
 }//end constructor
 
@@ -367,9 +493,13 @@ int SBNconfig::calcTotalBins(){
 	// These variables are important
 	// They show how big each mode block and decector block are, for any given number of channels/subchannels
 	// both before and after compression!
+
+	//needs to be calculated AFTER usage bool removal above
+
 	num_bins_detector_block = 0;
 	num_bins_detector_block_compressed = 0;
-	for(int i =0; i< num_channels; i++){
+
+	for(auto i: channel_used){
 		num_bins_detector_block += num_subchannels[i]*num_bins[i];
 		num_bins_detector_block_compressed += num_bins[i];	
 	}		

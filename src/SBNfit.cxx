@@ -1,6 +1,26 @@
 #include "SBNfit.h"
 using namespace sbn;
 
+
+
+SBNfit::SBNfit(SBNspec inBk, SBNspec inSg, TMatrixD mat, int npar) : SBNchi(inBk, mat), sigOsc(inSg), num_params(npar) {
+
+	for(int i =0; i< num_params; i++){
+		f_is_fixed.push_back(0);
+		f_param_names.push_back("");
+		f_initial_values.push_back(0.5);
+		f_upper_values.push_back(1);
+		f_lower_values.push_back(0);
+		f_step_sizes.push_back(0.01);
+	}
+
+	f_minimizer_mode ="GSLMultiMin"; //"GSLSimAn"
+	f_minimizer_algo= "BFGS2";
+
+	num_func_calls = 0;
+}
+
+
 SBNfit::SBNfit(SBNspec inBk, SBNspec inSg, int npar) : SBNchi(inBk), sigOsc(inSg), num_params(npar) {
 
 
@@ -156,7 +176,8 @@ int SBNfit::setFixed(std::vector<int>  inv){
 		f_is_fixed[i]=inv[i];
 	}
 	return 0;
-}int SBNfit::setFixed(int in){
+}
+int SBNfit::setFixed(int in){
 	for(int i = 0; i< num_params; i++){
 		f_is_fixed[i]=in;
 	}

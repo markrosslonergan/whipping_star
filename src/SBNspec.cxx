@@ -234,15 +234,15 @@ int SBNspec::compressVector(){
 			for(int ic = 0; ic < num_channels; ic++){
 				int corner=edge;
 
-				for(int j=0; j< num_bins[ic]; j++){
+				for(int j=0; j< num_bins.at(ic); j++){
 
 					double tempval=0;
 
 
-					for(int sc = 0; sc < num_subchannels[ic]; sc++){
+					for(int sc = 0; sc < num_subchannels.at(ic); sc++){
 
-						//					std::cout<<im<<"/"<<num_modes<<" "<<id<<"/"<<num_detectors<<" "<<ic<<"/"<<num_channels<<" "<<j<<"/"<<num_bins[ic]<<" "<<sc<<"/"<<num_subchannels[ic]<<std::endl;
-						tempval += fullVec[j+sc*num_bins[ic]+corner];
+						//std::cout<<im<<"/"<<num_modes<<" "<<id<<"/"<<num_detectors<<" "<<ic<<"/"<<num_channels<<" "<<j<<"/"<<num_bins[ic]<<" "<<sc<<"/"<<num_subchannels[ic]<<std::endl;
+						tempval += fullVec.at(j+sc*num_bins.at(ic)+corner);
 						edge +=1;	//when your done with a channel, add on every bin you just summed
 					}
 					compVec.push_back(tempval);
@@ -257,6 +257,19 @@ int SBNspec::compressVector(){
 		}
 	}
 	return 0;
+}
+
+double SBNspec::getTotalEvents(){
+	double ans =0;
+	this->calcFullVector();
+	
+	for(double d: fullVec){
+		ans+=d;
+	}
+
+	return ans;
+
+
 }
 
 int SBNspec::printFullVec(){

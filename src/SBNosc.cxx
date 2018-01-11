@@ -315,12 +315,13 @@ std::vector<double> SBNosc::Oscillate(){
 				
 					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp );
 					single_frequency_square.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp_sq );
+					
 				}
 			}
 
 
-			/*
 			//std::cout<<"mm: "<<prob_mumu<<" ee: "<<prob_ee<<" mue: "<<prob_mue<<" mueSQ: "<<prob_mue_sq<<" mubar: "<<prob_muebar<<" muebarSQ: "<<prob_muebar_sq<<std::endl;
+			/*
 			single_frequency.Scale("elike_fulloscnue", prob_mue);	
 			single_frequency.Scale("elike_fulloscbarnue", prob_muebar);	
 			single_frequency.Scale("elike_intrinsic", prob_ee);

@@ -83,6 +83,7 @@ class SBNchi : public SBNconfig{
 
 	TH1D toyMC_varyCore(SBNspec *specin, int num_MC);
 	TH1D toyMC_varyInput(SBNspec *specin, int num_MC);
+	std::vector<double> toyMC_varyInput_getpval(SBNspec *specin, int num_MC, std::vector<double>chin);
 
 	//Some reason eventually store the reuslt in vectors, I think there was memory issues. 
 	std::vector<std::vector<double >> to_vector(TMatrixT <double> McI);

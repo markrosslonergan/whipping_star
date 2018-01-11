@@ -82,6 +82,10 @@ class SBNconfig {
 	std::vector<bool> channel_bool; 
 	std::vector<std::vector<bool >> subchannel_bool; 
 
+	std::vector<int> channel_used;
+	std::vector<int> detector_used;
+	std::vector<int> mode_used;
+
 	//An oscillation pattern, for oscillations
 	std::vector<std::vector<int> > subchannel_osc_patterns; 
 

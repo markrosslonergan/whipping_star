@@ -56,6 +56,5 @@ double SBNfit3p1::MinimizerCalcChi(const double * X){
 	lastChi =this->CalcChi(ans);
 
 	return lastChi;
-
 }
 
