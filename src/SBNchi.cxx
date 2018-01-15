@@ -92,7 +92,7 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 
 
 	if(Msys.IsSymmetric()){
-		if(isVerbose)std::cout<<"Inputted Msys covariance matrix is symmetric"<<std::endl;
+		if(isVerbose)std::cout<<"At Start of reload_core_spec Inputted Msys covariance matrix is symmetric"<<std::endl;
 	}else{
 		std::cerr<<"ERROR: SBNchi::formCovarianceMatrix, Msys input is not symmetric!"<<std::endl;
 		//exit(EXIT_FAILURE);
@@ -122,7 +122,7 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 	
 
 	if(Mstat.IsSymmetric()){
-		if(isVerbose)std::cout<<"Stat matrix is symmetric"<<std::endl;
+		if(isVerbose)std::cout<<"Stat matrix is symmetric (it is just diagonal core)"<<std::endl;
 	}else{
 		std::cerr<<"ERROR: SBNchi::formCovarianceMatrix, stats  is not symmetric!"<<std::endl;
 		exit(EXIT_FAILURE);

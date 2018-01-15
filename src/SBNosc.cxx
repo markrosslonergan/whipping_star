@@ -320,7 +320,7 @@ std::vector<double> SBNosc::Oscillate(){
 			}
 
 
-			//std::cout<<"mm: "<<prob_mumu<<" ee: "<<prob_ee<<" mue: "<<prob_mue<<" mueSQ: "<<prob_mue_sq<<" mubar: "<<prob_muebar<<" muebarSQ: "<<prob_muebar_sq<<std::endl;
+		//	std::cout<<"mm: "<<prob_mumu<<" ee: "<<prob_ee<<" mue: "<<prob_mue<<" mueSQ: "<<prob_mue_sq<<" mubar: "<<prob_muebar<<" muebarSQ: "<<prob_muebar_sq<<std::endl;
 			/*
 			single_frequency.Scale("elike_fulloscnue", prob_mue);	
 			single_frequency.Scale("elike_fulloscbarnue", prob_muebar);	
