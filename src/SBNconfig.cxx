@@ -124,8 +124,6 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 
 
-
-
 	//Where is the "data" folder that keeps pre-computed spectra and rootfiles
 	//Will eventuall just configure this in CMake
 	while(pData){
@@ -175,21 +173,27 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		// Read in how many bins this channel uses
 		channel_names.push_back(pChan->Attribute("name"));
 		channel_bool.push_back(strtod(pChan->Attribute("use"),&end));
-		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));		
+		num_bins.push_back(strtod(pChan->Attribute("numbins"), &end));	
+	
 		if(isVerbose)	std::cout<<"SBNconfig::SBNconfig || Loading Channel : "<<channel_names.back()<<" with use_bool: "<<channel_bool.back()<<std::endl;
+
 		// What are the bin edges and bin widths (bin widths just calculated from edges now)
 		TiXmlElement *pBin = pChan->FirstChildElement("bins");
 		std::stringstream iss(pBin->Attribute("edges"));
-		//std::stringstream pss(pBin->Attribute("widths"));
 
 		double number;
 		std::vector<double> binedge;
 		std::vector<double> binwidth;
 		while ( iss >> number ) binedge.push_back( number );
-		//while ( pss >> number ) binwidth.push_back( number );
+		
 		for(int b = 0; b<binedge.size()-1; b++){
 			binwidth.push_back(fabs(binedge.at(b)-binedge.at(b+1)));
 		}			
+		if(binedge.size() != num_bins.back()+1){
+			std::cout<<"SBNconfig::SBNconfig || ERROR: num_bins: "<<num_bins.back()<<" but we have "<<binedge.size()<<" binedges! should be num+1"<<std::endl;
+			exit(EXIT_FAILURE);
+		}
+
 		bin_edges.push_back(binedge);
 		bin_widths.push_back(binwidth);
 
@@ -216,9 +220,6 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 			pSubChan = pSubChan->NextSiblingElement("subchannel");	
 		}
 		num_subchannels.push_back(nsubchan);
-
-
-
 
 		nchan++;
 		pChan = pChan->NextSiblingElement("channel");	
@@ -294,8 +295,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 	}
 
 
-
-
+	if(isVerbose) std::cout<<"SBNconfig::SBNconfig || Calculating used things"<<std::endl;
 
 	// so num_channels here is number of TOTAL channels in xml.
 	num_channels = channel_names.size();
@@ -303,20 +303,66 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 	num_detectors  = detector_names.size();
 	//Calculate bin_widths from bin_edges
 
+	num_subchannels_xml = num_subchannels;
+	num_channels_xml = num_channels;
+	num_modes_xml = num_modes;
+	num_detectors_xml = num_detectors;
 
 
 
 
-	//Actually want num_XXX to contain only activated things
+
+	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.
+	std::string tempn;
+	int indexcount = 0;
+
+	for(int im = 0; im < num_modes; im++){
+
+		for(int id =0; id < num_detectors; id++){
+
+			for(int ic = 0; ic < num_channels; ic++){
+
+				for(int sc = 0; sc < num_subchannels.at(ic); sc++){
+
+					tempn = mode_names[im] +"_" +detector_names[id]+"_"+channel_names[ic]+"_"+subchannel_names[ic][sc];
+					if(isVerbose)std::cout<<"SBNconfig::SBNconfig || "<<tempn<<" "<<im<<" "<<id<<" "<<ic<<" "<<sc<<std::endl;
+				
+					// This is where you choose NOT to use some fields	
+					if(mode_bool[im] && detector_bool[id] && channel_bool[ic] && subchannel_bool[ic][sc]){					
+				
+						fullnames.push_back(tempn);
+						for(int k = indexcount; k < indexcount+num_bins.at(ic); k++){
+							used_bins.push_back(k);
+							//std::cout<<"USED: "<<k<<std::endl;
+
+						}
+					}
+					std::vector<int> tvec = {indexcount, indexcount+num_bins.at(ic)-1}; 
+
+					mapIndex[tempn] = 	tvec;				
+					indexcount = indexcount + num_bins.at(ic);
+
+
+				}	
+			}
+		}
+	}
+
+
+
+
+
 	//For here on down everything is derivable, above is just until I actually get config working.
-	num_modes = 0;
-	for(int i=0;i<mode_bool.size(); i++){	if(mode_bool.at(i)){ num_modes++; mode_used.push_back(i);}	}
+	if(isVerbose) std::cout<<"SBNconfig::SBNconfig || Starting on MC file parameters"<<std::endl;
+
+	num_modes=0;
+	for(int i=0;i<mode_bool.size(); i++){	if(mode_bool.at(i)){num_modes++; mode_used.push_back(i);}	}
 
 	num_detectors = 0;
 	for(int i=0; i<detector_bool.size(); i++){ if(detector_bool.at(i)) {num_detectors++; detector_used.push_back(i);}	}
 
 	for(int i=0; i< num_channels; i++){
-		num_subchannels[i] = 0;
+		num_subchannels.at(i) = 0;
 		for(bool j: subchannel_bool[i]){ if(j) num_subchannels[i]++;}
 	}
 	//This needs to be above num_channel recalculation;
@@ -331,21 +377,19 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 
 
-
-
+	if(isVerbose) std::cout<<"SBNconfig::SBNconfig || Calculating Total Bins"<<std::endl;
 	this->calcTotalBins();
 
 
 	if(isVerbose){
 		std::cout<<"SBNconfig::SBNconfig || Checking number of XX"<<std::endl;
-		std::cout<<"--> num_modes: "<<num_modes<<std::endl;
-		std::cout<<"--> num_detectors: "<<num_detectors<<std::endl;
-		std::cout<<"--> num_channels: "<<num_channels<<std::endl;
+		std::cout<<"--> num_modes: "<<num_modes<<" out of "<<num_modes_xml<<std::endl;
+		std::cout<<"--> num_detectors: "<<num_detectors<<" out of "<<num_detectors<<std::endl;
+		std::cout<<"--> num_channels: "<<num_channels<<" out of "<<num_channels<<std::endl;
 		for(auto i: channel_used){
-			std::cout<<"----> num_subchannels: "<<num_subchannels.at(i)<<std::endl;
+			std::cout<<"----> num_subchannels: "<<num_subchannels.at(i)<<" out of "<<num_subchannels_xml.at(i)<<std::endl;
 			std::cout<<"----> num_bins: "<<num_bins.at(i)<<std::endl;	
 		}
-
 
 		std::cout<<"--> num_bins_detector_block: "<<num_bins_detector_block<<std::endl;
 		std::cout<<"--> num_bins_detector_block_compressed: "<<num_bins_detector_block_compressed<<std::endl;
@@ -423,57 +467,13 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 	if(isVerbose) {
 		std::cout<<"SBNconfig::SBNconfig || Checkc:"<<std::endl;
 
-		std::cout<<"--> num_channels: "<<num_channels<<" channel_bool.size(): "<<channel_bool.size()<<std::endl;
-		std::cout<<"--> num_modes: "<<num_modes<<" mode_bool.size(): "<<mode_bool.size()<<std::endl;
-		std::cout<<"--> num_detectors: "<<num_detectors<<" detector_bool.size(): "<<detector_bool.size()<<std::endl;
+		std::cout<<"--> num_channels: "<<num_channels<<" channel_bool.size(): "<<channel_bool.size()<<" channel_names.size(): "<<channel_names.size()<<std::endl;
+		std::cout<<"--> num_modes: "<<num_modes<<" mode_bool.size(): "<<mode_bool.size()<<" mode_names.size(): "<<mode_names.size()<<std::endl;
+		std::cout<<"--> num_detectors: "<<num_detectors<<" detector_bool.size(): "<<detector_bool.size()<<" detector_names.size(): "<<detector_names.size()<<std::endl;
 		for(int i=0; i< num_channels; i++){
-			std::cout<<"--> num_subchannels: "<<num_subchannels.at(i)<<" subchannel_bool.size(): "<<subchannel_bool.at(i).size()<<std::endl;
+			std::cout<<"--> num_subchannels: "<<num_subchannels.at(i)<<" subchannel_bool.size(): "<<subchannel_bool.at(i).size()<<" subchannel_names.at(i).size(): "<<subchannel_names.at(i).size()<<std::endl;
 		}
 	}
-
-	// here we run through every combination, and make note when (and where binwise) all the subchannels that are turned on are.
-	std::string tempn;
-	int indexcount = 0;
-	for(int im = 0; im < num_modes; im++){
-
-		for(int id =0; id < num_detectors; id++){
-
-			for(int ic = 0; ic < num_channels; ic++){
-
-				for(int sc = 0; sc < num_subchannels[ic]; sc++){
-
-					//std::cout<<im<<" "<<id<<" "<<ic<<" "<<sc<<std::endl;
-					tempn = mode_names[im] +"_" +detector_names[id]+"_"+channel_names[ic]+"_"+subchannel_names[ic][sc];
-					//std::cout<<tempn<<std::endl;
-				
-					// This is where you choose NOT to use some fields	
-					if(mode_bool[im] && detector_bool[id] && channel_bool[ic] && subchannel_bool[ic][sc]){					
-				
-						fullnames.push_back(tempn);
-						if(isVerbose) std::cout<<"SBNconfig::SBNconfig || adding fullname: "<<tempn<<std::endl;
-						for(int k = indexcount; k < indexcount+num_bins[ic]; k++){
-							used_bins.push_back(k);
-
-						}
-					}
-
-					std::vector<int> tvec = {indexcount, indexcount+num_bins[ic]-1}; 
-
-					mapIndex[tempn] = 	tvec;				
-					indexcount = indexcount + num_bins[ic];
-
-
-				}	
-			}
-		}
-	}
-
-
-
-
-
-
-
 
 
 

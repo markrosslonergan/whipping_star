@@ -32,7 +32,7 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 		}
 	}
 
-
+	has_been_scaled = false;
 
 
 }
@@ -49,7 +49,7 @@ SBNspec::SBNspec(const char * name, std::string whichxml, bool isverbose) : SBNc
 		//std::cout<<"Attempting to load: "<<fn.c_str()<<" from: "<<namei<<std::endl;
 		hist.push_back(*((TH1D*)f.Get(fn.c_str()))); 
 	}
-
+	has_been_scaled=false;
 
 
 	f.Close();
@@ -157,13 +157,14 @@ int SBNspec::Scale(std::string name, TF1 * func){
 		}
 
 	}
+
 	return 0;
 }
 
 
 int SBNspec::ScaleAll(double sc){
 	for(auto& h: hist){
-		h.Scale(sc, "nosw2");
+		h.Scale(sc);
 	}
 	this->compressVector();
 
@@ -176,10 +177,14 @@ int SBNspec::Scale(std::string name, double val){
 
 		if(test.find(name)!=std::string::npos ){
 			//	std::cout<<name<<". found in: "<<test<<" at "<<test.find(name)<<std::endl;
-			h.Scale(val,"nosw2" );
+			h.Scale(val);
 		}
 
 	}
+
+	has_been_scaled = true;
+	scale_hist_name =name;
+	scale_hist_val = val;
 
 	this->compressVector();
 	return 0;

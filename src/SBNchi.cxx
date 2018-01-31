@@ -6,24 +6,7 @@ using namespace sbn;
  *		Constructors
  * ********************************************/
 
-SBNchi::SBNchi(SBNspec in) : SBNconfig(in.xmlname), bkgSpec(in){
-	lastChi = -9999999;
-
-	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
-	MfracCov.ResizeTo(num_bins_total, num_bins_total);
-	stat_only = false;
-
-	MfracCov = sys_fill_direct();
-	Msys.ResizeTo(num_bins_total,num_bins_total);
-	Msys.Zero();
-	Msys=MfracCov;
-
-
-	this->reload_core_spec(&in);
-	//load_bkg();
-
-}
-
+SBNchi::SBNchi(SBNspec in) : SBNchi(in,false){}
 
 SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgSpec(in){
 	stat_only = false;
@@ -43,6 +26,7 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 		}
 	}		
 
+	MfracCov = sys_fill_direct();
 	lastChi = -9999999;
 	bkgSpec.compressVector();
 	Msys.ResizeTo(num_bins_total,num_bins_total);
@@ -50,7 +34,6 @@ SBNchi::SBNchi(SBNspec in, std::string newxmlname) : SBNconfig(newxmlname), bkgS
 	Msys=MfracCov;
 
 	this->reload_core_spec(&in);
-	//load_bkg();
 }
 
 
@@ -65,36 +48,57 @@ SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msysin) : SBNconfig(in.xmlname), bkg
 	Msys = Msysin;
 	MfracCov = Msys;
 
-	this->reload_core_spec(&in);
+	this->reload_core_spec(&bkgSpec);
 
 }
 
-int SBNchi::setStatOnly(bool in){
-	stat_only = in;
+SBNchi::SBNchi(SBNspec in, bool is_stat_only): SBNconfig(in.xmlname), bkgSpec(in), stat_only(is_stat_only){
+	lastChi = -9999999;
+	
+	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
+	
+	Msys.ResizeTo(num_bins_total, num_bins_total);
+	MfracCov.ResizeTo(num_bins_total, num_bins_total);
 
-	this->reload_core_spec(&bkgSpec);	
-	return 0;
+	
+	if(is_stat_only){
+		MfracCov.Zero();	
+		Msys.Zero();
+
+	}else{
+		MfracCov = sys_fill_direct();
+		Msys.Zero();
+	}
+	
+
+	this->reload_core_spec(&bkgSpec);
 
 }
+
+
 
 /***********************************************
  *		Rest for now
  * ********************************************/
 
 int SBNchi::reload_core_spec(SBNspec *bkgin){
+	if(isVerbose)std::cout<<"SBNchi::reload_core_spec || Begininning to reload core spec! First set new core spec"<<std::endl;
 	bkgSpec = *bkgin;
+	bkgSpec.compressVector();
 	
+	if(isVerbose)std::cout<<"SBNchi::reload_core_spec || Clear all previous chi^2 data"<<std::endl;
 	lastChi_vec.clear();
 	lastChi_vec.resize(num_bins_total_compressed, std::vector<double>( num_bins_total_compressed,0) );
 	
 	//Reset Msys to fractional
+	if(isVerbose)std::cout<<"SBNchi::reload_core_spec, Reseting Msys to MfracCov"<<std::endl;
 	Msys = MfracCov;
 
 
 	if(Msys.IsSymmetric()){
 		if(isVerbose)std::cout<<"At Start of reload_core_spec Inputted Msys covariance matrix is symmetric"<<std::endl;
 	}else{
-		std::cerr<<"ERROR: SBNchi::formCovarianceMatrix, Msys input is not symmetric!"<<std::endl;
+		std::cerr<<"ERROR: SBNchi::reload_core_spec, Msys input is not symmetric!"<<std::endl;
 		//exit(EXIT_FAILURE);
 	}
 
@@ -106,18 +110,23 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 	}
 
 
+	if(isVerbose)std::cout<<"SBNchi::reload_core_spec || Go from fracCovariance to fullCovariance. Msys.GetNcols(): "<<Msys.GetNcols()<<" Msys.GetNrows(): "<<Msys.GetNrows()<<" core->fullvec.size(): "<<bkgSpec.fullVec.size()<<std::endl;
+
 	// systematics per scaled event
 	for(int i =0; i<Msys.GetNcols(); i++)
 	{
 		for(int j =0; j<Msys.GetNrows(); j++)
 		{
-			Msys(i,j)=Msys(i,j)*bkgin->fullVec.at(i)*bkgin->fullVec.at(j);
+
+			Msys(i,j)=Msys(i,j)*bkgSpec.fullVec.at(i)*bkgSpec.fullVec.at(j);
+
 		}
 	}
 
+	if(isVerbose)std::cout<<"SBNchi::reload_core_spec || Filling stats into cov matrix"<<std::endl;
 	// Fill stats from the back ground vector
 	TMatrixT <double> Mstat(num_bins_total, num_bins_total);
-	stats_fill(Mstat, bkgin->fullVec);
+	stats_fill(Mstat, bkgSpec.fullVec);
 
 	
 
@@ -250,7 +259,7 @@ int SBNchi::load_bkg(){
 	{
 		for(int j =0; j<Msys.GetNrows(); j++)
 		{
-			//std::cout<<"#: "<<Msys(i,j)<<" "<<bkgSpec.fullVec[i]<<" "<<bkgSpec.fullVec[j]<<std::endl;
+			std::cout<<"#: "<<Msys(i,j)<<" "<<bkgSpec.fullVec[i]<<" "<<bkgSpec.fullVec[j]<<std::endl;
 			Msys(i,j)=Msys(i,j)*bkgSpec.fullVec[i]*bkgSpec.fullVec[j];
 		}
 	}
@@ -332,11 +341,32 @@ double SBNchi::CalcChi(SBNspec *sigSpec){
 		sigSpec->compressVector();
 	}
 
+	int k=0;
 
+	/* THIS IS SIMPLIER CHI
+	for(int i =0; i<num_bins_total_compressed; i++){
+		double ank = pow(bkgSpec.compVec.at(i)-sigSpec->compVec.at(i),2.0)*vMcI.at(i).at(i);
+		tchi+=ank;
+		//std::cout<<"AGHR: "<<i<<"\t\t"<<ank<<"\t\t"<<tchi<<"\t\t"<<bkgSpec.compVec.at(i)<<"\t\t"<<sigSpec->compVec.at(i)<<"\t\t"<<vMcI.at(i).at(i)<<"\t\t"<<1.0/vMc.at(i).at(i)<<" "<<vMc.at(i).at(i)<<" "<<MfracCov(i,i)<<std::endl;
+				
+	}
+	return tchi;
+	*/
+	
 	for(int i =0; i<num_bins_total_compressed; i++){
 		for(int j =0; j<num_bins_total_compressed; j++){
+			k++;
+		//	if(i!=j && vMcI.at(i).at(j) != 0){
+		//		std::cout<<"ITS NOT SYM"<<std::endl;
+		//	} 
+			if(i==j && vMcI.at(i).at(j)<0){
+				std::cout<<"ERROR: SBNchi::CalcChi || diagonal of inverse covariance is negative!"<<std::endl;
+			}
+
+
 			lastChi_vec.at(i).at(j) =(bkgSpec.compVec.at(i)-sigSpec->compVec.at(i))*vMcI.at(i).at(j)*(bkgSpec.compVec.at(j)-sigSpec->compVec.at(j) ); 
 			tchi += lastChi_vec.at(i).at(j);
+			//std::cout<<"AGHR: "<<k<<" "<<i<<" "<<j<<" "<<tchi<<" minv: "<<vMcI.at(i).at(j)<<" bi "<<bkgSpec.compVec.at(i)<<" si "<<sigSpec->compVec.at(i)<<" bj "<<bkgSpec.compVec.at(j)<<" sj "<<sigSpec->compVec.at(j)<<std::endl;
 		}
 	}
 
@@ -564,7 +594,7 @@ void SBNchi::collapse_layer1(TMatrixT <double> & M, TMatrixT <double> & Mc){
 	int mrow = 0.0;
 	int mcol = 0.0;
 
-	for(int ic = 0; ic < num_channels; ic++){ 	  //Loop over all rows
+	for(int ic = 0; ic < num_channels; ic++){ 	 //Loop over all rows
 		for(int jc =0; jc < num_channels; jc++){ //Loop over all columns
 
 			if(debug)std::cout<<"Diagonal! : "<<ic<<" "<<jc<<" mcol is: "<<mcol<<" mrow is: "<<mrow<<std::endl;				

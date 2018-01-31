@@ -41,11 +41,15 @@ class SBNchi : public SBNconfig{
 	SBNchi(SBNspec,std::string); 
 	//Either initilize from a SBNspec  a TMatrix you have calculated elsewhere
 	SBNchi(SBNspec,TMatrixT<double>);
-	//If you want to change background, run after change bkgSpec internally 
-	int load_bkg();
+	//Initialise a stat_only one;
+	SBNchi(SBNspec, bool is_stat_only);
+	
+
+
+int load_bkg();
 	int reload_core_spec(SBNspec *bkgin);
 
-	int setStatOnly(bool in);
+	//int setStatOnly(bool in);
 
 	TMatrixT<double> Msys;
 	TMatrixT<double> MfracCov;

@@ -40,12 +40,17 @@ class SBNconfig {
 	bool isVerbose;
 
 	int num_detectors;
+	int num_detectors_xml;
 	int num_channels;
+	int num_channels_xml;
 	int num_modes;
+	int num_modes_xml;
 	
 	//vectors of length num_channels
 	std::vector<int> num_subchannels; 
+	std::vector<int> num_subchannels_xml; 
 	std::vector<int> num_bins;
+
 
 	int num_bins_detector_block;
 	int num_bins_mode_block;

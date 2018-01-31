@@ -57,6 +57,11 @@ class SBNspec : public SBNconfig{
 	int NormAll(double);
 	int Norm(std::string name, double val);
 
+	//need to store a history of the scales for oscillation purposes.  FIX THIS
+	std::string scale_hist_name;
+	double scale_hist_val;
+	bool has_been_scaled;
+
 	int Clear();
 
 	//Recaculates the fullVec and compVec's

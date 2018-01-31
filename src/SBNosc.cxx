@@ -78,6 +78,12 @@ int SBNosc::OscillateThis(){
 			sprintf(namei, "%sprecomp/SBN_SINSQ_%2.2f", data_path.c_str(),ms.first );
 			SBNspec single_frequency_square(namei , xmlname ,false);
 
+
+			if(has_been_scaled){
+				single_frequency.Scale(scale_hist_name, scale_hist_val);
+				single_frequency_square.Scale(scale_hist_name, scale_hist_val);
+			}
+
 			double prob_mumu, prob_ee, prob_mue, prob_mue_sq, prob_muebar, prob_muebar_sq;
 
 			int which_dm = ms.second;
@@ -139,16 +145,16 @@ int SBNosc::OscillateThis(){
 					double osc_amp_sq = 0;
 					switch(osc_pattern){
 						case 11:
-							osc_amp = prob_ee;
+							osc_amp_sq = prob_ee;
 							break;
 						case -11:
-							osc_amp = prob_ee;
+							osc_amp_sq = prob_ee;
 							break;
 						case 22:
-							osc_amp = prob_mumu;
+							osc_amp_sq = prob_mumu;
 							break;
 						case -22:
-							osc_amp = prob_mumu;
+							osc_amp_sq = prob_mumu;
 							break;
 						case 21:
 							osc_amp = prob_mue;
@@ -227,10 +233,16 @@ std::vector<double> SBNosc::Oscillate(){
 			char namei[200];
 			
 			sprintf(namei, "%sprecomp/SBN_SIN_%2.2f",data_path.c_str(), ms.first );
-			SBNspec single_frequency(namei , xmlname, false);
-			
+			SBNspec single_frequency(namei , xmlname, false);		
+	
 			sprintf(namei, "%sprecomp/SBN_SINSQ_%2.2f",data_path.c_str(), ms.first );
 			SBNspec single_frequency_square(namei , xmlname, false);
+
+			if(has_been_scaled){
+				single_frequency.Scale(scale_hist_name, scale_hist_val);
+				single_frequency_square.Scale(scale_hist_name, scale_hist_val);
+			}
+
 
 			double prob_mumu, prob_ee, prob_mue, prob_mue_sq, prob_muebar, prob_muebar_sq;
 
@@ -289,16 +301,16 @@ std::vector<double> SBNosc::Oscillate(){
 					double osc_amp_sq = 0;
 					switch(osc_pattern){
 						case 11:
-							osc_amp = prob_ee;
+							osc_amp_sq = prob_ee;
 							break;
 						case -11:
-							osc_amp = prob_ee;
+							osc_amp_sq = prob_ee;
 							break;
 						case 22:
-							osc_amp = prob_mumu;
+							osc_amp_sq = prob_mumu;
 							break;
 						case -22:
-							osc_amp = prob_mumu;
+							osc_amp_sq = prob_mumu;
 							break;
 						case 21:
 							osc_amp = prob_mue;
@@ -313,7 +325,7 @@ std::vector<double> SBNosc::Oscillate(){
 							break;
 					}
 				
-					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp );
+					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp);
 					single_frequency_square.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp_sq );
 					
 				}
