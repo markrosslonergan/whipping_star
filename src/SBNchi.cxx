@@ -44,9 +44,9 @@ SBNchi::SBNchi(SBNspec in, TMatrixT<double> Msysin) : SBNconfig(in.xmlname), bkg
 	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
 	Msys.ResizeTo(Msysin.GetNrows(), Msysin.GetNcols());
 	MfracCov.ResizeTo(Msysin.GetNrows(), Msysin.GetNcols());
+	
+	MfracCov = Msysin;
 	Msys.Zero();
-	Msys = Msysin;
-	MfracCov = Msys;
 
 	this->reload_core_spec(&bkgSpec);
 
@@ -56,7 +56,6 @@ SBNchi::SBNchi(SBNspec in, bool is_stat_only): SBNconfig(in.xmlname), bkgSpec(in
 	lastChi = -9999999;
 	
 	matrix_collapsed.ResizeTo(num_bins_total_compressed, num_bins_total_compressed);
-	
 	Msys.ResizeTo(num_bins_total, num_bins_total);
 	MfracCov.ResizeTo(num_bins_total, num_bins_total);
 
@@ -197,8 +196,19 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 	double invdet=0;
 
 	TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
+	
+
+	std::cout<<"Going to invert the stats+sys matrix now"<<std::endl;
 	McI = Mctotal.Invert(&invdet);
 	vMcI = to_vector(McI);
+	
+	if(McI == Mctotal){
+			std::cerr<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The inverted matrix == the matrix! Was there an error above?"<<std::endl;
+			std::cout<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The inverted matrix == the matrix! Was there an error above?"<<std::endl;
+			exit(EXIT_FAILURE);
+		
+
+	}
 
 
 

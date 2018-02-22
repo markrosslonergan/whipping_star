@@ -41,6 +41,7 @@ class SBNosc : public SBNspec{
 	// Or just oscillate a copy and return the ompressed vector
 	std::vector<double> Oscillate();
 	std::vector<double> Oscillate(double);
+	std::vector<double> OscillateWithAmp(double amp, double amp_sq);
 
 	int load_model(neutrinoModel);	
 	int calcMassSplittings();	

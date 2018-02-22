@@ -220,6 +220,71 @@ std::vector<double> SBNosc::Oscillate(double scale){
 	return tmp;
 }
 
+std::vector<double> SBNosc::OscillateWithAmp(double amp, double amp_sq){
+
+		this->calcFullVector();
+		this->compressVector();
+
+	std::vector<double > temp = compVec;
+
+
+	for(auto ms: mass_splittings){
+			char namei[200];
+			
+			sprintf(namei, "%sprecomp/SBN_SIN_%2.2f",data_path.c_str(), ms.first );
+			SBNspec single_frequency(namei , xmlname, false);		
+	
+			sprintf(namei, "%sprecomp/SBN_SINSQ_%2.2f",data_path.c_str(), ms.first );
+			SBNspec single_frequency_square(namei , xmlname, false);
+
+			if(has_been_scaled){
+				single_frequency.Scale(scale_hist_name, scale_hist_val);
+				single_frequency_square.Scale(scale_hist_name, scale_hist_val);
+			}
+
+			double prob_mumu, prob_ee, prob_mue, prob_mue_sq, prob_muebar, prob_muebar_sq;
+
+			int which_dm = ms.second;
+
+			for(int i=0; i<num_channels; i++){
+				for(int j=0; j<num_subchannels.at(i); j++){
+					int osc_pattern = subchannel_osc_patterns.at(i).at(j);
+					double osc_amp = 0;
+					double osc_amp_sq = 0;
+					switch(osc_pattern){
+						case 0:
+							break;
+						default:
+							osc_amp = amp;
+							osc_amp_sq = amp_sq;
+							break;
+					}
+				
+					single_frequency.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp);
+					single_frequency_square.Scale(channel_names.at(i)+"_"+subchannel_names.at(i).at(j), osc_amp_sq );
+					
+				}
+			}
+
+
+			single_frequency.calcFullVector();
+			single_frequency.compressVector();
+			
+
+			single_frequency_square.calcFullVector();
+			single_frequency_square.compressVector();
+	
+			for(int i=0;i<temp.size(); i++){
+				temp[i] += single_frequency.compVec[i];
+				temp[i] += single_frequency_square.compVec[i];
+			}
+
+	}//Done looping over
+
+	return temp;
+};
+
+
 
 std::vector<double> SBNosc::Oscillate(){
 
