@@ -195,21 +195,33 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 	vMc = to_vector(Mctotal);
 	double invdet=0;
 
-	TMatrixT <double> McI(num_bins_total_compressed,num_bins_total_compressed);
+	TMatrixD McI(num_bins_total_compressed,num_bins_total_compressed);
+	McI.Zero();	
 	
-
-	std::cout<<"Going to invert the stats+sys matrix now"<<std::endl;
-	McI = Mctotal.Invert(&invdet);
-	vMcI = to_vector(McI);
-	
-	if(McI == Mctotal){
-			std::cerr<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The inverted matrix == the matrix! Was there an error above?"<<std::endl;
-			std::cout<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The inverted matrix == the matrix! Was there an error above?"<<std::endl;
+	std::cout<<"About to do a SVD decomposition"<<std::endl;	
+	TDecompSVD svd(Mctotal);
+  	 if (!svd.Decompose()) {
+  	    std::cout << "Decomposition failed, matrix not symettric?" << std::endl;
+	    std::cout<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The matrix to invert failed a SVD decomp!"<<std::endl;
 			exit(EXIT_FAILURE);
-		
+
+
+  	 } else {
+  	    McI = svd.Invert();
+   	}
+	std::cout<<"Inverted!"<<std::endl;
+	vMcI = to_vector(McI);
+
+	
+	//std::cout<<"Going to invert the stats+sys matrix now"<<std::endl;
+	//McI = Mctotal.Invert(&invdet);
+	
+	if( !McI.IsValid()){
+			std::cerr<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The inverted matrix isnt valid"<<std::endl;
+			exit(EXIT_FAILURE);
 
 	}
-
+	
 
 
 	// test for validity

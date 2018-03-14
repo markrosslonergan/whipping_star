@@ -47,7 +47,7 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 
 int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phases, std::vector<double> mass){
 
-	t12= angles.at(0)*degree;
+	t12=angles.at(0)*degree;
 	t23=angles.at(1)*degree;
 	t13=angles.at(2)*degree;
 	
@@ -62,6 +62,7 @@ int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phase
 	Dm21=mass.at(0);
 	Dm31=mass.at(1);
 	Dm41=mass.at(2);
+	this->init();
 
 	return 0;
 
@@ -74,7 +75,6 @@ int SBNprob::init(){
 	double Ye=0.4957;
 	//formula from KOPP theisis
 	Vcc= conversion_parameter*7.56e-14*1e9*rho*Ye;// want potential to be in inv km also.
-
 
 
 	if(useAntiNeutrino){

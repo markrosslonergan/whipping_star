@@ -16,7 +16,8 @@
 #include <ctime>
 #include "params.h"
 
-
+#include "TDecompChol.h"
+#include "TDecompSVD.h"
 #include "TMatrixDEigen.h"
 #include "TMatrixDSymEigen.h"
 
