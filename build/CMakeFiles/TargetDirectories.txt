@@ -1,0 +1,9 @@
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/src/CMakeFiles/SBNfitlib.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/examples/CMakeFiles/exampledemo.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/examples/CMakeFiles/gentest.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/miniboone/CMakeFiles/minirepo.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/miniboone/CMakeFiles/minirepoL.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/examples/CMakeFiles/probtest.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/examples/CMakeFiles/quickplot.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/tinyxml/CMakeFiles/tinyxmllib.dir
+/a/home/houston/davio.cianci/sbnfit/whipping_star/build/examples/CMakeFiles/unit.dir
