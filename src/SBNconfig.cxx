@@ -68,6 +68,8 @@ SBNconfig::SBNconfig(std::vector<std::string> modein, std::vector<std::string> d
 				for(auto sb: subchannel_names.at(c)){
 					std::string tmp = m +"_"+ d+"_"+channel_names.at(c)+"_"+sb;
 					fullnames.push_back(tmp);
+	
+				
 				}
 			}
 		}
@@ -214,6 +216,9 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 			subchannel_osc_patterns.at(nchan).push_back(strtod(pSubChan->Attribute("osc"), &end));
 
+
+
+
 			if(isVerbose)	std::cout<<"--> Subchannel: "<<subchannel_names.at(nchan).back()<<" with use_bool "<<subchannel_bool.at(nchan).back()<<" and osc_pattern "<<subchannel_osc_patterns.at(nchan).back()<<std::endl;
 
 			nsubchan++;
@@ -336,6 +341,15 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 							//std::cout<<"USED: "<<k<<std::endl;
 
 						}
+
+
+						//FART
+
+
+
+
+
+
 					}
 					std::vector<int> tvec = {indexcount, indexcount+num_bins.at(ic)-1}; 
 

@@ -298,8 +298,8 @@ int SBNspec::writeOut(std::string filename){
 	//kWhite  = 0,   kBlack  = 1,   kGray    = 920,  kRed    = 632,  kGreen  = 416,
 	//kBlue   = 600, kYellow = 400, kMagenta = 616,  kCyan   = 432,  kOrange = 800,
 	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
+	std::vector<int> mycol = {kRed-7, kRed+1, kYellow-7, kOrange-3, kBlue+3, kBlue,  kGreen+1,kBlue-7, kPink, kViolet, kCyan,kMagenta,kAzure};
 
-	std::vector<int> mycol = {416-6, 800+3, 616+1, 632-7, 600-7, 432+1, 900}; 				
 	std::string fn1= "SBN_"+filename;
 	TFile *f2 = new TFile(fn1.c_str(),"RECREATE" ); 
 
@@ -332,6 +332,7 @@ int SBNspec::writeOut(std::string filename){
 				for(auto &h : temp){
 					std::string test = h.GetName();
 					if(test.find(canvas_name)!=std::string::npos ){
+						double total_events = h.GetSumOfWeights();
 						h.Sumw2(false);
 						h.Scale(1,"width,nosw2");
 						h.GetYaxis()->SetTitle("Events/GeV");
@@ -343,7 +344,7 @@ int SBNspec::writeOut(std::string filename){
 						h.Write();
 
 						std::ostringstream out;
-						out << std::setprecision(6) << h.GetSumOfWeights();
+						out << std::setprecision(6) << total_events;
 						std::string hmm = " , Total : ";
 						std::string tmp = h.GetName() +hmm+ out.str();
 						legStack.AddEntry(&h, tmp.c_str() , "f");

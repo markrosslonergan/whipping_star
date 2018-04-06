@@ -154,6 +154,44 @@ int SBNprob::setAntiNeutrinoMode(bool in){
 
 }
 
+double SBNprob::probabilityVacuumExact(int a, int b, double E, double L ){
+
+	complex_matrix S0(Nneutrino);
+
+	hamiltonian = UtVU;
+	
+	hamiltonian.mult(conversion_parameter/(2.0*E));
+	
+	//Blarg, hermitian->antihermitian...  Using the fact Exp[-I M] = Cos[M]-I Sin[M], even for matricies
+	//And calculate the matrix exponant 
+	std::vector<double> eigenval;
+	complex_matrix eigenvec(Nneutrino);
+	complex_matrix eigenvecTr(Nneutrino);
+
+	//hamiltonian has units of inverse km at this point I believe. 
+	S0=hamiltonian;
+	S0.matrixExpTest(L, &eigenval, &eigenvec);
+
+	//exponant is now S0 who cares how it got there
+
+	complex_matrix ans(Nneutrino);
+	eigenvecTr = eigenvec;
+	eigenvecTr.hermitianConjugate();
+
+	ans=S0;
+	//ans = Uconj; //should be eigenvecTr
+	//ans.mult(&S0);
+//	ans.mult(&U); //should be eigenvec ?? 
+
+	double re = ans.real(b,a);
+	double im = ans.imag(b,a);
+
+	return re*re+im*im;
+
+
+};
+
+
 
 double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 

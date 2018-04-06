@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 	double t24 = 20;
 	double t34 = 0;
 
-	double d13=0;
+	double d13=2.1;
 	double d24=0;
 	double d34=0;
 
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
 		//plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n);
 		myprob.plotProbabilityMatter(2, 1, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu->e
-		myprob.plotProbabilityMatter(2, 2, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu->mu
+		/*myprob.plotProbabilityMatter(2, 2, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu->mu
 		myprob.plotProbabilityMatter(2, 3, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu -> tau
 		myprob.plotProbabilityMatter(2, 4, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu -> s
 		myprob.plotProbabilityMatter(1, 4, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  e ->s
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
 		myprob.plotProbabilityMatter(-2, 3, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu -> tau
 		myprob.plotProbabilityMatter(-2, 4, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  mu -> s
 		myprob.plotProbabilityMatter(-1, 4, -3, 2, L_DUNE, 0.15, 1500,&dunestream); //  e ->s
-
+		*/
 
 		dunestream.close();
 		sbndstream.close();

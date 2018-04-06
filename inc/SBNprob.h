@@ -52,6 +52,8 @@ namespace sbn{
 			int setNCMatterEffect(bool);
 			int setParameters( std::vector<double>,std::vector<double>, std::vector<double>);
 
+			double probabilityVacuumExact(int a, int b ,double E, double L);
+			
 			double probabilityMatterExact(int a, int b ,double E, double L);
 			double probabilityMatterExactSmear(int, int ,double, double, double p, double n);
 

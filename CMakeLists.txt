@@ -19,6 +19,8 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED)# COMPONENTS Core Cint RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread)
 include(${ROOT_USE_FILE})
 
+message("Root lib: ${ROOT_LIBRARIES}")
+#ls /home/mark/programs/root/binary/root/lib/*.so | awk '{printf "%s+",$0} END {print ""}'
 
 ## So these next two lines on duncan
 find_package(GSL REQUIRED)
