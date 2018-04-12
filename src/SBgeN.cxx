@@ -61,40 +61,32 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 	std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
 
 	for(int i=0; i< Nfiles; i++){
-		for(auto &bfni: branch_names_int){
-			for(int k=0; k< bfni.size();k++){
-				trees.at(i)->SetBranchAddress(bfni[k].c_str(), &(vars_i.at(i).at(k)));
-				std::cout<<"SBgeN::SBgeN || Setting Integer Branch: "<<bfni[k]<<std::endl;
+			for(int k=0; k< branch_names_int.at(i).size();k++){
+				trees.at(i)->SetBranchAddress(branch_names_int.at(i).at(k).c_str(), &(vars_i.at(i).at(k)));
+				std::cout<<"SBgeN::SBgeN || Setting Integer Branch: "<<branch_names_int.at(i).at(k)<<std::endl;
 			}
-		}
-		for(auto &bfniA: branch_names_int_array){
-			for(int k=0; k< bfniA.size();k++){
-				trees.at(i)->SetBranchAddress( bfniA[k].c_str(), vars_iA.at(i).at(k).data  );
-				std::cout<<"SBgeN::SBgeN || Setting Integer Array Branch: "<<bfniA[k]<<std::endl;
+			for(int k=0; k< branch_names_int_array.at(i).size();k++){
+				trees.at(i)->SetBranchAddress( branch_names_int_array.at(i).at(k).c_str(), vars_iA.at(i).at(k).data  );
+				std::cout<<"SBgeN::SBgeN || Setting Integer Array Branch: "<<branch_names_int_array.at(i).at(k)<<std::endl;
 			}
-		}
 
 
-		for(auto &bfnd: branch_names_double){
-			for(int k=0; k< bfnd.size();k++){
-				trees.at(i)->SetBranchAddress(bfnd[k].c_str(), &(vars_d.at(i).at(k)));
-				std::cout<<"SBgeN::SBgeN || Setting Double Branch: "<<bfnd[k]<<std::endl;
+			for(int k=0; k< branch_names_double.at(i).size();k++){
+				trees.at(i)->SetBranchAddress(branch_names_double.at(i).at(k).c_str(), &(vars_d.at(i).at(k)));
+				std::cout<<"SBgeN::SBgeN || Setting Double Branch: "<<branch_names_double.at(i).at(k)<<std::endl;
 			}
-		}
 		int jj=0;
-		for(auto &bfndA: branch_names_double_array){
-			for(int k=0; k< bfndA.size();k++){
+			for(int k=0; k< branch_names_double_array.at(i).size();k++){
 				if( branch_names_double_array_dimension.at(jj).at(k) == 3){
-					trees.at(i)->SetBranchAddress(bfndA[k].c_str(), vars_dA.at(i).at(k).data3);
-					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch Dim 3: "<<bfndA[k]<<std::endl;
+					trees.at(i)->SetBranchAddress(branch_names_double_array.at(i).at(k).c_str(), vars_dA.at(i).at(k).data3);
+					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch Dim 3: "<<branch_names_double_array.at(i).at(k)<<std::endl;
 				}else{
-					trees.at(i)->SetBranchAddress(bfndA[k].c_str(), vars_dA.at(i).at(k).data);
-					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch "<<bfndA[k]<<std::endl;
+					trees.at(i)->SetBranchAddress(branch_names_double_array.at(i).at(k).c_str(), vars_dA.at(i).at(k).data);
+					std::cout<<"SBgeN::SBgeN || Setting Double Array Branch "<<branch_names_double_array.at(i).at(k)<<std::endl;
 				}
 
+				jj++;
 			}
-		jj++;
-		}
 	}
 
 
@@ -116,19 +108,18 @@ SBgeN::SBgeN(std::string whichxml) : SBNspec(whichxml,-1) {
 }
 
 int SBgeN::doMC(){
-	this->doMC("gen");
-	return 0;
+	return doMC("NULL");
 }
 
 int SBgeN::doMC(std::string nam){
 
 	std::cout<<"SBgeN::doMC || We have "<<Nfiles<<" Files "<<std::endl;
 	for(int j=0;j<Nfiles;j++){
-		std::cout<<"SBgeN::doMC || Starting file and event loops. On File: "<<multisim_file[j]<<std::endl;
+		std::cout<<"SBgeN::doMC || Starting file and event loops. On File: "<<multisim_file.at(j)<<" || "<<multisim_name.at(j)<<" #eventts: "<<nentries.at(j)<<std::endl;
 		double pot_factor = 1;//pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
 		for(int i=0; i< nentries.at(j); i++){
-			if(i%250000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries[j]<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
+			if(i%250000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries.at(j)<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 			//here we put low level selection criteria, for example nuance interaction 1001 == CCQE, its a virtual bool.
@@ -148,9 +139,9 @@ int SBgeN::doMC(std::string nam){
 	/***************************************************************
 	 *		Now some clean-up and Writing
 	 * ************************************************************/
-
-	this->writeOut(nam+".root");
-
+	if(nam!="NULL"){
+		this->writeSpec(nam);
+	}
 
 	std::cout<<"SBgeN::doMC || Done. "<<std::endl;
 	return 0;
@@ -158,9 +149,15 @@ int SBgeN::doMC(std::string nam){
 
 
 SBgeN::~SBgeN(){
+	std::cout<<"SBgeN::~SBgeN || Destructor Starting"<<std::endl;
 	for(auto &f: files){
 		f->Close();
+		delete f;
 	}
+	for(auto &t: trees){
+		//delete t;
+	}
+	
 
 	std::cout<<"SBgeN::~SBgeN || Destructor Done"<<std::endl;
 }

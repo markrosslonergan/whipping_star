@@ -6,8 +6,9 @@
 #include <iostream>
 #include "SBNconfig.h"
 #include <TH1D.h>
-#include <string>
 #include <TF1.h>
+#include <string>
+#include <TLine.h>
 #include <THStack.h>
 #include <TLegend.h>
 #include <TCanvas.h>
@@ -79,7 +80,11 @@ class SBNspec : public SBNconfig{
 	int printCompVec();
 	//writeOut saves all to an externam rootfile, each individual subchannel and a stacked channel plot.
 	int writeOut(std::string);
+	
+int writeSpec(std::string filename);
 
+
+	int compareSBNspecs(SBNspec * compsec, std::string filename);
 	//Addes two SBNspec together. must have same xml!
 	int Add(SBNspec*);
 

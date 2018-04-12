@@ -192,6 +192,10 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 
 	matrix_collapsed = Mctotal;
 
+	for(int j = 0; j< num_bins_total_compressed; j++){
+		Mctotal(j,j) = Mctotal(j,j)+1e-14;
+	}
+
 	vMc = to_vector(Mctotal);
 	double invdet=0;
 
@@ -201,10 +205,13 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 	std::cout<<"About to do a SVD decomposition"<<std::endl;	
 	TDecompSVD svd(Mctotal);
   	 if (!svd.Decompose()) {
-  	    std::cout << "Decomposition failed, matrix not symettric?" << std::endl;
+  	    std::cout << "Decomposition failed, matrix not symettric? More likely singular, maybe try to rebin" << std::endl;
 	    std::cout<<"ERROR: SBNchi::SBNchi(SBNspec, TMatrixD) The matrix to invert failed a SVD decomp!"<<std::endl;
-			exit(EXIT_FAILURE);
-
+	    std::cout<<"CONDITION: "<<svd.Condition()<<std::endl;
+	    for(int j = 0; j< num_bins_total_compressed; j++){
+		std::cout<<j<<"/"<<num_bins_total_compressed<<" "<<Mctotal(j,j)<<" "<<bkgSpec.compVec.at(j)<<std::endl;
+	    }
+	    exit(EXIT_FAILURE);
 
   	 } else {
   	    McI = svd.Invert();
@@ -230,7 +237,7 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 
 
 	//if a matrix is (a) real and (b) symmetric (checked above) then to prove positive semi-definite, we just need to check eigenvalues and >=0;
-	TMatrixDEigen eigen (Mtotal);
+	/*TMatrixDEigen eigen (Mtotal);
 	TVectorD eigen_values = eigen.GetEigenValuesRe();
 
 	
@@ -244,14 +251,12 @@ int SBNchi::reload_core_spec(SBNspec *bkgin){
 			}
 		}
 	}
-
-
+	*/
 	if(is_small_negative_eigenvalue){	
 	if(isVerbose)	std::cout<<"Generated covariance matrix is (allmost) positive semi-definite. It did contain small negative values of absolute value <= :"<<tolerence_positivesemi<<std::endl;
 	}else{
 	if(isVerbose)	std::cout<<"Generated covariance matrix is also positive semi-definite."<<std::endl;
 	}
-
 
 	bkgSpec.compressVector();
 
@@ -388,7 +393,7 @@ double SBNchi::CalcChi(SBNspec *sigSpec){
 
 			lastChi_vec.at(i).at(j) =(bkgSpec.compVec.at(i)-sigSpec->compVec.at(i))*vMcI.at(i).at(j)*(bkgSpec.compVec.at(j)-sigSpec->compVec.at(j) ); 
 			tchi += lastChi_vec.at(i).at(j);
-			//std::cout<<"AGHR: "<<k<<" "<<i<<" "<<j<<" "<<tchi<<" minv: "<<vMcI.at(i).at(j)<<" bi "<<bkgSpec.compVec.at(i)<<" si "<<sigSpec->compVec.at(i)<<" bj "<<bkgSpec.compVec.at(j)<<" sj "<<sigSpec->compVec.at(j)<<std::endl;
+			 //std::cout<<"AGHR: "<<k<<" "<<i<<" "<<j<<" "<<tchi<<" m: "<<vMc.at(i).at(j)<<" minv: "<<vMcI.at(i).at(j)<<" bi "<<bkgSpec.compVec.at(i)<<" si "<<sigSpec->compVec.at(i)<<" bj "<<bkgSpec.compVec.at(j)<<" sj "<<sigSpec->compVec.at(j)<<std::endl;
 		}
 	}
 

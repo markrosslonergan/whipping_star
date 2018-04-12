@@ -7,11 +7,12 @@ SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases,
 	degree = 3.14159/180.0;
 	conversion_parameter = 5.06842; //this is Gev->inv KM of course
 
+	
 	this->setParameters(angles,phases,mass);
 	rho = 2.8;
 
 	useMatterEffect = true;
-	useNCMatterEffect = true;
+	useNCMatterEffect = false;
 	useAntiNeutrino = false;
 	this->init();
 }
@@ -21,7 +22,6 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 	Nneutrino = dim;
 	degree = 3.14159/180.0;
 	conversion_parameter = 5.06842;
-
 
 	t12 = 30*degree;
 	t23 = 44*degree;
@@ -41,7 +41,7 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 	rho = 2.8;
 
 	useMatterEffect = true;
-	useNCMatterEffect = true;
+	useNCMatterEffect = false;
 	this->init();
 }
 
@@ -64,8 +64,8 @@ int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phase
 	Dm41=mass.at(2);
 	this->init();
 
-	return 0;
-
+		return 0;
+	
 }
 
 int SBNprob::init(){
@@ -114,7 +114,6 @@ int SBNprob::init(){
 	U.mult(&R12);
 
 
-
 	Uconj=U;
 	Uconj.hermitianConjugate();
 	std::vector<double> mass_splittings = {0.0,Dm21,Dm31,Dm41};
@@ -131,6 +130,30 @@ int SBNprob::init(){
 return 0;
 }
 
+double SBNprob::probabilityGlobes(int a, int b, int panti, double E, double L ){
+	double ans = 0;
+	{
+	char* dunno;
+	glbInit(dunno);
+
+
+	glb_params globes_params = glbAllocParams();
+	glbDefineParams(globes_params,t12,t13, t23, d13,Dm21,Dm31);
+	glbSetDensityParams(globes_params,1.0,GLB_ALL);
+	glbSetOscillationParameters(globes_params);
+
+  	glbSetRates();
+  
+	ans =  glbConstantDensityProbability(a+1,b+1,panti, E,L, rho);
+
+	glbFreeParams(globes_params);
+
+	}
+	return ans;
+
+}
+
+
 int SBNprob::setMatterEffect(bool in){
 	useMatterEffect = in;
 	this->init();
@@ -142,7 +165,6 @@ int SBNprob::setNCMatterEffect(bool in){
 	this->init();
 	return 0;
 }
-
 
 int SBNprob::setAntiNeutrinoMode(bool in){
        useAntiNeutrino = in;
@@ -179,9 +201,9 @@ double SBNprob::probabilityVacuumExact(int a, int b, double E, double L ){
 	eigenvecTr.hermitianConjugate();
 
 	ans=S0;
-	//ans = Uconj; //should be eigenvecTr
+	//ans = eigenvecTr; //should be eigenvecTr
 	//ans.mult(&S0);
-//	ans.mult(&U); //should be eigenvec ?? 
+	//ans.mult(&eigenvec); //should be eigenvec ?? 
 
 	double re = ans.real(b,a);
 	double im = ans.imag(b,a);
@@ -204,7 +226,7 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 	if(useMatterEffect){
 		hamiltonian.add(&potential);
 	}
-
+	
 	//Blarg, hermitian->antihermitian...  Using the fact Exp[-I M] = Cos[M]-I Sin[M], even for matricies
 	//And calculate the matrix exponant 
 	std::vector<double> eigenval;
@@ -222,9 +244,9 @@ double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
 	eigenvecTr.hermitianConjugate();
 
 	ans=S0;
-	//ans = Uconj; //should be eigenvecTr
+	//ans = eigenvecTr; //should be eigenvecTr
 	//ans.mult(&S0);
-//	ans.mult(&U); //should be eigenvec ?? 
+	//ans.mult(&eigenvec); //should be eigenvec ?? 
 
 	double re = ans.real(b,a);
 	double im = ans.imag(b,a);

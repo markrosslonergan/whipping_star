@@ -28,6 +28,7 @@ include_directories(${GSL_INCLUDE_DIRS})
 #and this line for nevis
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lgsl -lgslcblas -lm -I/usr/include")
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/local/lib -lglobes  -I/usr/local/include")
 
 
 # add the binary tree to the search path for include files

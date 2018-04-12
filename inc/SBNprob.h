@@ -8,6 +8,7 @@
 #include <string>
 #include <array>
 #include <map>
+#include <globes/globes.h>   /* GLoBES library */
 
 
 #include <prob.h>
@@ -19,6 +20,7 @@ namespace sbn{
 		public:	
 			SBNprob(int);
 			SBNprob(int, std::vector<double>,std::vector<double>, std::vector<double>);
+
 			int init();
 
 			double t12,t13,t23,t14,t24,t34;
@@ -55,6 +57,9 @@ namespace sbn{
 			double probabilityVacuumExact(int a, int b ,double E, double L);
 			
 			double probabilityMatterExact(int a, int b ,double E, double L);
+
+			double probabilityGlobes(int a, int b, int panti, double E, double L );
+
 			double probabilityMatterExactSmear(int, int ,double, double, double p, double n);
 
 			int plotProbabilityMatter(int a, int b, double Emin, double Emax, double L, double percen, double n, std::ofstream *filestream);
