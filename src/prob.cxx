@@ -20,6 +20,18 @@ complex_matrix::complex_matrix(int dim){
 
 }
 
+int complex_matrix::conj(){
+
+	for(int i =0; i< dimension; i++){
+		for(int j =0; j< dimension; j++){
+			//real(i,j) = real(i,j); 
+			imag(i,j) = -imag(i,j); 
+		}
+	}
+
+	return 0;
+}
+
 int complex_matrix::add(complex_matrix *in){
 
 	for(int i =0; i< dimension; i++){
@@ -73,6 +85,55 @@ int complex_matrix::mult(double valRe, double valIm){
 
 	return 0;
 }
+
+std::vector<double> complex_matrix::getEigenStuff(std::vector<double>* out_vec, complex_matrix * out_mat){
+	std::vector<double> ans;
+
+	gsl_eigen_hermv_workspace * w = gsl_eigen_hermv_alloc(dimension);
+	gsl_vector *eigenval = gsl_vector_alloc(dimension);
+
+	gsl_matrix_complex * M = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex * temp = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex * eigenvec = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex *diagonal = gsl_matrix_complex_calloc(dimension,dimension);
+	gsl_matrix_complex *answer = gsl_matrix_complex_calloc(dimension,dimension);
+
+
+	//Just setting the matrix in a gsl form
+	for(int i=0; i<dimension;i++){
+		for(int j=0; j< dimension; j++){
+			gsl_matrix_complex_set(M,i,j,gsl_complex_rect( real(i,j),imag(i,j) ));
+		}
+	}
+
+	
+	gsl_eigen_hermv(M, eigenval, eigenvec, w);
+	gsl_eigen_genhermv_sort(eigenval,eigenvec,GSL_EIGEN_SORT_ABS_DESC);
+	//Ok eigenval and eigenvec are filled and sorted now
+
+	for(int i=0; i<dimension; i++){
+		//why i send them out the from and back i dont know
+		ans.push_back(gsl_vector_get(eigenval,i));
+		out_vec->push_back(gsl_vector_get(eigenval,i));
+
+		for(int j=0; j< dimension; j++){
+			out_mat->real(i,j) = gsl_matrix_complex_get(eigenvec, i, j).dat[0]; 
+			out_mat->imag(i,j) = gsl_matrix_complex_get(eigenvec, i, j).dat[1]; 
+
+		}
+	}
+
+	gsl_matrix_complex_free(answer);
+	gsl_matrix_complex_free(diagonal);
+	gsl_matrix_complex_free(M);
+	gsl_matrix_complex_free(temp);
+	gsl_matrix_complex_free(eigenvec);
+	gsl_vector_free(eigenval);
+	gsl_eigen_hermv_free(w);
+
+	return ans;
+}
+
 
 std::vector<double> complex_matrix::matrixExpTest(double L, std::vector<double>* out_vec, complex_matrix * out_mat){
 	std::vector<double> ans;

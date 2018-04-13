@@ -1,12 +1,11 @@
 #include "SBNprob.h"
 using namespace sbn;
 
-SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases, std::vector<double> mass ) :hamiltonian(dim), hamil_kin(dim), potential(dim), UtVU(dim), U(dim), Uconj(dim){
+SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases, std::vector<double> mass ) :hamiltonian(dim), hamil_kin(dim), potential(dim), UtVU(dim), U(dim), Uconj(dim),U_H0_Ut(dim){
 	dimension=dim;
 	Nneutrino = dim;
 	degree = 3.14159/180.0;
-	conversion_parameter = 5.06842; //this is Gev->inv KM of course
-
+	conversion_parameter = 5.06842*1e9;//this is frim km to inv ev
 	
 	this->setParameters(angles,phases,mass);
 	rho = 2.8;
@@ -16,35 +15,6 @@ SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases,
 	useAntiNeutrino = false;
 	this->init();
 }
-
-SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), UtVU(dim), U(dim), Uconj(dim) {
-	dimension=dim;
-	Nneutrino = dim;
-	degree = 3.14159/180.0;
-	conversion_parameter = 5.06842;
-
-	t12 = 30*degree;
-	t23 = 44*degree;
-	t13 = 8*degree;
-	t14 = 15*degree;
-	t24 = 10*degree;
-	t34 = 20*degree;
-
-	d34=0;
-	d24=0;
-	d13=0;
-
-	Dm21=7.5*pow(10,-5);//7.5e-5;
-	Dm31=2.552*pow(10,-3);//e-3;
-	Dm41=1;
-
-	rho = 2.8;
-
-	useMatterEffect = true;
-	useNCMatterEffect = false;
-	this->init();
-}
-
 int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phases, std::vector<double> mass){
 
 	t12=angles.at(0)*degree;
@@ -62,10 +32,15 @@ int SBNprob::setParameters(std::vector<double> angles, std::vector<double> phase
 	Dm21=mass.at(0);
 	Dm31=mass.at(1);
 	Dm41=mass.at(2);
+
+	Ms1 = fabs(Dm21);
+	Ms2 = fabs(Dm21)+Dm21;
+	Ms3 = fabs(Dm21)+Dm31;
+	Ms4 = Dm41; 
+
 	this->init();
 
 		return 0;
-	
 }
 
 int SBNprob::init(){
@@ -74,16 +49,10 @@ int SBNprob::init(){
 	
 	double Ye=0.4957;
 	//formula from KOPP theisis
-	Vcc= conversion_parameter*7.56e-14*1e9*rho*Ye;// want potential to be in inv km also.
+	Vcc= 7.56e-14*rho*Ye;// want potential to be in this unitless way for now;
 
 
-	if(useAntiNeutrino){
-		Vcc=-Vcc;
-	}
-
-	//does the VNC flip slight also with antineutrino, check. I believe so.
-	Vnc= -0.5*Vcc;
-	
+	Vnc= 0;//-0.5*Vcc;
 
 	if(!useNCMatterEffect){
 		Vnc =0.0;
@@ -114,147 +83,142 @@ int SBNprob::init(){
 	U.mult(&R12);
 
 
+	//std::cout<<"PRINT U"<<std::endl;
+
+	for(int i=0; i<4; i++){
+	//std::cout<<"("<<U.real(i,0)<<" "<<U.imag(i,0)<<") ("<<U.real(i,1)<<" "<<U.imag(i,1)<<") ("<<U.real(i,2)<<" "<<U.imag(i,2)<<") ("<<U.real(i,3)<<" "<<U.imag(i,3)<<")"<<std::endl; 
+
+	}
+
 	Uconj=U;
 	Uconj.hermitianConjugate();
-	std::vector<double> mass_splittings = {0.0,Dm21,Dm31,Dm41};
-	hamil_kin.setDiagonal(mass_splittings);
 
-	potential.real(0,0)= Vcc;
-	potential.real(dimension-1,dimension-1)=-Vnc;
+	std::vector<double> masses = {0,0.5*Dm21,0.5*Dm31,0.5*Dm41};
+	//std::cout<<"Msq "<<0<<" "<<Dm21<<" "<<Dm31<<" "<<Dm41<<std::endl;
+	hamil_kin.setDiagonal(masses);
 
-	UtVU=U;
-	UtVU.mult(&hamil_kin);
-	UtVU.mult(&Uconj);
+	//So we have U, Udagger and H
 
+	U_H0_Ut = U;
+	U_H0_Ut.mult(&hamil_kin);
+	U_H0_Ut.mult(&Uconj);
 
 return 0;
 }
 
-double SBNprob::probabilityGlobes(int a, int b, int panti, double E, double L ){
-	double ans = 0;
-	{
-	char* dunno;
-	glbInit(dunno);
-
-
-	glb_params globes_params = glbAllocParams();
-	glbDefineParams(globes_params,t12,t13, t23, d13,Dm21,Dm31);
-	glbSetDensityParams(globes_params,1.0,GLB_ALL);
-	glbSetOscillationParameters(globes_params);
-
-  	glbSetRates();
-  
-	ans =  glbConstantDensityProbability(a+1,b+1,panti, E,L, rho);
-
-	glbFreeParams(globes_params);
-
+double SBNprob::probabilityMatterExact(int a, int b, double E, double L){
+	double ans;
+	if(useAntiNeutrino){
+		ans = probabilityMatterExact(a,b,-1,E,L);
+	}else{
+		ans = probabilityMatterExact(a,b,1,E,L);
 	}
-	return ans;
-
+	return ans; 
 }
 
-
-int SBNprob::setMatterEffect(bool in){
-	useMatterEffect = in;
-	this->init();
-	return 0;
-}
-
-int SBNprob::setNCMatterEffect(bool in){
-	useNCMatterEffect = in;
-	this->init();
-	return 0;
-}
-
-int SBNprob::setAntiNeutrinoMode(bool in){
-       useAntiNeutrino = in;
-       d13 = -d13;
-       d24 = -d24;
-       d34 = -d34;
-       this->init();
-       return 0;
-
-}
-
-double SBNprob::probabilityVacuumExact(int a, int b, double E, double L ){
-
-	complex_matrix S0(Nneutrino);
-
-	hamiltonian = UtVU;
+double SBNprob::probabilityMatterExact(int a, int b, int nuornubar, double Energy, double Length ){
 	
-	hamiltonian.mult(conversion_parameter/(2.0*E));
+	for(int i=0;i<4; i++){
+	for(int j=0;j<4; j++){
+	//	std::cout<<"UHoTUtr "<<i<<" "<<j<<" real "<<U_H0_Ut.real(i,j)<<" imag "<<U_H0_Ut.imag(i,j)<<std::endl;
+	}
+	}
+
+	double E = Energy*1e9; //in eV
+	double L = Length*conversion_parameter;// in eV^-1 also 
 	
-	//Blarg, hermitian->antihermitian...  Using the fact Exp[-I M] = Cos[M]-I Sin[M], even for matricies
-	//And calculate the matrix exponant 
-	std::vector<double> eigenval;
-	complex_matrix eigenvec(Nneutrino);
-	complex_matrix eigenvecTr(Nneutrino);
-
-	//hamiltonian has units of inverse km at this point I believe. 
-	S0=hamiltonian;
-	S0.matrixExpTest(L, &eigenval, &eigenvec);
-
-	//exponant is now S0 who cares how it got there
-
-	complex_matrix ans(Nneutrino);
-	eigenvecTr = eigenvec;
-	eigenvecTr.hermitianConjugate();
-
-	ans=S0;
-	//ans = eigenvecTr; //should be eigenvecTr
-	//ans.mult(&S0);
-	//ans.mult(&eigenvec); //should be eigenvec ?? 
-
-	double re = ans.real(b,a);
-	double im = ans.imag(b,a);
-
-	return re*re+im*im;
-
-
-};
-
-
-
-double SBNprob::probabilityMatterExact(int a, int b, double E, double L ){
-
-	complex_matrix S0(Nneutrino);
-
-	hamiltonian = UtVU;
+	//std::cout<<"LCONVR "<<L<<std::endl;
 	
-	hamiltonian.mult(conversion_parameter/(2.0*E));
+	complex_matrix S(Nneutrino);
+
+	hamiltonian = U_H0_Ut;
+
+	//Are we working with antineutrinos here?
+	if(nuornubar<0){
+		hamiltonian.conj();
 	
+		potential.real(0,0)= -1.0*Vcc;
+		potential.real(dimension-1,dimension-1)=-Vnc;
+	}else{
+		potential.real(0,0)= Vcc;
+		potential.real(dimension-1,dimension-1)=-Vnc;
+	}
+
+	hamiltonian.mult(1.0/E,1.0/E);
+
+
+	
+	for(int i=0;i<4; i++){
+	for(int j=0;j<4; j++){
+	//	std::cout<<"Hamil "<<i<<" "<<j<<" real "<<hamiltonian.real(i,j)<<" imag "<<hamiltonian.imag(i,j)<<std::endl;
+	}
+	}
+
 	if(useMatterEffect){
 		hamiltonian.add(&potential);
 	}
+	//std::cout<<"Hamil after adding V, "<<hamiltonian.real(0,0)<<" "<<hamiltonian.imag(0,0)<<std::endl;
 	
 	//Blarg, hermitian->antihermitian...  Using the fact Exp[-I M] = Cos[M]-I Sin[M], even for matricies
-	//And calculate the matrix exponant 
 	std::vector<double> eigenval;
 	complex_matrix eigenvec(Nneutrino);
 	complex_matrix eigenvecTr(Nneutrino);
 
+
+
+
 	//hamiltonian has units of inverse km at this point I believe. 
-	S0=hamiltonian;
-	S0.matrixExpTest(L, &eigenval, &eigenvec);
+	// Going to find the eigenvalues and eigenvectors of this hamiltonian. This destorys temp4eigen at the moment.
+	complex_matrix temp4eigen(Nneutrino);
+	temp4eigen = hamiltonian;
+	temp4eigen.getEigenStuff(&eigenval, &eigenvec);
 
-	//exponant is now S0 who cares how it got there
-
-	complex_matrix ans(Nneutrino);
+	//std::cout<<"Eigen: "<<eigenval.at(0)<<" "<<eigenval.at(1)<<" "<<eigenval.at(2)<<" "<<eigenval.at(3)<<std::endl;
+	
 	eigenvecTr = eigenvec;
 	eigenvecTr.hermitianConjugate();
 
-	ans=S0;
-	//ans = eigenvecTr; //should be eigenvecTr
-	//ans.mult(&S0);
-	//ans.mult(&eigenvec); //should be eigenvec ?? 
 
-	double re = ans.real(b,a);
-	double im = ans.imag(b,a);
+	//Now calculate the S matrix in the mass basis in batter. Its diagonal here by definitoon;
+	//its zero frm its constructer already
+	for(int i=0; i<S.dimension; i++){
+		double cphase = -L*eigenval.at(i);
+		S.real(i,i) = cos(cphase); 
+		S.imag(i,i) = sin(cphase); 
+	}
+
+	//Now lets transform back to the flavour basis using Q:=eigenvec
+	//T0 is just a multplicative aid
+	complex_matrix T0(Nneutrino);
+	T0 = eigenvec;
+	T0.mult(&S);
+	T0.mult(&eigenvecTr);
+
+	S=T0;
+
+	double re = S.real(abs(a),abs(b));
+	double im = S.imag(abs(a),abs(b));
 
 	return re*re+im*im;
 
 
 };
+
+
+
+
+double SBNprob::probabilityVacuumExact(int a, int b, double E, double L ){
+	return probabilityVacuumExact(a,b,1,E,L);
+}
+
+double SBNprob::probabilityVacuumExact(int a, int b, int nuornubar, double E, double L ){
+	useMatterEffect =false;
+	double ans = probabilityMatterExact(a,b,nuornubar,E,L);
+	useMatterEffect = true;
+	return ans;
+}
+
+
 
 double SBNprob::probabilityMatterExactSmear(int a, int b, double E, double L ,double percen, double n){
 
@@ -339,6 +303,81 @@ int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, dou
 
 
 
+double SBNprob::probabilityGlobes(int a, int b, int panti, double E, double L ){
+	double ans = 0;
+	{
+	char* dunno;
+	glbInit(dunno);
 
+
+	glb_params globes_params = glbAllocParams();
+	glbDefineParams(globes_params,t12,t13, t23, d13,Dm21,Dm31);
+	glbSetDensityParams(globes_params,1.0,GLB_ALL);
+	glbSetOscillationParameters(globes_params);
+
+  	glbSetRates();
+  
+	ans =  glbConstantDensityProbability(a+1,b+1,panti, E,L, rho);
+
+	glbFreeParams(globes_params);
+
+	}
+	return ans;
+
+}
+
+
+int SBNprob::setMatterEffect(bool in){
+	useMatterEffect = in;
+	this->init();
+	return 0;
+}
+
+int SBNprob::setNCMatterEffect(bool in){
+	useNCMatterEffect = in;
+	this->init();
+	return 0;
+}
+
+int SBNprob::setAntiNeutrinoMode(bool in){
+       useAntiNeutrino = in;
+       //d13 = -d13;
+       //d24 = -d24;
+       //d34 = -d34;
+       this->init();
+       return 0;
+
+}
+
+
+
+
+SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), UtVU(dim), U(dim), Uconj(dim), U_H0_Ut(dim) {
+	dimension=dim;
+	Nneutrino = dim;
+	degree = 3.14159/180.0;
+	conversion_parameter = 5.06842;
+
+	t12 = 30*degree;
+	t23 = 44*degree;
+	t13 = 8*degree;
+	t14 = 15*degree;
+	t24 = 10*degree;
+	t34 = 20*degree;
+
+	d34=0;
+	d24=0;
+	d13=0;
+
+	Dm21=7.5*pow(10,-5);//7.5e-5;
+	Dm31=2.552*pow(10,-3);//e-3;
+	Dm41=1;
+
+	rho = 2.8;
+
+	useMatterEffect = true;
+	useNCMatterEffect = false;
+	this->init();
+}
 
 

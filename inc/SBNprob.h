@@ -10,7 +10,6 @@
 #include <map>
 #include <globes/globes.h>   /* GLoBES library */
 
-
 #include <prob.h>
 
 
@@ -25,6 +24,7 @@ namespace sbn{
 
 			double t12,t13,t23,t14,t24,t34;
 			double Dm21, Dm31,Dm41;
+			double Ms1, Ms2,Ms3,Ms4;
 			double d13,d24,d34;
 
 			double Vcc,Vnc;
@@ -48,15 +48,21 @@ namespace sbn{
 			complex_matrix UtVU;
 			complex_matrix U;
 			complex_matrix Uconj;	
-	
+			
+			//New methodology
+			complex_matrix U_H0_Ut;
+
 			int setMatterEffect(bool);
 			int setAntiNeutrinoMode(bool);
 			int setNCMatterEffect(bool);
 			int setParameters( std::vector<double>,std::vector<double>, std::vector<double>);
 
 			double probabilityVacuumExact(int a, int b ,double E, double L);
+			double probabilityVacuumExact(int a, int b, int nuornubar, double E, double L );
 			
+			double probabilityMatterExact(int a, int b ,int nuornubar, double E, double L);
 			double probabilityMatterExact(int a, int b ,double E, double L);
+
 
 			double probabilityGlobes(int a, int b, int panti, double E, double L );
 

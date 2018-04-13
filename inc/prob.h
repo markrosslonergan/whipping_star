@@ -39,12 +39,15 @@ struct complex_matrix{
 	int mult(double );
 	int mult(double ,double);
 	int add(complex_matrix* in );
-
+	int conj();
 
 
 
 	std::vector<double> matrixExp();
 	std::vector<double> matrixExpTest(double L, std::vector<double> *, complex_matrix *);
+
+
+	std::vector<double> getEigenStuff(std::vector<double> *, complex_matrix *);
 
 	int setRotation(int,int, double);
 	int setComplexRotation(int,int,double,double);

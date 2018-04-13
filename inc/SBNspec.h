@@ -1,6 +1,6 @@
 #ifndef SBNSPEC_H_
 #define SBNSPEC_H_
-
+#include <algorithm>
 #include <cmath>
 #include <vector>
 #include <iostream>
@@ -16,6 +16,7 @@
 #include <sstream>
 #include <iomanip>
 
+#include <TStyle.h>
 #include <ctime>
 #include <TFile.h>
 #include "params.h"
@@ -23,6 +24,22 @@
 namespace sbn{
 //This is the basic class that holds all spectral information in whatever reco or true variable you have decided you want in the xml files.
 // Inherits from SBNconfig as thats how its all configured/kept equal! :
+
+
+template <typename T>
+std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+
+  // initialize original index locations
+  std::vector<size_t> idx(v.size());
+  iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
+
 class SBNspec : public SBNconfig{
 	
 	public:

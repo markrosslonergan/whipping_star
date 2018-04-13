@@ -79,8 +79,9 @@ class SBNconfig {
 	std::vector<std::string> detector_names; 		
 	std::vector<std::string> channel_names; 		
 	std::vector<std::vector<std::string >> subchannel_names; 
+	std::vector<std::vector<std::string >> subchannel_plotnames; 
 
-
+	std::map<std::string, std::string> map_subchannel_plotnames;
 	// vector Bools for turning on and off certain modes/detectors..etc..
 	std::vector<bool> mode_bool; 
 	std::vector<bool> detector_bool; 

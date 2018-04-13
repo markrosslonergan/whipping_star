@@ -39,7 +39,6 @@ SBNspec::SBNspec(std::string whichxml, int which_universe) : SBNconfig(whichxml)
 
 SBNspec::SBNspec(const char * name, std::string whichxml, bool isverbose) : SBNconfig(whichxml, isverbose) {
 	//Contruct from a prexisting histograms!
-
 	char namei[200];
 	sprintf(namei,"%s.root",name);	
 	TFile f(namei);
@@ -310,7 +309,7 @@ int SBNspec::writeOut(std::string filename){
 	//kWhite  = 0,   kBlack  = 1,   kGray    = 920,  kRed    = 632,  kGreen  = 416,
 	//kBlue   = 600, kYellow = 400, kMagenta = 616,  kCyan   = 432,  kOrange = 800,
 	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
-	std::vector<int> mycol = {kRed-7, kRed+1, kYellow-7, kOrange-3, kBlue+3, kBlue,  kGreen+1,kBlue-7, kPink, kViolet, kCyan,kMagenta,kAzure};
+	std::vector<int> mycol = {kRed-7, kRed+1, kYellow-7, kOrange-3, kBlue, kBlue+2,  kGreen+1,kBlue-7, kPink, kViolet, kCyan,kMagenta,kAzure};
 
 	std::string fn1= "SBN_"+filename;
 	TFile *f2 = new TFile(fn1.c_str(),"RECREATE" ); 
@@ -357,7 +356,7 @@ int SBNspec::writeOut(std::string filename){
 
 						std::ostringstream out;
 						out << std::setprecision(6) << total_events;
-						std::string hmm = " , Total : ";
+						std::string hmm = "\t\t";
 						std::string tmp = h.GetName() +hmm+ out.str();
 						legStack.AddEntry(&h, tmp.c_str() , "f");
 
@@ -417,7 +416,7 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 	//kWhite  = 0,   kBlack  = 1,   kGray    = 920,  kRed    = 632,  kGreen  = 416,
 	//kBlue   = 600, kYellow = 400, kMagenta = 616,  kCyan   = 432,  kOrange = 800,
 	//kSpring = 820, kTeal   = 840, kAzure   =  860, kViolet = 880,  kPink   = 900
-	std::vector<int> mycol = {kRed-7, kRed+1, kYellow-7, kOrange-3, kBlue+3, kBlue,  kGreen+1,kBlue-7, kPink, kViolet, kCyan,kMagenta,kAzure};
+	std::vector<int> mycol = {kRed-7, kRed+1, kYellow-7, kOrange-3, kBlue, kBlue+2,  kGreen+1,kBlue-7, kPink, kViolet, kCyan,kMagenta,kAzure};
 
 
 	TFile *f = new TFile(filename.c_str(),"RECREATE" ); 
@@ -428,7 +427,7 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 	std::vector<TH1D> temp_comp = compsec->hist;
 
 	for(int k=0; k< fullnames.size(); k++){
-		TCanvas *ctmp = new TCanvas((std::to_string(k)+"_"+fullnames.at(k)).c_str(), (std::to_string(k)+"_"+fullnames.at(k)).c_str());
+		TCanvas *ctmp = new TCanvas((std::to_string(k)+"_"+fullnames.at(k)).c_str(), (std::to_string(k)+"_"+fullnames.at(k)).c_str(),1200,1200);
 		ctmp->cd();
 		TH1D * h1 = (TH1D*) temp.at(map_hist[fullnames.at(k)]).Clone((std::to_string(k)+fullnames.at(k)+"_1").c_str());
 		TH1D * h2 = (TH1D*) temp_comp.at(map_hist[fullnames.at(k)]).Clone((std::to_string(k)+fullnames.at(k)+"_2").c_str());
@@ -464,9 +463,13 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 				bool this_run_comp = false;
 
 				TCanvas* Cstack= new TCanvas(canvas_name.c_str(),canvas_name.c_str());
+				Cstack->SetFixedAspectRatio();		
+
 				Cstack->cd();
 				THStack * hs = new THStack(canvas_name.c_str(),  canvas_name.c_str());
-				TLegend legStack(0.6,0.35,0.875,0.875);
+				TLegend legStack(0.5,0.25,0.89,0.89);
+				legStack.SetLineWidth(0);
+				legStack.SetLineColor(kWhite);
 				int n=0;
 				int nc=0;
 				TH1D * hcomp;				
@@ -496,8 +499,8 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 						}
 
 						std::ostringstream out;
-						out << std::setprecision(6) << total_events;
-						std::string hmm = " , Total : ";
+						out << std::setprecision(3) << total_events;
+						std::string hmm = "\t";
 						std::string tmp = h.GetName() +hmm+ out.str();
 
 
@@ -510,10 +513,16 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 				}
 
 
+				//Ok to sort the histograms based on "size" will need a few tricks
+				std::vector<double> integral_sorter;
+				std::vector<TH1*> to_sort;
+				std::vector<std::string> l_to_sort;
+
 				for(auto &h : temp){
 					std::string test = h.GetName();
 					if(test.find(canvas_name)!=std::string::npos ){
-						double total_events = h.GetSumOfWeights();
+						
+    						double total_events = h.GetSumOfWeights();
 						h.Sumw2(false);
 						h.Scale(1,"width,nosw2");
 						h.GetYaxis()->SetTitle("Events/GeV");
@@ -530,19 +539,33 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 						}
 
 						std::ostringstream out;
-						out << std::setprecision(6) << total_events;
-						std::string hmm = " , Total : ";
-						std::string tmp = h.GetName() +hmm+ out.str();
-						legStack.AddEntry(&h, tmp.c_str() , "f");
+						out <<std::fixed<< std::setprecision(3) << total_events;
+						std::string hmm = " \t ";
+						std::string tmp = map_subchannel_plotnames.at(h.GetName()) +hmm+ out.str();
+						//legStack.AddEntry(&h, tmp.c_str() , "f");
 						hsum->Add(&h);
-						hs->Add(&h);
+						//hs->Add(&h);
 						n++;
 
 						this_run=true;
 
+						to_sort.push_back(&h);
+						l_to_sort.push_back(tmp);
+						integral_sorter.push_back(total_events);	
+
 					}
 				}
-		
+				//Sort!
+				for (int i: sort_indexes(integral_sorter)) {
+					hs->Add(to_sort.at(i));	
+					legStack.AddEntry(to_sort.at(i), l_to_sort.at(i).c_str(),"f");
+				}
+	
+	
+	
+				//Now loop and Add and fill legend
+				
+	
 
 				/****Not sure why but this next line seg faults...******
 				 *	hs->GetYaxis()->SetTitle("Events/GeV");
@@ -560,8 +583,6 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					double title_offset_upper = 1.45;
 
 
-
-
 					Cstack->cd();	
 					TPad *pad0top = new TPad(("pad0top_"+canvas_name).c_str(), ("pad0top_"+canvas_name).c_str(), 0, 0.35, 1, 1.0);
 					pad0top->SetBottomMargin(0); // Upper and lower plot are joined
@@ -569,15 +590,29 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					pad0top->cd();               // pad2top becomes the current pad
 					hs->Draw();
 					hcomp->SetLineColor(kBlack);
-					hcomp->SetMarkerColor(kBlack);
-					hcomp->SetMarkerStyle(20);
+					hcomp->SetLineWidth(2);
+					hcomp->SetFillColor(kBlack);
+					hcomp->SetFillStyle(3144);
 
-					hcomp->Draw("E1 same");
+					hs->GetYaxis()->SetTitle("Events/GeV");
+					hcomp->Draw("E2 same");
+					TH1* hcompclone = (TH1*)hcomp->Clone("dangit");
+					hcompclone->SetFillStyle(0);
+
+					hcompclone->SetLineWidth(3);
+					hcompclone->SetLineStyle(9);
+					hcompclone->Draw("same hist");
+
+
+					//hcomp->Draw("hist same");
+					hs->SetMaximum(std::max(hs->GetMaximum(), hcomp->GetMaximum())*1.1);
+					hs->SetMinimum(0.001);
+
 					Cstack->Update();
 					legStack.Draw();
 
 					Cstack->cd();
-
+					gStyle->SetOptStat(0);
 					TPad *pad0bot = new TPad(("padbot_"+canvas_name).c_str(),("padbot_"+canvas_name).c_str(), 0, 0.05, 1, 0.35);
 					pad0bot->SetTopMargin(0);
 					pad0bot->SetBottomMargin(0.351);
@@ -585,13 +620,15 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					pad0bot->Draw();
 					pad0bot->cd();       // pad0bot becomes the current pad
 
-					TH1* ratpre = (TH1*)hsum->Clone(("ratio_"+canvas_name).c_str());
-					ratpre->Divide(hcomp);		
+					TH1* ratpre = (TH1*)hcomp->Clone(("ratio_"+canvas_name).c_str());
+					ratpre->Divide(hsum);		
+					ratpre->SetStats(false);
 					ratpre->Draw("hist");	
 					ratpre->SetFillColor(kWhite);
 					ratpre->SetFillStyle(0);
 					ratpre->SetLineWidth(2);
 
+					gStyle->SetOptStat(0);
 					TLine *line = new TLine(ratpre->GetXaxis()->GetXmin(),1.0,ratpre->GetXaxis()->GetXmax(),1.0 );
 					line->Draw("same");
 					ratpre->SetLineColor(kBlack);
@@ -599,15 +636,16 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					ratpre->GetYaxis()->SetTitle("Ratio");
 					ratpre->GetXaxis()->SetTitleOffset(title_offset_ratioX);
 					ratpre->GetYaxis()->SetTitleOffset(title_offset_ratioY);
-					ratpre->SetMinimum(0);	
-					ratpre->SetMaximum(2);
+					ratpre->SetMinimum(ratpre->GetMinimum()*0.92);	
+					ratpre->SetMaximum(ratpre->GetMaximum()*1.08);
 					ratpre->GetYaxis()->SetTitleSize(title_size_ratio);
 					ratpre->GetXaxis()->SetTitleSize(title_size_ratio);
 					ratpre->GetYaxis()->SetLabelSize(label_size_ratio);
 					ratpre->GetXaxis()->SetLabelSize(label_size_ratio);
 					ratpre->GetXaxis()->SetTitle("Reconstructed Energy [GeV]");
 
-					Cstack->Write("hist");
+					Cstack->Write(canvas_name.c_str() );
+					
 				}
 
 			}

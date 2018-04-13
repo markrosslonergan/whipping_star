@@ -95,6 +95,7 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 
 	//max subchannels 100?
+	subchannel_plotnames.resize(100);
 	subchannel_names.resize(100);
 	subchannel_bool.resize(100);
 	subchannel_osc_patterns.resize(100);
@@ -207,6 +208,14 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 		while(pSubChan){
 			//std::cout<<"Subchannel: "<<pSubChan->Attribute("name")<<" use: "<<pSubChan->Attribute("use")<<" osc: "<<pSubChan->Attribute("osc")<<std::endl;
 			subchannel_names[nchan].push_back(pSubChan->Attribute("name"));
+
+			if(pSubChan->Attribute("plotname"))
+			{
+				subchannel_plotnames[nchan].push_back(pSubChan->Attribute("plotname"));
+			}else{
+				subchannel_plotnames[nchan].push_back(pSubChan->Attribute("name"));
+			}
+
 			subchannel_bool[nchan].push_back(strtod(pSubChan->Attribute("use"),&end));
 			//0 means dont oscillate, 11 means electron disapearance, -11 means antielectron dis..etc..
 			if(pSubChan->Attribute("osc"))
@@ -215,7 +224,6 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 			}
 
 			subchannel_osc_patterns.at(nchan).push_back(strtod(pSubChan->Attribute("osc"), &end));
-
 
 
 
@@ -331,7 +339,9 @@ SBNconfig::SBNconfig(std::string whichxml, bool isverbose): xmlname(whichxml) {
 
 					tempn = mode_names[im] +"_" +detector_names[id]+"_"+channel_names[ic]+"_"+subchannel_names[ic][sc];
 					if(isVerbose)std::cout<<"SBNconfig::SBNconfig || "<<tempn<<" "<<im<<" "<<id<<" "<<ic<<" "<<sc<<std::endl;
-				
+			
+					map_subchannel_plotnames[tempn] = subchannel_plotnames.at(ic).at(sc);
+	
 					// This is where you choose NOT to use some fields	
 					if(mode_bool[im] && detector_bool[id] && channel_bool[ic] && subchannel_bool[ic][sc]){					
 				
