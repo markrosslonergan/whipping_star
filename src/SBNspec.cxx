@@ -327,6 +327,7 @@ int SBNspec::writeOut(std::string filename){
 
 
 
+
 	for(auto m: mode_names){
 		for(auto d: detector_names){
 			for(auto c: channel_names){
@@ -334,16 +335,32 @@ int SBNspec::writeOut(std::string filename){
 				std::string canvas_name = m+"_"+d+"_"+c;
 
 				bool this_run = false;
+				bool this_run_comp = false;
 
 				TCanvas* Cstack= new TCanvas(canvas_name.c_str(),canvas_name.c_str());
+				Cstack->SetFixedAspectRatio();		
+
 				Cstack->cd();
-				THStack * hs 	   = new THStack(canvas_name.c_str(),  canvas_name.c_str());
-				TLegend legStack(0.6,0.35,0.875,0.875);
+				THStack * hs = new THStack(canvas_name.c_str(),  canvas_name.c_str());
+				TLegend legStack(0.65,0.25,0.89,0.89);
+				legStack.SetLineWidth(0);
+				legStack.SetLineColor(kWhite);
 				int n=0;
+				int nc=0;
+				TH1D *hsum;
+	
+	
+
+				//Ok to sort the histograms based on "size" will need a few tricks
+				std::vector<double> integral_sorter;
+				std::vector<TH1*> to_sort;
+				std::vector<std::string> l_to_sort;
+
 				for(auto &h : temp){
 					std::string test = h.GetName();
 					if(test.find(canvas_name)!=std::string::npos ){
-						double total_events = h.GetSumOfWeights();
+						
+    						double total_events = h.GetSumOfWeights();
 						h.Sumw2(false);
 						h.Scale(1,"width,nosw2");
 						h.GetYaxis()->SetTitle("Events/GeV");
@@ -352,34 +369,76 @@ int SBNspec::writeOut(std::string filename){
 						h.SetFillColor(mycol[n]);
 						h.SetLineColor(kBlack);
 						h.SetTitle(h.GetName());
-						h.Write();
+						//h.Write();
+
+						if(!this_run){
+							hsum = (TH1D*)h.Clone(("sum_"+canvas_name).c_str());
+							hsum->Reset();
+						}
 
 						std::ostringstream out;
-						out << std::setprecision(6) << total_events;
-						std::string hmm = "\t\t";
-						std::string tmp = h.GetName() +hmm+ out.str();
-						legStack.AddEntry(&h, tmp.c_str() , "f");
-
-						hs->Add(&h);
+						out <<std::fixed<< std::setprecision(3) << total_events;
+						std::string hmm = " \t ";
+						std::string tmp = map_subchannel_plotnames.at(h.GetName()) +hmm+ out.str();
+						//legStack.AddEntry(&h, tmp.c_str() , "f");
+						hsum->Add(&h);
+						//hs->Add(&h);
 						n++;
 
 						this_run=true;
 
+						to_sort.push_back(&h);
+						l_to_sort.push_back(tmp);
+						integral_sorter.push_back(total_events);	
+
 					}
 				}
-				/****Not sure why but this next line seg faults...******
-				 *	hs->GetYaxis()->SetTitle("Events/GeV");
-				 ******************************************************/
-				if(this_run){
+				//Sort!
+				for (int i: sort_indexes(integral_sorter)) {
+					hs->Add(to_sort.at(i));	
+					legStack.AddEntry(to_sort.at(i), l_to_sort.at(i).c_str(),"f");
+				}
+				
+	
+
+				if(this_run ){
+					double plot_pot=5e19;
+
+					double title_size_ratio=0.1;
+					double label_size_ratio=0.1;
+					double title_offset_ratioY = 0.3 ;
+					double title_offset_ratioX = 1.1;
+
+					double title_size_upper=0.15;
+					double label_size_upper=0.05;
+					double title_offset_upper = 1.45;
+
+
+					Cstack->cd();	
 					hs->Draw();
+
+					hs->GetYaxis()->SetTitle("Events/GeV");
+
+
+					//hcomp->Draw("hist same");
+					hs->SetMaximum(hs->GetMaximum()*1.1);
+					hs->SetMinimum(0.001);
+
+					hs->GetXaxis()->SetTitle("Reconstructed Energy [GeV]");
 					Cstack->Update();
-					legStack.Draw();	
-					Cstack->Write("hist");
+					legStack.Draw();
+	
+					f->cd();
+
+					Cstack->Write(canvas_name.c_str() );
+					
 				}
 
 			}
 		}
 	}
+
+
 
 	f->Close();
 
@@ -445,7 +504,6 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 		h2->Draw("hist same");		
 
 		h1->SetMaximum(std::max(h1->GetMaximum(), h2->GetMaximum())*1.10);
-		
 
 		ctmp->Write();
 	}
@@ -467,7 +525,7 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 
 				Cstack->cd();
 				THStack * hs = new THStack(canvas_name.c_str(),  canvas_name.c_str());
-				TLegend legStack(0.5,0.25,0.89,0.89);
+				TLegend legStack(0.65,0.25,0.89,0.89);
 				legStack.SetLineWidth(0);
 				legStack.SetLineColor(kWhite);
 				int n=0;
@@ -560,11 +618,10 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					hs->Add(to_sort.at(i));	
 					legStack.AddEntry(to_sort.at(i), l_to_sort.at(i).c_str(),"f");
 				}
-	
-	
-	
-				//Now loop and Add and fill legend
 				
+				legStack.AddEntry(hcomp, "Compared Point", "fl");
+	
+	
 	
 
 				/****Not sure why but this next line seg faults...******
@@ -592,7 +649,7 @@ int SBNspec::compareSBNspecs(SBNspec * compsec, std::string filename){
 					hcomp->SetLineColor(kBlack);
 					hcomp->SetLineWidth(2);
 					hcomp->SetFillColor(kBlack);
-					hcomp->SetFillStyle(3144);
+					hcomp->SetFillStyle(3244);
 
 					hs->GetYaxis()->SetTitle("Events/GeV");
 					hcomp->Draw("E2 same");

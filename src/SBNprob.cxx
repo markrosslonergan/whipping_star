@@ -11,7 +11,7 @@ SBNprob::SBNprob(int dim,std::vector<double> angles, std::vector<double> phases,
 	rho = 2.8;
 
 	useMatterEffect = true;
-	useNCMatterEffect = false;
+	useNCMatterEffect = true;
 	useAntiNeutrino = false;
 	this->init();
 }
@@ -52,7 +52,7 @@ int SBNprob::init(){
 	Vcc= 7.56e-14*rho*Ye;// want potential to be in this unitless way for now;
 
 
-	Vnc= 0;//-0.5*Vcc;
+	Vnc= -0.5*Vcc;
 
 	if(!useNCMatterEffect){
 		Vnc =0.0;
@@ -376,7 +376,7 @@ SBNprob::SBNprob(int dim) : hamiltonian(dim), hamil_kin(dim), potential(dim), Ut
 	rho = 2.8;
 
 	useMatterEffect = true;
-	useNCMatterEffect = false;
+	useNCMatterEffect = true;
 	this->init();
 }
 
