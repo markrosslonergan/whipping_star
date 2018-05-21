@@ -302,7 +302,7 @@ int SBNprob::plotProbabilityMatter(int a, int b, double EminT, double EmaxT, dou
 }
 
 
-
+/*
 double SBNprob::probabilityGlobes(int a, int b, int panti, double E, double L ){
 	double ans = 0;
 	{
@@ -325,7 +325,7 @@ double SBNprob::probabilityGlobes(int a, int b, int panti, double E, double L ){
 	return ans;
 
 }
-
+*/
 
 int SBNprob::setMatterEffect(bool in){
 	useMatterEffect = in;

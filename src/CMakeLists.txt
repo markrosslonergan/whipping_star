@@ -9,11 +9,11 @@ add_library (SBNfitlib SBNconfig.cxx SBNspec.cxx SBNfit.cxx SBNchi.cxx prob.cxx 
 include_directories ( ${CMAKE_SOURCE_DIR}/inc/)
 include_directories ( ${CMAKE_SOURCE_DIR}/src/)
 include_directories ( ${CMAKE_SOURCE_DIR}/tinyxml/)
-include_directories (/usr/local/include/globes/)
+#include_directories (/usr/local/include/globes/)
 #ROOT_GENERATE_DICTIONARY(LINKDEF mdict.h )
 #target_link_libraries(SBNfitlib mdict)
 
 target_link_libraries(SBNfitlib ${ROOT_LIBRARIES})
 target_link_libraries(SBNfitlib ${GSL_LIBRARIES})
 target_link_libraries(SBNfitlib tinyxmllib)
-target_link_libraries(SBNfitlib globes)
+#target_link_libraries(SBNfitlib globes)
