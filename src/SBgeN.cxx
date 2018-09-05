@@ -119,17 +119,25 @@ int SBgeN::doMC(std::string nam){
 		double pot_factor = 1;//pot.at(j)/(pot_scaling.at(j) * (double)nentries.at(j));
 
 		for(int i=0; i< nentries.at(j); i++){
-			if(i%250000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries.at(j)<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
+			//if(i%250000==0)std::cout<<"SBgeN::doMC || Event: "<<i<<" of "<<nentries.at(j)<<" POT factor: "<<pot_factor<<" on File "<<j<<std::endl;
 
 			trees.at(j)->GetEntry(i);
 			//here we put low level selection criteria, for example nuance interaction 1001 == CCQE, its a virtual bool.
-			if( this->eventSelection(j) ){
+			{
+			//if( this->eventSelection(j) ){
 				//This is the part where we will every histogram in this Universe
 				this->fillHistograms(j, -1, 1);
 			}//end of low level selection
 
-		}//end of entry loop
+		}//end of entry loop	
+
+
+	double scaled_events = (hist.at(map_hist[multisim_name.at(j)])).GetSumOfWeights();
+	std::cout<<"SBgeN::doMC || on\t"<<multisim_name.at(j)<<"\t\tEntries:\t"<<nentries.at(j)<<" Scaled Events:\t"<<scaled_events<<" ratio to entries:\t"<<scaled_events/((double)nentries.at(j))<<"\tFor(x10):\t"<<(scaled_events/((double)nentries.at(j)))/0.1<<" ND: "<<(10*scaled_events/((double)nentries.at(j)))/0.1<<std::endl;
+
 	}//end of file loop 
+
+
 
 	std::cout<<"SBgeN::doMC || Finished event loop, running tidyHistograms"<<std::endl;
 	this->tidyHistograms();

@@ -8,7 +8,7 @@
 #include <string>
 #include <array>
 #include <map>
-#include <globes/globes.h>   /* GLoBES library */
+//#include <globes/globes.h>   /* GLoBES library */
 
 #include <prob.h>
 
