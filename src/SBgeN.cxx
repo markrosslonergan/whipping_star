@@ -73,29 +73,29 @@ int SBgeN::doMC(std::string nam){
 		nentries.push_back(trees.back()->GetEntries());
 
 
-		std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
+		//std::cout<<"SBgeN::SBgeN || Starting Branch Address Assignment."<<std::endl;
 		for(int k=0; k< branch_names_int.at(j).size();k++){
 			trees.at(j)->SetBranchAddress(branch_names_int.at(j).at(k).c_str(), &(vars_i.at(j).at(k)));
-			std::cout<<"SBgeN::SBgeN || Setting Integer Branch: "<<branch_names_int.at(j).at(k)<<std::endl;
+		//	std::cout<<"SBgeN::SBgeN || Setting Integer Branch: "<<branch_names_int.at(j).at(k)<<std::endl;
 		}
 		for(int k=0; k< branch_names_int_array.at(j).size();k++){
 			trees.at(j)->SetBranchAddress( branch_names_int_array.at(j).at(k).c_str(), vars_iA.at(j).at(k).data  );
-			std::cout<<"SBgeN::SBgeN || Setting Integer Array Branch: "<<branch_names_int_array.at(j).at(k)<<std::endl;
+		//	std::cout<<"SBgeN::SBgeN || Setting Integer Array Branch: "<<branch_names_int_array.at(j).at(k)<<std::endl;
 		}
 
 
 		for(int k=0; k< branch_names_double.at(j).size();k++){
 			trees.at(j)->SetBranchAddress(branch_names_double.at(j).at(k).c_str(), &(vars_d.at(j).at(k)));
-			std::cout<<"SBgeN::SBgeN || Setting Double Branch: "<<branch_names_double.at(j).at(k)<<std::endl;
+			//std::cout<<"SBgeN::SBgeN || Setting Double Branch: "<<branch_names_double.at(j).at(k)<<std::endl;
 		}
 		int jj=0;
 		for(int k=0; k< branch_names_double_array.at(j).size();k++){
 			if( branch_names_double_array_dimension.at(jj).at(k) == 3){
 				trees.at(j)->SetBranchAddress(branch_names_double_array.at(j).at(k).c_str(), vars_dA.at(j).at(k).data3);
-				std::cout<<"SBgeN::SBgeN || Setting Double Array Branch Dim 3: "<<branch_names_double_array.at(j).at(k)<<std::endl;
+			//	std::cout<<"SBgeN::SBgeN || Setting Double Array Branch Dim 3: "<<branch_names_double_array.at(j).at(k)<<std::endl;
 			}else{
 				trees.at(j)->SetBranchAddress(branch_names_double_array.at(j).at(k).c_str(), vars_dA.at(j).at(k).data);
-				std::cout<<"SBgeN::SBgeN || Setting Double Array Branch "<<branch_names_double_array.at(j).at(k)<<std::endl;
+			//	std::cout<<"SBgeN::SBgeN || Setting Double Array Branch "<<branch_names_double_array.at(j).at(k)<<std::endl;
 			}
 
 			jj++;
